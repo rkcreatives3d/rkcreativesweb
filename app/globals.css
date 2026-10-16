@@ -1,0 +1,340 @@
+@import "tailwindcss";
+
+@theme inline {
+  --font-display: var(--font-saira), ui-sans-serif, system-ui, sans-serif;
+  --font-script: var(--font-script-face), cursive;
+  --font-sans: var(--font-manrope), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains), ui-monospace, monospace;
+}
+
+/* Brand palette, sampled from the RK Creative Builds logo */
+@theme {
+  --color-page: #000000; /* pure black, same as the logo background */
+  --color-page-2: #0e0d0c;
+  --color-fg: #f4efe6;
+  --color-muted: #a39a8c;
+  --color-accent: #ff9a1a; /* molten amber filament */
+  --color-accent-2: #f5d287; /* light gold */
+  --color-accent-3: #a8681c; /* deep brushed gold */
+  --color-gold: #d4973f; /* brushed gold */
+  --color-ember: #8c3200;
+  --color-pop: #ff9a1a;
+  --color-on-pop: #000000;
+}
+
+:root {
+  color-scheme: dark;
+  /* brushed-gold sheen used for highlighted words, buttons, marquee */
+  --grad: linear-gradient(100deg, #a8681c, #d4973f 20%, #f5d287 38%, #ff9a1a 58%, #d4973f 78%, #a8681c);
+  --grad-conic: conic-gradient(from var(--holo-angle), #a8681c, #f5d287, #ff9a1a, #d4973f, #fff1c7, #a8681c);
+  --on-grad: #000000;
+  --display-weight: 800;
+  --display-case: uppercase;
+  --display-stretch: 88%;
+  --holo-style: normal;
+  --hue-anim: none;
+  --glow-a: 14%;
+  --glow-b: 9%;
+  --grain: 0.06;
+}
+
+html {
+  background: var(--color-page);
+}
+
+/* cover logo image: soft edges melt into the black page, slow float */
+.logo-feather {
+  -webkit-mask-image:
+    linear-gradient(to right, transparent, #000 5%, #000 95%, transparent),
+    linear-gradient(to bottom, transparent, #000 5%, #000 95%, transparent);
+  -webkit-mask-composite: source-in;
+  mask-image:
+    linear-gradient(to right, transparent, #000 5%, #000 95%, transparent),
+    linear-gradient(to bottom, transparent, #000 5%, #000 95%, transparent);
+  mask-composite: intersect;
+}
+.logo-float {
+  animation: logo-float 6s ease-in-out infinite;
+}
+@keyframes logo-float {
+  50% {
+    margin-top: -10px;
+  }
+}
+
+/* set by the boot script before first paint */
+.no-intro #intro {
+  display: none !important;
+}
+
+body {
+  color: var(--color-fg);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: clip;
+}
+
+/* fixed aurora behind everything */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 70% 55% at 75% -5%, color-mix(in oklab, var(--color-accent-3) var(--glow-a), transparent), transparent 60%),
+    radial-gradient(ellipse 55% 45% at -5% 45%, color-mix(in oklab, var(--color-accent) var(--glow-b), transparent), transparent 60%),
+    radial-gradient(ellipse 60% 45% at 105% 95%, color-mix(in oklab, var(--color-accent-2) var(--glow-b), transparent), transparent 60%);
+}
+
+/* Unlayered, so it wins over Tailwind's font-weight utilities: each theme
+   decides how heavy its display face is. */
+.font-display {
+  font-weight: var(--display-weight);
+  font-stretch: var(--display-stretch);
+  font-synthesis: none;
+}
+
+.display-case {
+  text-transform: var(--display-case);
+}
+
+::selection {
+  background: var(--color-accent);
+  color: var(--color-page);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-accent-2);
+  outline-offset: 3px;
+}
+
+/* ── highlighted text ─────────────────────────────── */
+.holo-text {
+  background: var(--grad);
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  font-style: var(--holo-style);
+  animation: holo-pan 6s linear infinite;
+}
+
+.holo-pan {
+  background-image: var(--grad);
+  background-size: 200% 100%;
+  animation: holo-pan 6s linear infinite;
+}
+
+@keyframes holo-pan {
+  to {
+    background-position: 200% 0;
+  }
+}
+
+.holo-letter {
+  background-image: var(--grad);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.holo-hue {
+  font-style: var(--holo-style);
+  animation: var(--hue-anim) 7s linear infinite;
+}
+
+@keyframes holo-hue {
+  to {
+    filter: hue-rotate(360deg);
+  }
+}
+
+/* ── buttons ──────────────────────────────────────── */
+@property --holo-angle {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+
+.holo-btn {
+  position: relative;
+  isolation: isolate;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: 999px;
+  padding: 0.85rem 1.6rem;
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--color-fg);
+  white-space: nowrap;
+  translate: var(--mx, 0px) var(--my, 0px);
+  transition:
+    transform 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+    translate 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.holo-btn::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  border-radius: inherit;
+  background: var(--grad-conic);
+  animation: holo-spin 4s linear infinite;
+}
+.holo-btn::after {
+  content: "";
+  position: absolute;
+  inset: 1.5px;
+  z-index: -1;
+  border-radius: inherit;
+  background: var(--color-page);
+  transition: opacity 0.3s;
+}
+.holo-btn:hover {
+  transform: translateY(-2px) scale(1.02);
+}
+.holo-btn:active {
+  transform: scale(0.97);
+}
+.holo-btn-solid {
+  color: var(--on-grad);
+}
+.holo-btn-solid::after {
+  opacity: 0;
+}
+.holo-btn:not(.holo-btn-solid):hover::after {
+  opacity: 0.85;
+}
+
+@keyframes holo-spin {
+  to {
+    --holo-angle: 360deg;
+  }
+}
+
+/* ── marquee ──────────────────────────────────────── */
+.marquee-track {
+  display: flex;
+  width: max-content;
+  animation: marquee 32s linear infinite;
+}
+.marquee-track.reverse {
+  animation-direction: reverse;
+}
+@keyframes marquee {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.text-outline {
+  color: transparent;
+  -webkit-text-stroke: 1px color-mix(in oklab, var(--color-fg) 60%, transparent);
+}
+
+/* ── surfaces ─────────────────────────────────────── */
+.orbit-btn {
+  display: grid;
+  place-items: center;
+  width: 3.25rem;
+  height: 3.25rem;
+  flex-shrink: 0;
+  border-radius: 999px;
+  border: 1px solid color-mix(in oklab, var(--color-fg) 15%, transparent);
+  font-size: 1.25rem;
+  transition: all 0.25s;
+}
+.orbit-btn:hover {
+  background: var(--color-fg);
+  color: var(--color-page);
+  transform: scale(1.08);
+}
+
+.cta-card {
+  background:
+    radial-gradient(ellipse 60% 80% at 100% 0%, color-mix(in oklab, var(--color-accent) 25%, transparent), transparent 60%),
+    radial-gradient(ellipse 50% 70% at 0% 100%, color-mix(in oklab, var(--color-accent-2) 18%, transparent), transparent 60%),
+    color-mix(in oklab, var(--color-fg) 3%, transparent);
+  border: 1px solid color-mix(in oklab, var(--color-fg) 12%, transparent);
+}
+
+.viewer-bg {
+  background: radial-gradient(circle at 50% 60%, color-mix(in oklab, var(--color-accent-3) 22%, transparent), transparent 65%);
+}
+
+.grid-bg {
+  background-image:
+    linear-gradient(color-mix(in oklab, var(--color-fg) 5%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in oklab, var(--color-fg) 5%, transparent) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+.grid-bg-accent {
+  background-image:
+    linear-gradient(color-mix(in oklab, var(--color-accent-2) 8%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in oklab, var(--color-accent-2) 8%, transparent) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+
+.footer-giant {
+  font-size: clamp(1.5rem, 6.6vw, 6rem);
+  background: linear-gradient(180deg, color-mix(in oklab, var(--color-fg) 90%, transparent), color-mix(in oklab, var(--color-fg) 5%, transparent) 85%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.scroll-line {
+  animation: scroll-line 2s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+  transform-origin: top;
+}
+@keyframes scroll-line {
+  0% {
+    transform: scaleY(0);
+  }
+  50% {
+    transform: scaleY(1);
+    transform-origin: top;
+  }
+  51% {
+    transform-origin: bottom;
+  }
+  100% {
+    transform: scaleY(0);
+    transform-origin: bottom;
+  }
+}
+
+/* film grain over everything (cheap: one tiled SVG, moved on the compositor) */
+.grain {
+  position: fixed;
+  inset: -50%;
+  z-index: 30;
+  pointer-events: none;
+  opacity: var(--grain);
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  animation: grain 0.9s steps(5) infinite;
+}
+@keyframes grain {
+  0% { transform: translate(0, 0); }
+  20% { transform: translate(-3%, 2%); }
+  40% { transform: translate(2%, -4%); }
+  60% { transform: translate(-4%, -1%); }
+  80% { transform: translate(3%, 3%); }
+  100% { transform: translate(0, 0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .marquee-track,
+  .holo-text,
+  .holo-hue,
+  .holo-pan,
+  .grain,
+  .scroll-line,
+  .holo-btn::before {
+    animation: none;
+  }
+}

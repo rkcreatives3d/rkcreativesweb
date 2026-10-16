@@ -1,0 +1,27 @@
+import type { Metadata } from "next";
+import { ShopGrid } from "@/components/ShopGrid";
+import { KineticText, SectionLabel } from "@/components/ui";
+import { Marquee } from "@/components/ui";
+
+export const metadata: Metadata = { title: "Shop" };
+
+export default function ShopPage() {
+  return (
+    <div className="pt-28 sm:pt-36">
+      <div className="mx-auto max-w-7xl px-5 sm:px-8">
+        <SectionLabel>Every object printed to order</SectionLabel>
+        <h1 className="mt-4 font-display text-[18vw] font-extrabold display-case leading-[0.85] tracking-[-0.04em] sm:text-[11vw] lg:text-[9rem]">
+          <KineticText text="The" />{" "}
+          <KineticText text="drop" holo delay={0.15} />
+        </h1>
+      </div>
+      <Marquee
+        className="my-10 border-y border-fg/10 py-3 font-mono text-xs uppercase tracking-[0.3em] text-muted"
+        items={["Pick a finish", "Pick a size", "Order on WhatsApp", "We print it", "It shows up"]}
+      />
+      <div className="mx-auto max-w-7xl px-5 pb-24 sm:px-8">
+        <ShopGrid />
+      </div>
+    </div>
+  );
+}
