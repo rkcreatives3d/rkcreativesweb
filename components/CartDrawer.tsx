@@ -47,7 +47,7 @@ export function CartDrawer() {
             role="dialog"
             aria-modal="true"
             aria-label="Cart"
-            className="fixed inset-y-0 right-0 z-50 flex w-full max-w-md flex-col border-l border-fg/10 bg-page-2/95 backdrop-blur-2xl"
+            className="fixed inset-y-0 right-0 z-50 flex w-full max-w-md flex-col border-l border-line bg-page/95 backdrop-blur-2xl"
             initial={{ x: "100%" }}
             animate={{ x: 0 }}
             exit={{ x: "100%" }}
@@ -88,7 +88,7 @@ export function CartDrawer() {
                           initial={{ opacity: 0, x: 40 }}
                           animate={{ opacity: 1, x: 0 }}
                           exit={{ opacity: 0, x: 40, height: 0, marginTop: 0 }}
-                          className="flex gap-4 rounded-2xl border border-fg/10 bg-fg/[0.03] p-4"
+                          className="flex gap-4 rounded-2xl border border-line bg-surface p-4"
                         >
                           <div className="grid h-16 w-16 shrink-0 place-items-center rounded-xl" style={{ background: f.swatch }}>
                             <span className="font-display text-xl font-extrabold text-page/70 mix-blend-hard-light">
@@ -110,7 +110,7 @@ export function CartDrawer() {
                               <Swatch css={f.swatch} size={12} /> {f.name} · {size?.label}
                             </p>
                             {i.engraving && (
-                              <p className="mt-1 truncate text-xs text-accent-2">
+                              <p className="mt-1 truncate text-xs text-pop">
                                 “{i.engraving}”{optionsLabel(i.options) && ` · ${optionsLabel(i.options)}`}
                               </p>
                             )}
@@ -140,7 +140,7 @@ export function CartDrawer() {
                     </p>
                     <div className="h-1.5 overflow-hidden rounded-full bg-fg/10">
                       <motion.div
-                        className="h-full rounded-full bg-gradient-to-r from-accent via-accent-3 to-accent-2"
+                        className="h-full rounded-full bg-pop"
                         animate={{ width: `${Math.min(100, (subtotal / site.freeShippingOver) * 100)}%` }}
                       />
                     </div>

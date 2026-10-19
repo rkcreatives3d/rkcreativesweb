@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { ShopGrid } from "@/components/ShopGrid";
 import { KineticText, SectionLabel } from "@/components/ui";
-import { Marquee } from "@/components/ui";
 
 export const metadata: Metadata = { title: "Shop" };
 
@@ -15,11 +14,7 @@ export default function ShopPage() {
           <KineticText text="drop" holo delay={0.15} />
         </h1>
       </div>
-      <Marquee
-        className="my-10 border-y border-fg/10 py-3 tabular-nums text-xs uppercase tracking-[0.12em] text-muted"
-        items={["Pick a finish", "Pick a size", "Order on WhatsApp", "We print it", "It shows up"]}
-      />
-      <div className="mx-auto max-w-7xl px-5 pb-24 sm:px-8">
+      <div className="mx-auto mt-10 max-w-7xl px-5 pb-24 sm:px-8">
         <ShopGrid />
       </div>
     </div>

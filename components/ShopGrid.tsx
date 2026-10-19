@@ -56,7 +56,7 @@ export function ShopGrid() {
             value={q}
             onChange={(e) => setQ(e.target.value)}
             placeholder="Search vases, lamps, gifts…"
-            className="w-full rounded-full border border-fg/15 bg-page/60 py-3 pl-11 pr-4 text-fg outline-none transition-colors placeholder:text-fg/35 focus:border-accent-2 focus:ring-2 focus:ring-accent-2/20"
+            className="w-full rounded-full border border-fg/15 bg-page/60 py-3 pl-11 pr-4 text-fg outline-none transition-colors placeholder:text-fg/50 focus:border-accent-2 focus:ring-2 focus:ring-accent-2/20"
           />
         </label>
         <label className="flex items-center gap-2 text-sm text-muted">

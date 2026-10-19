@@ -50,7 +50,7 @@ export default function AboutPage() {
             <img src={about.photos[0].src} alt={about.photos[0].caption ?? ""} className="aspect-square w-full rounded-[32px] border border-fg/10 object-cover" />
           ) : (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src="/brand/logo.jpg" alt={`${site.name} logo`} className="logo-feather w-full" />
+            <img src="/brand/logo.jpg" alt={`${site.name} logo`} className="w-full rounded-[32px] border border-line bg-black" />
           )}
         </Reveal>
       </section>
@@ -60,7 +60,7 @@ export default function AboutPage() {
         <ol className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {steps.map(([title, body], i) => (
             <Reveal key={title} delay={i * 0.08}>
-              <li className="h-full rounded-[28px] border border-fg/10 bg-fg/[0.03] p-6">
+              <li className="h-full rounded-[28px] border border-line bg-surface p-6">
                 <span className="tabular-nums text-xs text-pop">0{i + 1}</span>
                 <p className="mt-2 font-display text-2xl display-case">{title}</p>
                 <p className="mt-2 text-sm leading-relaxed text-muted">{body}</p>
@@ -74,7 +74,7 @@ export default function AboutPage() {
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {promises.map(([title, body], i) => (
             <Reveal key={title} delay={i * 0.06}>
-              <div className="border-t border-accent/40 pt-4">
+              <div className="border-t border-pop/40 pt-4">
                 <p className="font-semibold">{title}</p>
                 <p className="mt-1 text-sm text-muted">{body}</p>
               </div>
@@ -94,7 +94,7 @@ export default function AboutPage() {
         <div className="cta-card mx-auto max-w-7xl rounded-[40px] p-8 text-center sm:p-14">
           <Reveal y={24}>
             <h2 className="font-display text-4xl font-extrabold display-case sm:text-6xl">
-              Say <span className="holo-text">hello</span>
+              Say <span className="text-pop">hello</span>
             </h2>
           </Reveal>
           <p className="mx-auto mt-4 max-w-md text-muted">Questions, ideas or bulk orders. Message the maker directly.</p>

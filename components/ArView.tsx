@@ -118,7 +118,7 @@ export function ArView({ model, name, slug, sizeCm, tint }: { model: string; nam
       >
         {open && (
           <div className="grid md:grid-cols-[1.3fr_1fr]">
-            <div className="relative aspect-square bg-fg/[0.04] md:aspect-auto md:min-h-[480px]">
+            <div className="relative aspect-square stage md:aspect-auto md:min-h-[480px]">
               {base !== null ? (
                 <Viewer model={model} name={name} slug={slug} tint={tint} scale={sizeCm ? sizeCm / 100 / base : 1} />
               ) : (

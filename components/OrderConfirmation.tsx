@@ -44,7 +44,7 @@ export function OrderConfirmation() {
 
       <ol className="mt-10 grid gap-3 sm:grid-cols-2">
         {steps.map(([title, text], i) => (
-          <li key={title} className={`rounded-2xl border p-5 ${i === 0 ? "border-accent/50 bg-accent/[0.06]" : "border-fg/10"}`}>
+          <li key={title} className={`rounded-2xl border p-5 ${i === 0 ? "border-accent/50 bg-accent/[0.06]" : "border-line bg-surface"}`}>
             <p className="flex items-center gap-3 font-semibold">
               <span
                 className={`grid h-7 w-7 shrink-0 place-items-center rounded-full text-sm tabular-nums ${

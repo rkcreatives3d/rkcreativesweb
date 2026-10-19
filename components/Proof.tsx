@@ -13,7 +13,7 @@ export function PhotoGrid({ photos, label, title, highlight }: { photos: Photo[]
       <SectionLabel>{label}</SectionLabel>
       <Reveal y={24}>
         <h2 className="mt-4 font-display text-4xl font-extrabold display-case leading-[0.9] tracking-tight sm:text-6xl">
-          {title} <span className="holo-text">{highlight}</span>
+          {title} <span className="text-pop">{highlight}</span>
         </h2>
       </Reveal>
       <div className="mt-10 columns-2 gap-4 sm:columns-3 lg:columns-4">
@@ -41,7 +41,7 @@ export function Reviews({ reviews }: { reviews: Review[] }) {
           <SectionLabel>Reviews</SectionLabel>
           <Reveal y={24}>
             <h2 className="mt-4 font-display text-4xl font-extrabold display-case leading-[0.9] tracking-tight sm:text-6xl">
-              Loved by <span className="holo-text">people</span>
+              Loved by <span className="text-pop">people</span>
             </h2>
           </Reveal>
         </div>
@@ -53,7 +53,7 @@ export function Reviews({ reviews }: { reviews: Review[] }) {
       <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {reviews.map((r, i) => (
           <Reveal key={i} delay={(i % 3) * 0.08}>
-            <figure className="h-full rounded-[28px] border border-fg/10 bg-fg/[0.03] p-6">
+            <figure className="h-full rounded-[28px] border border-line bg-surface p-6">
               <p className="text-pop" aria-label={`${r.rating} out of 5 stars`}>
                 {"★".repeat(r.rating)}
                 <span className="text-fg/20">{"★".repeat(5 - r.rating)}</span>
@@ -62,7 +62,7 @@ export function Reviews({ reviews }: { reviews: Review[] }) {
               <figcaption className="mt-4 text-sm text-muted">
                 {r.name}
                 {r.city && `, ${r.city}`}
-                {r.product && getProduct(r.product) && <span className="text-accent-2"> · {getProduct(r.product)!.name}</span>}
+                {r.product && getProduct(r.product) && <span className="text-pop"> · {getProduct(r.product)!.name}</span>}
               </figcaption>
             </figure>
           </Reveal>
@@ -81,7 +81,7 @@ export function InstagramGrid({ posts }: { posts: (Photo & { href: string })[] }
           <SectionLabel>On Instagram</SectionLabel>
           <Reveal y={24}>
             <h2 className="mt-4 font-display text-4xl font-extrabold display-case leading-[0.9] tracking-tight sm:text-6xl">
-              Fresh from <span className="holo-text">the studio</span>
+              Fresh from <span className="text-pop">the studio</span>
             </h2>
           </Reveal>
         </div>

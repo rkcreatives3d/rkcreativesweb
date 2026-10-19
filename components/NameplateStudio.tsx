@@ -84,7 +84,7 @@ export function NameplateStudio() {
         <div className="grid-bg absolute inset-0" />
         {lite ? (
           <div className="absolute inset-0 grid place-items-center p-8">
-            <div className="rounded-3xl border-4 border-accent/60 bg-page-2 px-8 py-5 shadow-[0_0_60px_-10px_var(--color-accent)]">
+            <div className="rounded-3xl border-4 border-pop/60 bg-raised px-8 py-5 shadow-[0_0_60px_-10px_var(--color-gold)]">
               <p className="holo-text font-display text-4xl display-case sm:text-6xl">{shown}</p>
             </div>
           </div>
@@ -106,8 +106,8 @@ export function NameplateStudio() {
             </View>
           </div>
         )}
-        <span className="pointer-events-none absolute left-5 top-5 tabular-nums text-xs uppercase tracking-[0.12em] text-muted">
-          Live preview{lite ? "" : " · drag to rotate"}
+        <span className="pointer-events-none absolute left-5 top-5 text-xs text-muted">
+          {lite ? "Preview" : "Drag to rotate"}
         </span>
         {!lite && (
           <div className="absolute bottom-4 left-4 flex gap-1 rounded-full border border-fg/10 bg-page/70 p-1 backdrop-blur" role="group" aria-label="Preview">
@@ -141,11 +141,11 @@ export function NameplateStudio() {
             placeholder="Type here…"
             maxLength={MAX_NAME}
             autoComplete="off"
-            className={`mt-2 w-full rounded-2xl border bg-page/60 px-5 py-4 font-display text-3xl display-case text-fg outline-none transition-colors placeholder:text-fg/25 focus:border-accent focus:ring-2 focus:ring-accent/20 ${
-              nudge ? "border-accent" : "border-fg/15"
+            className={`mt-2 w-full rounded-2xl border bg-page/60 px-5 py-4 font-display text-3xl display-case text-fg outline-none transition-colors placeholder:text-fg/50 focus:border-accent focus:ring-2 focus:ring-accent/20 ${
+              nudge ? "border-danger" : "border-fg/15"
             }`}
           />
-          <span className={`mt-1.5 flex justify-between text-xs ${nudge ? "text-accent" : "text-muted"}`}>
+          <span className={`mt-1.5 flex justify-between text-xs ${nudge ? "text-danger" : "text-muted"}`}>
             <span>{nudge ? "Type a name first." : "Letters, numbers and simple symbols."}</span>
             <span className="tabular-nums">
               {text.length}/{MAX_NAME}

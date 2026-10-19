@@ -82,17 +82,17 @@ export function PinCheck({ subtotal }: { subtotal: number }) {
           placeholder="Your PIN code"
           aria-invalid={error}
           aria-describedby="pin-result"
-          className={`min-w-0 flex-1 rounded-xl border bg-page/60 px-3 py-2 text-sm tabular-nums text-fg outline-none transition-colors placeholder:text-fg/35 focus:border-accent-2 focus:ring-2 focus:ring-accent-2/20 ${
-            error ? "border-accent" : "border-fg/15"
+          className={`min-w-0 flex-1 rounded-xl border bg-page/60 px-3 py-2 text-sm tabular-nums text-fg outline-none transition-colors placeholder:text-fg/50 focus:border-accent-2 focus:ring-2 focus:ring-accent-2/20 ${
+            error ? "border-danger" : "border-fg/15"
           }`}
         />
-        <button type="submit" className="shrink-0 rounded-xl px-3 py-2 text-sm font-semibold text-accent-2 hover:bg-fg/5">
+        <button type="submit" className="shrink-0 rounded-xl px-3 py-2 text-sm font-semibold text-accent hover:bg-fg/5">
           Check
         </button>
       </form>
       <p id="pin-result" aria-live="polite" className="mt-2 text-sm text-muted">
         {error ? (
-          <span className="text-accent">Enter a 6-digit PIN code.</span>
+          <span className="text-danger">Enter a 6-digit PIN code.</span>
         ) : quote ? (
           <>
             Delivered <span className="font-semibold text-fg">{quote.window}</span> · {quote.zoneLabel} ·{" "}

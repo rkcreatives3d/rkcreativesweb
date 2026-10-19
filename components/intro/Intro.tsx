@@ -78,7 +78,7 @@ export function Intro() {
       id="intro"
       role="dialog"
       aria-label={`${site.name} opening animation`}
-      className={`fixed inset-0 z-[90] bg-page transition-opacity duration-700 ease-out ${leaving ? "pointer-events-none opacity-0" : ""}`}
+      className={`fixed inset-0 z-[90] bg-black transition-opacity duration-700 ease-out ${leaving ? "pointer-events-none opacity-0" : ""}`}
     >
       {mounted && (
         <Canvas

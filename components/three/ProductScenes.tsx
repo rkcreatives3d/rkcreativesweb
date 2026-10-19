@@ -102,7 +102,7 @@ export function SlicerScene({ visible }: { visible: boolean }) {
     <>
       <ViewRig position={[0, 0.3, 4.6]} fov={35} />
       <Float speed={1.2} floatIntensity={0.6}>
-        <PrintModel shape="knot" finish="holo" wireframe spin={visible ? 0.5 : 0} />
+        <PrintModel shape="knot" finish="gold" wireframe spin={visible ? 0.5 : 0} />
       </Float>
     </>
   );

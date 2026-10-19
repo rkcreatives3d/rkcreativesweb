@@ -44,7 +44,7 @@ export function StudioClip({ link = true }: { link?: boolean }) {
         <SectionLabel>Meet the maker</SectionLabel>
         <Reveal y={24}>
           <h2 className="mt-4 font-display text-4xl font-extrabold display-case leading-[0.9] tracking-tight sm:text-6xl">
-            Printed <span className="holo-text">right here</span>
+            Printed <span className="text-pop">right here</span>
           </h2>
         </Reveal>
         <p className="mt-5 max-w-md leading-relaxed text-fg/80">{about.story[0]}</p>

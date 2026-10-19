@@ -173,7 +173,7 @@ export function CustomForm() {
             onChange={(e) => setR((v) => ({ ...v, qty: Math.max(1, Number(e.target.value) || 1) }))}
           />
         </div>
-        <div className="rounded-2xl border border-accent/30 bg-accent/[0.06] p-5">
+        <div className="rounded-2xl border border-pop/30 bg-pop/[0.06] p-5">
           <p className="tabular-nums text-xs uppercase tracking-[0.12em] text-pop">Estimated price</p>
           <AnimatePresence mode="popLayout">
             <motion.p

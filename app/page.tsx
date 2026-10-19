@@ -7,7 +7,7 @@ import { InstagramGrid, PhotoGrid, Reviews } from "@/components/Proof";
 import { StudioClip } from "@/components/StudioClip";
 import { customerPhotos, instagramPosts, reviews } from "@/lib/content";
 import { ProductCard } from "@/components/ProductCard";
-import { ButtonLink, Reveal, SectionLabel } from "@/components/ui";
+import { ButtonLink, Reveal } from "@/components/ui";
 import { products } from "@/lib/products";
 
 export default function Home() {
@@ -22,12 +22,11 @@ export default function Home() {
       <section className="mx-auto max-w-7xl px-5 py-24 sm:px-8">
         <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <SectionLabel>In stock to print</SectionLabel>
             <Reveal y={24}>
-              <h2 className="mt-4 font-display text-5xl font-extrabold display-case leading-[0.9] tracking-tight sm:text-7xl">
+              <h2 className="font-display text-5xl font-extrabold display-case leading-[0.9] tracking-tight sm:text-7xl">
                 Fresh off
                 <br />
-                <span className="holo-text">the bed</span>
+                <span className="text-pop">the bed</span>
               </h2>
             </Reveal>
           </div>

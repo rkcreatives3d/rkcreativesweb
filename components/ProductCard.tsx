@@ -38,7 +38,7 @@ export function ProductCard({ product: p, index = 0 }: { product: Product; index
   return (
     <motion.article
       ref={ref}
-      className="group relative flex flex-col overflow-hidden rounded-[28px] border border-fg/10 bg-fg/[0.025] transition-colors hover:border-fg/30"
+      className="group relative flex flex-col overflow-hidden rounded-[28px] border border-line bg-surface transition-colors hover:border-fg/30"
       initial={{ opacity: 0, y: 50 }}
       animate={inView ? { opacity: 1, y: 0 } : undefined}
       transition={{ duration: 0.8, delay: (index % 3) * 0.08, ease: [0.16, 1, 0.3, 1] }}
@@ -50,20 +50,15 @@ export function ProductCard({ product: p, index = 0 }: { product: Product; index
         e.currentTarget.style.setProperty("--sy", `${e.clientY - r.top}px`);
       }}
     >
-      {/* amber spotlight that follows the cursor */}
+      {/* soft white spotlight that follows the cursor */}
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
-        style={{ background: "radial-gradient(320px circle at var(--sx) var(--sy), color-mix(in oklab, var(--color-accent) 16%, transparent), transparent 65%)" }}
+        className="pointer-events-none absolute inset-0 z-[1] opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+        style={{ background: "radial-gradient(320px circle at var(--sx) var(--sy), color-mix(in oklab, var(--color-fg) 6%, transparent), transparent 65%)" }}
       />
       <Link href={`/shop/${p.slug}/`} className="block" aria-label={p.name}>
-        <div className="relative aspect-square">
-          <div
-            className="absolute inset-0 opacity-60 transition-opacity duration-500 group-hover:opacity-100"
-            style={{
-              background: `radial-gradient(circle at 50% 55%, ${getFinish(p.finishes[0]).color}33, transparent 60%)`,
-            }}
-          />
+        {/* neutral grey stage, so every colour (black included) shows true */}
+        <div className="stage relative aspect-square">
           {/* real 3D model → photo (with tilt) → placeholder 3D → flat art in Lite mode */}
           {model && !lite ? (
             <View className="absolute inset-0">
@@ -83,13 +78,10 @@ export function ProductCard({ product: p, index = 0 }: { product: Product; index
               {p.badge}
             </span>
           )}
-          <span className="absolute right-4 top-4 tabular-nums text-xs uppercase tracking-widest text-muted">
-            {p.category}
-          </span>
         </div>
       </Link>
 
-      <div className="flex flex-1 flex-col gap-3 border-t border-fg/10 p-5">
+      <div className="flex flex-1 flex-col gap-3 border-t border-line p-5">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
             <Link href={`/shop/${p.slug}/`} className="font-display text-xl font-bold leading-tight hover:text-accent">

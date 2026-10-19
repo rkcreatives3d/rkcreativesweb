@@ -14,7 +14,8 @@ import { step } from "./live";
 // nothing has to be downloaded from an HDRI CDN. Baked once per WebGL renderer:
 // a render-target texture can't be shared between canvases.
 
-const envTextures = new WeakMap<THREE.WebGLRenderer, THREE.Texture>();
+export type StudioLook = "neutral" | "warm";
+const envTextures = new WeakMap<THREE.WebGLRenderer, Partial<Record<StudioLook, THREE.Texture>>>();
 
 // panel placement; colours + intensities come from the brand theme
 const layout: [[number, number, number], [number, number]][] = [
@@ -27,12 +28,13 @@ const layout: [[number, number, number], [number, number]][] = [
   [[-4, -5, -3], [4, 4]], // kicker
 ];
 
-function bakeStudio(gl: THREE.WebGLRenderer) {
+function bakeStudio(gl: THREE.WebGLRenderer, look: StudioLook) {
+  const env = look === "warm" ? theme.env : theme.neutralEnv;
   const scene = new THREE.Scene();
-  scene.background = new THREE.Color(theme.env.bg);
+  scene.background = new THREE.Color(env.bg);
   const plane = new THREE.PlaneGeometry(1, 1);
   for (let i = 0; i < layout.length; i++) {
-    const [color, intensity] = theme.env.panels[i];
+    const [color, intensity] = env.panels[i];
     const [position, [w, h]] = layout[i];
     const mat = new THREE.MeshBasicMaterial({
       color: new THREE.Color(color).multiplyScalar(intensity),
@@ -55,26 +57,32 @@ function bakeStudio(gl: THREE.WebGLRenderer) {
   return texture;
 }
 
-export function useStudioEnv() {
+export function useStudioEnv(look: StudioLook = "neutral") {
   const gl = useThree((s) => s.gl);
   return useMemo(() => {
-    let tex = envTextures.get(gl);
-    if (!tex) envTextures.set(gl, (tex = bakeStudio(gl)));
-    return tex;
-  }, [gl]);
+    let set = envTextures.get(gl);
+    if (!set) envTextures.set(gl, (set = {}));
+    return (set[look] ??= bakeStudio(gl, look));
+  }, [gl, look]);
 }
 
-/** Camera + lighting for one <View>. Every view needs its own camera. */
+/**
+ * Camera + lighting for one <View>. Every view needs its own camera.
+ * `look`: "neutral" (default) for products, so colours show true;
+ * "warm" for the cover and the intro.
+ */
 export function ViewRig({
   position = [0, 0, 4.4],
   fov = 35,
   target = [0, 0, 0],
+  look = "neutral",
 }: {
   position?: [number, number, number];
   fov?: number;
   target?: [number, number, number];
+  look?: StudioLook;
 }) {
-  const env = useStudioEnv();
+  const env = useStudioEnv(look);
   const { light } = theme;
   const cam = useRef<THREE.PerspectiveCamera>(null!);
   useLayoutEffect(() => {
@@ -86,6 +94,8 @@ export function ViewRig({
       <Environment map={env} />
       <ambientLight intensity={light.ambient} />
       <directionalLight position={[3, 5, 4]} intensity={light.key} />
+      {/* rim light from behind: keeps dark prints from melting into a dark page */}
+      {look === "neutral" && <directionalLight position={[-4, 3, -6]} intensity={1.6} />}
     </>
   );
 }

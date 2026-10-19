@@ -117,9 +117,7 @@ export function ProductDetail({ product: p }: { product: Product }) {
                 ) : (
                   <ProductArt product={p} finish={finish} large />
                 )}
-                <span className="pointer-events-none absolute left-5 top-5 tabular-nums text-xs uppercase tracking-[0.12em] text-muted">
-                  {showViewer ? `${slicer ? "Slicer preview" : "Live render"} · drag to rotate` : "Preview"}
-                </span>
+                {showViewer && <span className="pointer-events-none absolute left-5 top-5 text-xs text-muted">Drag to rotate</span>}
               </div>
               {showViewer && (
                 <div className="mt-3 flex flex-wrap gap-2">
@@ -218,7 +216,7 @@ export function ProductDetail({ product: p }: { product: Product }) {
 
           {/* personalisation */}
           {p.personalisation && (
-            <div className="mt-8 rounded-2xl border border-fg/10 bg-fg/[0.03] p-4">
+            <div className="mt-8 rounded-2xl border border-line bg-surface p-4">
               {included ? (
                 <p className="flex items-center justify-between text-sm">
                   <span className="font-semibold">Name to print</span>
@@ -252,10 +250,10 @@ export function ProductDetail({ product: p }: { product: Product }) {
                     maxLength={maxLen}
                     aria-label="Text to print"
                     className={`mt-3 w-full rounded-xl border bg-page/60 px-4 py-3 text-fg outline-none transition-colors focus:border-accent-2 focus:ring-2 focus:ring-accent-2/20 ${
-                      nudge ? "border-accent" : "border-fg/15"
+                      nudge ? "border-danger" : "border-fg/15"
                     }`}
                   />
-                  <p className={`mt-1.5 flex justify-between text-xs ${nudge ? "text-accent" : "text-muted"}`}>
+                  <p className={`mt-1.5 flex justify-between text-xs ${nudge ? "text-danger" : "text-muted"}`}>
                     <span>{nudge ? "Type the name you want printed first." : "Printed exactly as typed."}</span>
                     <span className="tabular-nums">
                       {text.length}/{maxLen}
@@ -346,7 +344,7 @@ export function ProductDetail({ product: p }: { product: Product }) {
 
       <section className="mx-auto max-w-7xl px-5 pb-24 sm:px-8">
         <h2 className="font-display text-4xl font-extrabold display-case tracking-tight sm:text-5xl">
-          You might <span className="holo-text">also</span> like
+          You might <span className="text-pop">also</span> like
         </h2>
         <div className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {related.map((r, i) => (
@@ -364,7 +362,7 @@ function Toggle({ on, onClick, children }: { on: boolean; onClick: () => void; c
       onClick={onClick}
       aria-pressed={on}
       className={`rounded-full border px-4 py-1.5 tabular-nums text-xs uppercase tracking-widest transition-all ${
-        on ? "border-accent-2 bg-accent-2/10 text-accent-2" : "border-fg/15 text-muted hover:text-fg"
+        on ? "border-fg bg-fg text-page" : "border-fg/15 text-muted hover:text-fg"
       }`}
     >
       {children}

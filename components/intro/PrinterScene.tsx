@@ -121,7 +121,7 @@ export function PrinterScene({
 
   return (
     <>
-      <ViewRig position={[0, 0.6, startZ + 2.5]} fov={HERO_FOV} />
+      <ViewRig position={[0, 0.6, startZ + 2.5]} fov={HERO_FOV} look="warm" />
 
       {/* the print: logo face + black body, both cut off at the current layer */}
       <LogoPlaque size={S} reveal={reveal} position={[0, CY, 0.002]} />

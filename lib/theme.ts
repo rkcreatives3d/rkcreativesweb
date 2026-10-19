@@ -4,7 +4,23 @@
 type Panel = [color: string, intensity: number];
 
 export const theme = {
-  /** studio env: background + 7 light panels (key, left, right, back, front, floor, kicker) */
+  /**
+   * Product lighting: a neutral white "photo studio", so every filament colour
+   * shows true (white looks white, black reads as black, not brown).
+   */
+  neutralEnv: {
+    bg: "#0d0d0e",
+    panels: [
+      ["#ffffff", 3.6],
+      ["#ffffff", 2.2],
+      ["#f3f5f8", 2],
+      ["#6b6d70", 1.4],
+      ["#ffffff", 2.2],
+      ["#bdbdbd", 1.1],
+      ["#ffffff", 1.2],
+    ] as Panel[],
+  },
+  /** cover + intro only: the warm amber/gold studio from the logo. 7 panels (key, left, right, back, front, floor, kicker) */
   env: {
     bg: "#0a0604",
     panels: [
@@ -21,8 +37,8 @@ export const theme = {
   amber: "#ff9a1a",
   gold: "#d4973f",
   sparkles: ["#ffb347", "#f5d287"],
-  rings: ["#ff9a1a", "#7a4a12"],
+  rings: ["#d4973f", "#4a4136"],
   hot: "#fff1c7",
   carriage: "#141414",
-  wire: "#ff9a1a",
+  wire: "#d4973f",
 } as const;

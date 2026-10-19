@@ -20,7 +20,7 @@ export function Hero() {
   });
 
   return (
-    <section className="relative h-[100svh] min-h-[620px] overflow-hidden">
+    <section className="cover-bg relative h-[100svh] min-h-[620px] overflow-hidden">
       <h1 className="sr-only">
         {site.name}: {site.slogan}. {site.tagline}.
       </h1>

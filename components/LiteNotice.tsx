@@ -20,7 +20,7 @@ export function LiteNotice() {
           <p className="flex-1 text-muted">
             <span className="font-semibold text-fg">Switched to Lite mode</span> so the site runs smoothly on this device.
           </p>
-          <button onClick={() => set(false)} className="shrink-0 font-semibold text-accent-2 hover:underline">
+          <button onClick={() => set(false)} className="shrink-0 font-semibold text-accent hover:underline">
             Use 3D
           </button>
           <button onClick={dismiss} aria-label="Dismiss" className="shrink-0 text-lg leading-none text-muted hover:text-fg">

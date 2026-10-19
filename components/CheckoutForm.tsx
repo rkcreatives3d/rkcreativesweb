@@ -155,7 +155,7 @@ export function CheckoutForm() {
         </Fieldset>
       </form>
 
-      <aside className="h-fit rounded-[28px] border border-fg/10 bg-fg/[0.03] p-6 lg:sticky lg:top-28">
+      <aside className="h-fit rounded-[28px] border border-line bg-surface p-6 lg:sticky lg:top-28">
         <h2 className="font-display text-2xl font-bold">Order summary</h2>
         <ul className="mt-5 space-y-4">
           {items.map((i) => {
@@ -173,7 +173,7 @@ export function CheckoutForm() {
                     {f.name} · {p.sizes.find((s) => s.id === i.size)?.label}
                   </p>
                   {i.engraving && (
-                    <p className="truncate text-xs text-accent-2">
+                    <p className="truncate text-xs text-pop">
                       “{i.engraving}”{optionsLabel(i.options) && ` · ${optionsLabel(i.options)}`}
                     </p>
                   )}
@@ -198,7 +198,7 @@ export function CheckoutForm() {
           Every piece is printed to order. Dispatch in {dispatchLabel} working days after payment.
         </p>
         <DeliveryEstimate pin={c.pincode} className="mt-1 text-xs text-muted" />
-        <Link href="/shop/" className="mt-4 inline-block text-xs text-accent-2 underline-offset-4 hover:underline">
+        <Link href="/shop/" className="mt-4 inline-block text-xs font-semibold text-accent underline-offset-4 hover:underline">
           ← Keep shopping
         </Link>
       </aside>
@@ -208,7 +208,7 @@ export function CheckoutForm() {
 
 export function Fieldset({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <fieldset className="space-y-4 rounded-[28px] border border-fg/10 bg-fg/[0.025] p-6">
+    <fieldset className="space-y-4 rounded-[28px] border border-line bg-surface p-6">
       <legend className="sr-only">{title}</legend>
       <p className="tabular-nums text-xs uppercase tracking-[0.12em] text-pop">{title}</p>
       {children}
@@ -224,12 +224,12 @@ type FieldProps = {
 
 export function Field({ label, textarea, className = "", ...rest }: FieldProps) {
   const cls =
-    "mt-1.5 w-full rounded-xl border border-fg/15 bg-page/60 px-4 py-3 text-fg outline-none transition-colors placeholder:text-fg/30 focus:border-accent-2 focus:ring-2 focus:ring-accent-2/20";
+    "mt-1.5 w-full rounded-xl border border-fg/15 bg-page/60 px-4 py-3 text-fg outline-none transition-colors placeholder:text-fg/50 focus:border-accent-2 focus:ring-2 focus:ring-accent-2/20";
   return (
     <label className={`block text-sm ${className}`}>
       <span className="text-muted">
         {label}
-        {rest.required && <span className="text-accent"> *</span>}
+        {rest.required && <span className="text-danger"> *</span>}
       </span>
       {textarea ? (
         <textarea rows={3} className={cls} {...(rest as React.TextareaHTMLAttributes<HTMLTextAreaElement>)} />

@@ -12,11 +12,25 @@ export function WhatsAppBubble() {
   const pathname = usePathname();
   const [show, setShow] = useState(false);
 
+  // appears once you've scrolled a bit; tucks away while you scroll down (so it
+  // never sits on top of prices and buttons) and comes back when you pause or scroll up
   useEffect(() => {
-    const onScroll = () => setShow(window.scrollY > window.innerHeight * 0.6);
+    let last = window.scrollY;
+    let idle = 0;
+    const onScroll = () => {
+      const y = window.scrollY;
+      const past = y > window.innerHeight * 0.6;
+      setShow(past && y < last);
+      last = y;
+      clearTimeout(idle);
+      idle = window.setTimeout(() => setShow(window.scrollY > window.innerHeight * 0.6), 900);
+    };
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      clearTimeout(idle);
+    };
   }, [pathname]);
 
   if (pathname.startsWith("/checkout")) return null;
@@ -36,9 +50,9 @@ export function WhatsAppBubble() {
           initial={{ scale: 0, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0, opacity: 0 }}
-          className="fixed bottom-5 right-5 z-[45] grid h-14 w-14 place-items-center rounded-full bg-[#25D366] text-black shadow-[0_10px_30px_-5px_rgba(37,211,102,0.5)] sm:bottom-7 sm:right-7"
+          className="fixed bottom-4 right-4 z-[45] grid h-12 w-12 place-items-center rounded-full border border-line bg-raised/90 text-[#25D366] shadow-[0_8px_24px_-6px_rgba(0,0,0,0.7)] backdrop-blur transition-colors hover:border-[#25D366]/60 sm:bottom-7 sm:right-7"
         >
-          <span className="relative scale-150">
+          <span className="relative scale-125">
             <WhatsAppIcon />
           </span>
         </motion.a>

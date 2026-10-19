@@ -22,14 +22,6 @@ const mix = (a: RGB, b: RGB, t: number): RGB => [a[0] + (b[0] - a[0]) * t, a[1] 
 
 /** Shadow → mid → highlight colours for a finish. */
 function ramp(f: Finish): RGB[] {
-  if (f.id === "holo")
-    return [
-      [30, 18, 52],
-      [112, 64, 210],
-      [57, 200, 235],
-      [190, 240, 120],
-      [255, 244, 214],
-    ];
   const c = hexToRgb(f.color);
   const black: RGB = [8, 7, 6];
   const white: RGB = [255, 252, 246];

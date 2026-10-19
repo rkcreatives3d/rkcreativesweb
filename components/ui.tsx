@@ -12,9 +12,10 @@ const letter: Variants = {
  * Letters rise out of a mask, staggered. Words never break mid-word.
  * The in-view trigger sits on the whole line: each hidden letter is clipped by
  * its word's mask, so an observer on a narrow letter ("i") would never fire.
- * `holo` paints the highlight gradient. background-clip:text ignores
- * transformed children, so each letter carries its own slice of one shared
- * gradient, offset so it reads as continuous across the word.
+ * `holo` colours the words brand gold. `shine` uses the brushed-gold
+ * gradient instead: save it for one or two big moments. background-clip:text
+ * ignores transformed children, so each letter carries its own slice of one
+ * shared gradient, offset so it reads as continuous across the word.
  */
 export function KineticText({
   text,
@@ -22,19 +23,23 @@ export function KineticText({
   delay = 0,
   stagger = 0.03,
   holo = false,
+  shine = false,
 }: {
   text: string;
   className?: string;
   delay?: number;
   stagger?: number;
   holo?: boolean;
+  shine?: boolean;
 }) {
+  const gold = holo && !shine;
+  holo = shine;
   const words = text.split(" ");
   const total = text.replace(/ /g, "").length;
   let i = 0;
   return (
     <motion.span
-      className={`${className} ${holo ? "holo-hue" : ""}`}
+      className={`${className} ${holo ? "holo-hue" : ""} ${gold ? "text-pop" : ""}`}
       initial="hidden"
       whileInView="show"
       viewport={{ once: true, margin: "-5% 0px" }}
@@ -175,7 +180,7 @@ export function Swatch({ css, size = 18, ring = false }: { css: string; size?: n
 export function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
     <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.12em] text-muted">
-      <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-accent-2" />
+      <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-pop" />
       {children}
     </p>
   );

@@ -79,7 +79,7 @@ const general: Faq[] = [
     "Can I get a different size or colour?",
     <>
       Usually, yes. Message us with what you need, or use the{" "}
-      <Link href="/custom/" className="text-accent-2 underline-offset-4 hover:underline">
+      <Link href="/custom/" className="font-semibold text-accent underline-offset-4 hover:underline">
         custom order form
       </Link>
       , and we&apos;ll quote it.
@@ -89,7 +89,7 @@ const general: Faq[] = [
     "What if it arrives damaged?",
     <>
       Message us within 48 hours with photos and we&apos;ll reprint it or refund you. See the{" "}
-      <Link href="/policies/returns/" className="text-accent-2 underline-offset-4 hover:underline">
+      <Link href="/policies/returns/" className="font-semibold text-accent underline-offset-4 hover:underline">
         returns policy
       </Link>
       .

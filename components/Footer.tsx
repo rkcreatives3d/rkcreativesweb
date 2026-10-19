@@ -63,7 +63,7 @@ function FooterCol({ title, children }: { title: string; children: React.ReactNo
   return (
     <div>
       <p className="mb-4 tabular-nums text-xs uppercase tracking-[0.12em] text-pop">{title}</p>
-      <div className="flex flex-col gap-2 text-sm text-fg/80 [&_a:hover]:text-accent-2">{children}</div>
+      <div className="flex flex-col gap-2 text-sm text-fg/80 [&_a:hover]:text-accent">{children}</div>
     </div>
   );
 }

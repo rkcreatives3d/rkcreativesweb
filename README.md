@@ -17,7 +17,7 @@ npm start          # preview the built site
 
 1. **`lib/site.ts`:** set your real domain (`url`), city, the **PIN code you ship from** (`originPin`), WhatsApp number, email, Instagram and **UPI ID**. The UPI box stays hidden on the live site until the UPI ID is set.
 2. **`lib/delivery.ts`:** check the courier days per zone (same city, same state, nearby states, rest of India, remote areas) and the remote-area surcharge.
-3. **`lib/products.ts`:** set your real products and prices, and add photos and 3D files (see below).
+3. **`lib/products.ts`:** set your real products and prices, and add photos and 3D files (see below). Edit `finishes` to list only the filaments you actually stock, with `color` matched to the real spool.
 4. **`lib/content.ts`:** write your story, and fill the trust slots: a 15-second printer video, real reviews, workshop, packing and customer photos, your latest Instagram posts, and before/after pairs of custom jobs. Every empty slot keeps its section hidden.
 5. **`lib/policies.ts`:** read through the shipping, returns, privacy and terms policies and adjust them to how you actually work. They're a sensible starting point, not legal advice.
 6. **Optional:** add your analytics ID in `site.analytics` (Plausible domain or GA4 ID).
@@ -35,6 +35,7 @@ npm start          # preview the built site
 | Policies (shipping, returns, privacy, terms) | `lib/policies.ts` |
 | Guides | `lib/guides.ts` |
 | Brand colours: page / 3D | `app/globals.css` (`@theme`) / `lib/theme.ts` |
+| Filament colours customers can pick | `finishes` in `lib/products.ts` |
 | Logo files | `public/brand/`, `app/icon.png`, `app/apple-icon.png`, `app/opengraph-image.jpg` (original in `assets/`) |
 
 The WhatsApp number must be in international format with digits only. For example, `919876543210` is 91 followed by a 10-digit Indian number.
@@ -132,6 +133,17 @@ Every page can be opened directly from a link except **checkout**, which needs a
 ## Deploy (free)
 
 The site is fully static, so you don't need a server. Push the repo to GitHub and import it on Vercel, Netlify or Cloudflare Pages. Use `npm run build` as the build command and `out` as the output folder (Vercel detects both automatically). Point your domain at it, set `site.url` to match, then add the site in Google Search Console and submit `https://your-domain/sitemap.xml`.
+
+## Colours
+
+Each colour has one job, so the page stays easy to read (see the top of `app/globals.css`):
+
+- **Amber** (`accent`): things you can click: buttons, links, the cart count.
+- **Gold** (`pop`): brand decoration: badges, labels, highlighted words. The brushed-gold gradient is kept for a few big moments only.
+- **Cream and greys:** text. **Red** (`danger`) for errors, **green** (`ok`) for confirmations. **Light gold** shows keyboard focus.
+- **Surfaces:** a warm near-black page with slightly lighter cards (`surface`, `raised`, `line`). The cover and the intro stay on pure black, like the logo.
+
+Products are shown on a neutral grey stage with white studio light, so a white print looks white and a black print reads as black. The warm amber light is used only for the cover and the intro.
 
 ## How the 3D works
 

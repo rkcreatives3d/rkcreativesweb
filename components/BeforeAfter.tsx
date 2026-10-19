@@ -12,7 +12,7 @@ export function BeforeAfter({ items }: { items: { title: string; before: Photo; 
       <SectionLabel>From photo to print</SectionLabel>
       <Reveal y={24}>
         <h2 className="mt-4 font-display text-4xl font-extrabold display-case leading-[0.9] tracking-tight sm:text-6xl">
-          What they sent, <span className="holo-text">what we made</span>
+          What they sent, <span className="text-pop">what we made</span>
         </h2>
       </Reveal>
       <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">

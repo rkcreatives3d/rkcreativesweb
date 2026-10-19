@@ -5,19 +5,29 @@
   --font-sans: var(--font-manrope), ui-sans-serif, system-ui, sans-serif;
 }
 
-/* Brand palette, sampled from the RK Creative Builds logo */
+/* Brand palette, sampled from the RK Creative Builds logo.
+   Colour roles (keep to them):
+     amber   = actions only: buttons, links, the cart count
+     gold    = brand decoration: badges, labels, accent words
+     cream   = text; greys = secondary text
+     danger / ok = errors and confirmations
+     light gold = keyboard focus only */
 @theme {
-  --color-page: #000000; /* pure black, same as the logo background */
-  --color-page-2: #0e0d0c;
+  --color-page: #0b0a09; /* warm near-black (the cover and intro sit on pure #000, like the logo) */
+  --color-surface: #151310; /* cards, panels */
+  --color-raised: #1e1b17; /* hover, inputs, drawers */
+  --color-line: #2b2621; /* borders */
+  --color-page-2: #151310;
   --color-fg: #f4efe6;
-  --color-muted: #a39a8c;
-  --color-accent: #ff9a1a; /* molten amber filament */
-  --color-accent-2: #f5d287; /* light gold */
-  --color-accent-3: #a8681c; /* deep brushed gold */
+  --color-muted: #b5ab9c;
+  --color-accent: #ff9a1a; /* molten amber: actions */
+  --color-accent-2: #f5d287; /* light gold: focus rings */
+  --color-accent-3: #a8681c; /* deep gold, gradient stop only */
   --color-gold: #d4973f; /* brushed gold */
-  --color-ember: #8c3200;
-  --color-pop: #d4973f; /* badges are decoration: gold. Amber means "you can click this". */
+  --color-pop: #d4973f; /* decoration: gold */
   --color-on-pop: #000000;
+  --color-danger: #ff6b5a;
+  --color-ok: #4cc38a;
   /* readable minimums: body copy 15px, small labels 13px */
   --text-xs: 0.8125rem;
   --text-xs--line-height: 1.4;
@@ -35,8 +45,8 @@
   --display-stretch: 88%;
   --holo-style: normal;
   --hue-anim: none;
-  --glow-a: 14%;
-  --glow-b: 9%;
+  --glow-a: 7%;
+  --glow-b: 4%;
 }
 
 html {
@@ -105,7 +115,7 @@ body {
   overflow-x: clip;
 }
 
-/* fixed aurora behind everything */
+/* faint warm light behind everything (kept low so the products carry the colour) */
 body::before {
   content: "";
   position: fixed;
@@ -113,9 +123,17 @@ body::before {
   z-index: -1;
   pointer-events: none;
   background:
-    radial-gradient(ellipse 70% 55% at 75% -5%, color-mix(in oklab, var(--color-accent-3) var(--glow-a), transparent), transparent 60%),
-    radial-gradient(ellipse 55% 45% at -5% 45%, color-mix(in oklab, var(--color-accent) var(--glow-b), transparent), transparent 60%),
-    radial-gradient(ellipse 60% 45% at 105% 95%, color-mix(in oklab, var(--color-accent-2) var(--glow-b), transparent), transparent 60%);
+    radial-gradient(ellipse 70% 55% at 75% -5%, color-mix(in oklab, var(--color-gold) var(--glow-a), transparent), transparent 60%),
+    radial-gradient(ellipse 60% 45% at 105% 95%, color-mix(in oklab, var(--color-gold) var(--glow-b), transparent), transparent 60%);
+}
+
+/* the cover keeps the logo's pure black and its original glow, then fades into the page */
+.cover-bg {
+  background:
+    linear-gradient(to bottom, transparent 82%, var(--color-page)),
+    radial-gradient(ellipse 70% 55% at 75% -5%, color-mix(in oklab, #a8681c 14%, transparent), transparent 60%),
+    radial-gradient(ellipse 55% 45% at -5% 45%, color-mix(in oklab, #ff9a1a 9%, transparent), transparent 60%),
+    #000;
 }
 
 /* Unlayered, so it wins over Tailwind's font-weight utilities: each theme
@@ -281,27 +299,29 @@ body::before {
 
 .cta-card {
   background:
-    radial-gradient(ellipse 60% 80% at 100% 0%, color-mix(in oklab, var(--color-accent) 25%, transparent), transparent 60%),
-    radial-gradient(ellipse 50% 70% at 0% 100%, color-mix(in oklab, var(--color-accent-2) 18%, transparent), transparent 60%),
-    color-mix(in oklab, var(--color-fg) 3%, transparent);
-  border: 1px solid color-mix(in oklab, var(--color-fg) 12%, transparent);
+    radial-gradient(ellipse 60% 80% at 100% 0%, color-mix(in oklab, var(--color-gold) 12%, transparent), transparent 60%),
+    var(--color-surface);
+  border: 1px solid var(--color-line);
 }
 
+/* neutral grey "photo studio" behind products, so every colour (black included) reads true */
+.stage,
 .viewer-bg {
-  background: radial-gradient(circle at 50% 60%, color-mix(in oklab, var(--color-accent-3) 22%, transparent), transparent 65%);
+  background:
+    radial-gradient(ellipse 70% 60% at 50% 42%, #2c2c2f, #18181a 55%, #0f0f10 100%);
 }
 
 .grid-bg {
   background-image:
-    linear-gradient(color-mix(in oklab, var(--color-fg) 5%, transparent) 1px, transparent 1px),
-    linear-gradient(90deg, color-mix(in oklab, var(--color-fg) 5%, transparent) 1px, transparent 1px);
+    linear-gradient(color-mix(in oklab, var(--color-fg) 4%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in oklab, var(--color-fg) 4%, transparent) 1px, transparent 1px);
   background-size: 40px 40px;
 }
 
 .grid-bg-accent {
   background-image:
-    linear-gradient(color-mix(in oklab, var(--color-accent-2) 8%, transparent) 1px, transparent 1px),
-    linear-gradient(90deg, color-mix(in oklab, var(--color-accent-2) 8%, transparent) 1px, transparent 1px);
+    linear-gradient(color-mix(in oklab, var(--color-fg) 4%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in oklab, var(--color-fg) 4%, transparent) 1px, transparent 1px);
   background-size: 32px 32px;
 }
 

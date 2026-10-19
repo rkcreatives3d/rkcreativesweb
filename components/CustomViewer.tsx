@@ -11,12 +11,12 @@ export function CustomViewer() {
   const visible = useInView(ref);
   if (useLiteMode()) return null;
   return (
-    <div ref={ref} className="relative aspect-[4/3] overflow-hidden rounded-[28px] border border-accent-2/20 grid-bg-accent">
+    <div ref={ref} className="relative aspect-[4/3] overflow-hidden rounded-[28px] border border-line stage">
       <View className="absolute inset-0">
         <SlicerScene visible={visible} />
       </View>
-      <span className="absolute bottom-4 left-4 tabular-nums text-xs uppercase tracking-[0.12em] text-accent-2">
-        Slicer preview · your idea here
+      <span className="absolute bottom-4 left-4 text-xs text-muted">
+        Your idea here
       </span>
     </div>
   );

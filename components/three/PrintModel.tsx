@@ -117,7 +117,7 @@ function Loading() {
   return (
     <mesh ref={ref} scale={0.7}>
       <icosahedronGeometry args={[1, 2]} />
-      <meshBasicMaterial color="#ff9a1a" wireframe transparent opacity={0.35} toneMapped={false} />
+      <meshBasicMaterial color="#d4973f" wireframe transparent opacity={0.35} toneMapped={false} />
     </mesh>
   );
 }

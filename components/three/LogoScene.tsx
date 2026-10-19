@@ -46,7 +46,7 @@ export function LogoScene() {
 
   return (
     <>
-      <ViewRig position={[0, 0, HERO_CAM_Z]} fov={HERO_FOV} />
+      <ViewRig position={[0, 0, HERO_CAM_Z]} fov={HERO_FOV} look="warm" />
       <group ref={rig}>
         <Float speed={1.2} rotationIntensity={0.08} floatIntensity={0.25}>
           <Suspense fallback={null}>

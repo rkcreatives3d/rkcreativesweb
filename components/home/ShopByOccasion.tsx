@@ -10,7 +10,7 @@ import { modelFor } from "@/lib/models";
 import { useLiteMode } from "@/lib/lite";
 import { CardScene } from "../three/ProductScenes";
 import { ProductArt } from "../ProductMedia";
-import { Heading, Reveal, SectionLabel } from "../ui";
+import { Heading, Reveal } from "../ui";
 
 /** Occasion tiles: the quickest way into the shop. Each shows one of its products in 3D. */
 export function ShopByOccasion() {
@@ -20,9 +20,8 @@ export function ShopByOccasion() {
 
   return (
     <section className="mx-auto max-w-7xl px-5 py-20 sm:px-8 sm:py-24">
-      <SectionLabel>Shop by occasion</SectionLabel>
-      <Heading className="mt-4 text-5xl sm:text-7xl">
-        What&apos;s it <span className="holo-text">for?</span>
+      <Heading className="text-5xl sm:text-7xl">
+        What&apos;s it <span className="text-pop">for?</span>
       </Heading>
       <div className="mt-10 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3">
         {tiles.map((t, i) => (
@@ -46,9 +45,9 @@ function Tile({ id, label, blurb, count, product }: { id: string; label: string;
       href={`/shop/?for=${id}`}
       onPointerEnter={() => setHovered(true)}
       onPointerLeave={() => setHovered(false)}
-      className="group relative flex aspect-[4/5] flex-col justify-end overflow-hidden rounded-[28px] border border-fg/10 bg-fg/[0.025] p-5 transition-colors hover:border-fg/30 sm:aspect-[5/4] sm:p-6"
+      className="group relative flex aspect-[4/5] flex-col justify-end overflow-hidden rounded-[28px] border border-line bg-surface p-5 transition-colors hover:border-fg/30 sm:aspect-[5/4] sm:p-6"
     >
-      <div className="absolute inset-x-0 top-0 h-[50%] sm:h-[72%]">
+      <div className="stage absolute inset-x-0 top-0 h-[50%] [mask-image:linear-gradient(to_bottom,#000_65%,transparent)] sm:h-[72%]">
         {lite ? (
           <ProductArt product={product} />
         ) : (
@@ -60,8 +59,8 @@ function Tile({ id, label, blurb, count, product }: { id: string; label: string;
       <div className="relative">
         <p className="font-display text-2xl display-case leading-tight sm:text-3xl">{label}</p>
         <p className="mt-1 hidden text-sm text-muted sm:block">{blurb}</p>
-        <p className="mt-2 text-sm font-semibold text-accent">
-          {count} {count === 1 ? "piece" : "pieces"} <span className="inline-block transition-transform group-hover:translate-x-1">→</span>
+        <p className="mt-2 text-sm font-semibold text-fg">
+          {count} {count === 1 ? "piece" : "pieces"} <span className="inline-block text-accent transition-transform group-hover:translate-x-1">→</span>
         </p>
       </div>
     </Link>

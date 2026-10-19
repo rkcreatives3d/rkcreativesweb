@@ -54,7 +54,9 @@ export function Nav() {
           <button
             data-cart-target
             onClick={() => setOpen(true)}
-            className="relative ml-1 flex items-center gap-2 rounded-full bg-fg px-4 py-2 text-sm font-semibold text-page transition-transform hover:scale-105 active:scale-95"
+            className={`relative ml-1 flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold transition-all hover:scale-105 active:scale-95 ${
+              count ? "border-fg bg-fg text-page" : "border-fg/20 text-fg hover:border-fg/40"
+            }`}
             aria-label={`Open cart, ${count} item${count === 1 ? "" : "s"}`}
           >
             <CartIcon />
@@ -65,7 +67,7 @@ export function Nav() {
                 initial={{ y: -12, opacity: 0, scale: 0.6 }}
                 animate={{ y: 0, opacity: 1, scale: 1 }}
                 exit={{ y: 12, opacity: 0 }}
-                className="grid h-5 min-w-5 place-items-center rounded-full bg-accent px-1 tabular-nums text-xs text-page"
+                className={`grid h-5 min-w-5 place-items-center rounded-full px-1 tabular-nums text-xs ${count ? "bg-accent text-black" : "bg-fg/10 text-muted"}`}
               >
                 {count}
               </motion.span>

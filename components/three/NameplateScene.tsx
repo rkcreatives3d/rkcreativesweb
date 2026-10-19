@@ -45,9 +45,9 @@ export function NameplateScene({
     [plateGeo],
   );
 
-  // letters in the chosen finish on a contrasting plate
+  // letters in the chosen finish on a contrasting plate: grey by default, white behind black letters
   const letters = useFinishMaterial(finish);
-  const plate = useFinishMaterial(finish === "onyx" ? "frost" : "onyx");
+  const plate = useFinishMaterial(finish === "onyx" ? "frost" : finish === "graphite" || finish === "silver" ? "onyx" : "graphite");
   const steel = useMemo(() => new THREE.MeshStandardMaterial({ color: "#c9ccd2", metalness: 1, roughness: 0.25 }), []);
   useEffect(() => () => steel.dispose(), [steel]);
 
