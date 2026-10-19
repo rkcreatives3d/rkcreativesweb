@@ -7,3 +7,8 @@ next-env.d.ts
 
 # converted 3D models: rebuilt from models/ by `npm run models` (runs before every build)
 public/models/
+
+# test output
+/test-results/
+/playwright-report/
+/blob-report/

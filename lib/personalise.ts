@@ -2,6 +2,11 @@
 // and an optional icon after the name. Labels live here so the cart and the
 // order message can describe them without loading any 3D code.
 
+export type PlateStyle = "keychain" | "nameplate";
+
+/** longest name / word we print on a keychain or nameplate */
+export const MAX_NAME = 14;
+
 export const plateFonts = [
   { id: "bold", label: "Bold", note: "Clean block letters" },
   { id: "script", label: "Script", note: "Joined handwriting" },

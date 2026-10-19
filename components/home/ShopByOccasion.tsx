@@ -3,12 +3,11 @@
 import { useRef, useState } from "react";
 import Link from "next/link";
 import { useInView } from "motion/react";
-import { View } from "@react-three/drei";
 import { occasions } from "@/lib/occasions";
 import { products } from "@/lib/products";
 import { modelFor } from "@/lib/models";
 import { useLiteMode } from "@/lib/lite";
-import { CardScene } from "../three/ProductScenes";
+import { CardScene, View3D } from "../three/lazy";
 import { ProductArt } from "../ProductMedia";
 import { Heading, Reveal } from "../ui";
 
@@ -51,9 +50,9 @@ function Tile({ id, label, blurb, count, product }: { id: string; label: string;
         {lite ? (
           <ProductArt product={product} />
         ) : (
-          <View className="absolute inset-0">
+          <View3D className="absolute inset-0">
             <CardScene shape={product.shape} model={modelFor(product)} finish={product.finishes[0]} active={hovered} inView={inView} />
-          </View>
+          </View3D>
         )}
       </div>
       <div className="relative">

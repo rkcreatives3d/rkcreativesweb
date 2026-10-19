@@ -2,7 +2,11 @@ import type { Metadata } from "next";
 import { ShopGrid } from "@/components/ShopGrid";
 import { KineticText, SectionLabel } from "@/components/ui";
 
-export const metadata: Metadata = { title: "Shop" };
+export const metadata: Metadata = {
+  title: "Shop",
+  description: "Every 3D print we make: decor, lamps, desk gear, toys and personalised gifts. Printed to order, shipped across India.",
+  alternates: { canonical: "/shop/" },
+};
 
 export default function ShopPage() {
   return (

@@ -10,9 +10,11 @@ import type { PlateFont, PlateIcon } from "@/lib/personalise";
 // ring; "nameplate" stands the plate up on a weighted base, tilted back like a
 // desk sign.
 
-export type PlateStyle = "keychain" | "nameplate";
+export type { PlateStyle } from "@/lib/personalise";
+import type { PlateStyle } from "@/lib/personalise";
 
-export const MAX_NAME = 14;
+export { MAX_NAME } from "@/lib/personalise";
+import { MAX_NAME } from "@/lib/personalise";
 
 // Bold is built in; Script (Pacifico) and Bubbly (Titan One) download on first use.
 const fonts: Partial<Record<PlateFont, Font>> = {};

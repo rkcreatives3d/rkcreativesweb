@@ -30,18 +30,36 @@ export function describeItem(i: CartItem) {
   return { name: p.name, detail: `${getFinish(i.finish).name}, ${size?.label ?? i.size} (${size?.dims ?? ""})${text}` };
 }
 
-export function orderTotals(items: CartItem[], pincode = "") {
-  const subtotal = cartSubtotal(items);
-  const quote = deliveryQuote(pincode, subtotal);
-  return { subtotal, shipping: quote.shipping, total: subtotal + quote.shipping, delivery: quote.window };
+export type PayMethod = "upi" | "card" | "cod";
+
+export const payLabels: Record<PayMethod, string> = {
+  upi: "UPI (GPay, PhonePe, Paytm) or bank transfer",
+  card: "Card, netbanking or wallet (Razorpay)",
+  cod: "Cash on delivery",
+};
+
+/** Which ways to pay this cart can use. COD is off for personalised pieces: they can't be resold if refused. */
+export function payOptions(items: CartItem[], total: number): PayMethod[] {
+  const opts: PayMethod[] = ["upi"];
+  if (site.payments.cardPayUrl) opts.push("card");
+  const { cod } = site.payments;
+  if (cod.enabled && total <= cod.maxOrder && !items.some((i) => i.engraving)) opts.push("cod");
+  return opts;
 }
 
-export function buildOrderMessage(orderId: string, items: CartItem[], c: Customer) {
+export function orderTotals(items: CartItem[], pincode = "", pay: PayMethod = "upi") {
+  const subtotal = cartSubtotal(items);
+  const quote = deliveryQuote(pincode, subtotal);
+  const codFee = pay === "cod" ? site.payments.cod.fee : 0;
+  return { subtotal, shipping: quote.shipping, codFee, total: subtotal + quote.shipping + codFee, delivery: quote.window };
+}
+
+export function buildOrderMessage(orderId: string, items: CartItem[], c: Customer, pay: PayMethod = "upi") {
   const lines = items.map((i, n) => {
     const d = describeItem(i);
     return d ? `${n + 1}) ${d.name} — ${d.detail} × ${i.qty} = ${formatPrice(lineTotal(i))}` : "";
   });
-  const { subtotal, shipping, delivery } = orderTotals(items, c.pincode);
+  const { subtotal, shipping, codFee, total, delivery } = orderTotals(items, c.pincode, pay);
 
   return [
     `NEW ORDER — ${orderId}`,
@@ -50,7 +68,9 @@ export function buildOrderMessage(orderId: string, items: CartItem[], c: Custome
     "",
     `Subtotal: ${formatPrice(subtotal)}`,
     `Shipping: ${shipping === 0 ? "FREE" : formatPrice(shipping)}`,
-    `TOTAL: ${formatPrice(subtotal + shipping)}`,
+    codFee ? `Cash on delivery fee: ${formatPrice(codFee)}` : null,
+    `TOTAL: ${formatPrice(total)}`,
+    `Payment: ${payLabels[pay]}`,
     "",
     `Name: ${c.name}`,
     `Phone: ${c.phone}`,
@@ -78,7 +98,9 @@ export type OrderSnapshot = {
   lines: { name: string; detail: string; qty: number; total: number }[];
   subtotal: number;
   shipping: number;
+  codFee?: number;
   total: number;
+  pay?: PayMethod;
   delivery: string;
   name: string;
   at: number;

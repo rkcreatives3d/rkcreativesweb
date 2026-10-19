@@ -14,7 +14,7 @@ type Props = { params: Promise<{ slug: string }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const g = getGuide((await params).slug);
-  return g ? { title: g.title, description: g.description } : {};
+  return g ? { title: g.title, description: g.description, alternates: { canonical: `/guides/${g.slug}/` } } : {};
 }
 
 export default async function GuidePage({ params }: Props) {
@@ -22,7 +22,7 @@ export default async function GuidePage({ params }: Props) {
   if (!guide) notFound();
   return (
     <article className="mx-auto max-w-2xl px-5 pb-24 pt-28 sm:px-8 sm:pt-36">
-      <Link href="/guides/" className="tabular-nums text-xs uppercase tracking-[0.12em] text-muted hover:text-fg">
+      <Link href="/guides/" className="inline-block py-2 tabular-nums text-xs uppercase tracking-[0.12em] text-muted hover:text-fg">
         ← All guides
       </Link>
       <h1 className="mt-6 font-display text-5xl font-extrabold display-case leading-[0.92] tracking-tight sm:text-6xl">{guide.title}</h1>

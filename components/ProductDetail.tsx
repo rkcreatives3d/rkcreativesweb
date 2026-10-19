@@ -4,7 +4,6 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "motion/react";
-import { View } from "@react-three/drei";
 import { getFinish, photosFor, products, type Product } from "@/lib/products";
 import { itemPrice, useCart } from "@/lib/cart";
 import { flyToCart } from "@/lib/fly";
@@ -12,14 +11,15 @@ import { useLiteMode } from "@/lib/lite";
 import { modelFor } from "@/lib/models";
 import { track } from "@/lib/track";
 import { dispatchLabel, formatPrice, site, whatsappUrl } from "@/lib/site";
-import { MAX_NAME } from "./three/nameplate";
-import { ViewerScene } from "./three/ProductScenes";
+import { MAX_NAME } from "@/lib/personalise";
+import { View3D, ViewerScene } from "./three/lazy";
 import { Stepper } from "./CartDrawer";
 import { ProductCard } from "./ProductCard";
 import { Gallery, ProductArt } from "./ProductMedia";
 import { PinCheck } from "./Delivery";
 import { ProductFaq, SizeGuide, sizeCm } from "./ProductInfo";
 import { ArView } from "./ArView";
+import { TrustBadges } from "./TrustBadges";
 import { WhatsAppIcon } from "./CheckoutForm";
 import { Button, KineticText, Swatch } from "./ui";
 
@@ -72,7 +72,7 @@ export function ProductDetail({ product: p }: { product: Product }) {
     <>
       <section className="mx-auto grid max-w-7xl gap-10 px-5 pb-20 pt-28 sm:px-8 lg:grid-cols-[1.15fr_1fr] lg:gap-16 lg:pt-32">
         {/* media: photos if the product has them, otherwise the 3D preview (or flat art in Lite mode) */}
-        <div className="lg:sticky lg:top-24 lg:self-start">
+        <div className="min-w-0 lg:sticky lg:top-24 lg:self-start">
           {(model || (has3D && photos.list.length > 0)) && (
             <div className="mb-3 flex flex-wrap items-center gap-2">
               {has3D && photos.list.length > 0 && (
@@ -101,7 +101,7 @@ export function ProductDetail({ product: p }: { product: Product }) {
                 {showViewer ? (
                   // OrbitControls listen on this wrapper; events bubble up from the View div
                   <div ref={setViewEl} className="absolute inset-0 cursor-grab active:cursor-grabbing">
-                    <View className="absolute inset-0">
+                    <View3D className="absolute inset-0">
                       {viewEl && (
                         <ViewerScene
                           shape={p.shape}
@@ -112,7 +112,7 @@ export function ProductDetail({ product: p }: { product: Product }) {
                           domElement={viewEl}
                         />
                       )}
-                    </View>
+                    </View3D>
                   </div>
                 ) : (
                   <ProductArt product={p} finish={finish} large />
@@ -138,9 +138,9 @@ export function ProductDetail({ product: p }: { product: Product }) {
         </div>
 
         {/* details */}
-        <div>
+        <div className="min-w-0">
           <nav className="tabular-nums text-xs uppercase tracking-[0.12em] text-muted">
-            <Link href="/shop/" className="hover:text-fg">
+            <Link href="/shop/" className="inline-block py-2 hover:text-fg">
               Shop
             </Link>{" "}
             / {p.category}
@@ -220,7 +220,7 @@ export function ProductDetail({ product: p }: { product: Product }) {
               {included ? (
                 <p className="flex items-center justify-between text-sm">
                   <span className="font-semibold">Name to print</span>
-                  <Link href="/personalise/" className="text-xs text-accent underline-offset-4 hover:underline">
+                  <Link href="/personalise/" className="py-1.5 text-xs text-accent underline-offset-4 hover:underline">
                     See it live in 3D →
                   </Link>
                 </p>
@@ -234,7 +234,7 @@ export function ProductDetail({ product: p }: { product: Product }) {
                     type="checkbox"
                     checked={wantsText}
                     onChange={(e) => setWantsText(e.target.checked)}
-                    className="h-5 w-5 accent-[var(--color-accent)]"
+                    className="h-6 w-6 accent-[var(--color-accent)]"
                   />
                 </label>
               )}
@@ -288,7 +288,7 @@ export function ProductDetail({ product: p }: { product: Product }) {
                 track("buy_now", { product: p.slug, value: price * qty });
                 router.push("/checkout/");
               }}
-              className="font-semibold text-fg underline decoration-fg/30 underline-offset-4 transition-colors hover:decoration-accent"
+              className="py-2 font-semibold text-fg underline decoration-fg/30 underline-offset-4 transition-colors hover:decoration-accent"
             >
               or buy now →
             </button>
@@ -296,7 +296,7 @@ export function ProductDetail({ product: p }: { product: Product }) {
               href={ask}
               target="_blank"
               rel="noreferrer"
-              className="inline-flex items-center gap-1.5 text-muted transition-colors hover:text-fg"
+              className="inline-flex items-center gap-1.5 py-2 text-muted transition-colors hover:text-fg"
             >
               <span className="text-[#25D366]">
                 <WhatsAppIcon />
@@ -316,6 +316,7 @@ export function ProductDetail({ product: p }: { product: Product }) {
                 Returns
               </Link>
             </p>
+            <TrustBadges className="mt-4" />
           </div>
 
           {/* specs */}

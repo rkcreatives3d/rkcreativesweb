@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Manrope, Saira } from "next/font/google";
+import { Manrope, Saira_Semi_Condensed } from "next/font/google";
 import "lenis/dist/lenis.css";
 import "./globals.css";
 import { Providers } from "@/components/Providers";
@@ -12,14 +12,22 @@ import { Analytics } from "@/components/Analytics";
 import { site } from "@/lib/site";
 import { routeGuardScript } from "@/lib/routeGuard";
 import { bootScript } from "@/lib/lite";
+import { launchProblems } from "@/lib/launch";
 
 // Two families: Saira's squared caps (close to the logo wordmark) for
-// headings, Manrope for everything else.
-const saira = Saira({ subsets: ["latin"], variable: "--font-saira", axes: ["wdth"] });
+// headings, Manrope for everything else. Headings only ever use Saira Semi
+// Condensed ExtraBold, so just that one ~20 KB file is loaded.
+const saira = Saira_Semi_Condensed({ subsets: ["latin"], weight: "800", variable: "--font-saira" });
 const manrope = Manrope({ subsets: ["latin"], variable: "--font-manrope" });
+
+// Until the real WhatsApp number, email and UPI ID are in lib/site.ts, ask
+// search engines not to index anything, so sample details never reach Google.
+// (scripts/launch-check.mjs prints what's left on every build.)
+const problems = launchProblems();
 
 export const metadata: Metadata = {
   metadataBase: new URL(site.url),
+  robots: problems.length ? { index: false, follow: true } : { index: true, follow: true },
   title: { default: `${site.name} — ${site.slogan}`, template: `%s — ${site.name}` },
   description: site.description,
   keywords: ["3D printing", "3D printed gifts", "custom 3D print", "name keychain", "personalised gifts", "India", site.name],
@@ -44,11 +52,22 @@ const storeJsonLd = {
   image: `${site.url}/brand/logo.jpg`,
   email: site.email,
   telephone: `+${site.whatsapp}`,
-  address: { "@type": "PostalAddress", addressLocality: site.city.split(",")[0], addressCountry: "IN" },
+  address: {
+    "@type": "PostalAddress",
+    addressLocality: site.city.split(",")[0],
+    postalCode: site.originPin,
+    addressCountry: "IN",
+    ...(site.business.address ? { streetAddress: site.business.address } : {}),
+  },
+  ...(site.business.gstin ? { taxID: site.business.gstin } : {}),
+  ...(site.business.legalName ? { legalName: site.business.legalName } : {}),
+  priceRange: "₹₹",
+  currenciesAccepted: "INR",
+  paymentAccepted: ["UPI", "Bank transfer", ...(site.payments.cardPayUrl ? ["Credit card", "Debit card"] : []), ...(site.payments.cod.enabled ? ["Cash"] : [])].join(", "),
   sameAs: [site.instagram],
 };
 
-export const viewport: Viewport = { themeColor: "#000000" };
+export const viewport: Viewport = { themeColor: "#000000", viewportFit: "cover" };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (

@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { motion, useInView } from "motion/react";
-import { View } from "@react-three/drei";
 import type { Product } from "@/lib/products";
 import { getFinish, photosFor } from "@/lib/products";
 import { modelFor } from "@/lib/models";
@@ -11,7 +10,7 @@ import { useCart } from "@/lib/cart";
 import { formatPrice } from "@/lib/site";
 import { flyToCart } from "@/lib/fly";
 import { useLiteMode } from "@/lib/lite";
-import { CardScene } from "./three/ProductScenes";
+import { CardScene, View3D } from "./three/lazy";
 import { PhotoStack, ProductArt } from "./ProductMedia";
 import { Swatch } from "./ui";
 
@@ -56,20 +55,20 @@ export function ProductCard({ product: p, index = 0 }: { product: Product; index
         className="pointer-events-none absolute inset-0 z-[1] opacity-0 transition-opacity duration-300 group-hover:opacity-100"
         style={{ background: "radial-gradient(320px circle at var(--sx) var(--sy), color-mix(in oklab, var(--color-fg) 6%, transparent), transparent 65%)" }}
       />
-      <Link href={`/shop/${p.slug}/`} className="block" aria-label={p.name}>
+      <Link href={`/shop/${p.slug}/`} className="block" aria-label={p.badge ? `${p.name}, ${p.badge}` : p.name}>
         {/* neutral grey stage, so every colour (black included) shows true */}
         <div className="stage relative aspect-square">
           {/* real 3D model → photo (with tilt) → placeholder 3D → flat art in Lite mode */}
           {model && !lite ? (
-            <View className="absolute inset-0">
+            <View3D className="absolute inset-0">
               <CardScene shape={p.shape} model={model} finish={finish} active={active} inView={inView} />
-            </View>
+            </View3D>
           ) : photos.list.length ? (
             <PhotoStack images={photos.list} finish={finish} preview={photos.recolor} alt={p.name} hovered={hovered} />
           ) : !lite ? (
-            <View className="absolute inset-0">
+            <View3D className="absolute inset-0">
               <CardScene shape={p.shape} finish={finish} active={active} inView={inView} />
-            </View>
+            </View3D>
           ) : (
             <ProductArt product={p} finish={finish} />
           )}
@@ -96,7 +95,7 @@ export function ProductCard({ product: p, index = 0 }: { product: Product; index
         </div>
         <div className="mt-auto flex items-center justify-between">
           {/* colour swatches: hover or tap to see the piece in that colour */}
-          <div className="flex items-center gap-1.5" role="radiogroup" aria-label="Colour">
+          <div className="-ml-[3px] flex items-center gap-0.5" role="radiogroup" aria-label="Colour">
             {p.finishes.map((f) => (
               <button
                 key={f}
@@ -106,7 +105,7 @@ export function ProductCard({ product: p, index = 0 }: { product: Product; index
                 title={getFinish(f).name}
                 onPointerEnter={(e) => e.pointerType === "mouse" && setFinish(f)}
                 onClick={() => setFinish(f)}
-                className={`rounded-full transition-transform hover:scale-125 ${finish === f ? "ring-2 ring-fg ring-offset-2 ring-offset-page" : ""}`}
+                className={`rounded-full p-[3px] transition-transform hover:scale-125 ${finish === f ? "ring-2 ring-fg" : ""}`}
               >
                 <Swatch css={getFinish(f).swatch} size={18} />
               </button>

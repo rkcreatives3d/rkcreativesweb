@@ -158,7 +158,7 @@ export function CustomForm() {
             max={40}
             value={r.size}
             onChange={(e) => setR((v) => ({ ...v, size: Number(e.target.value) }))}
-            className="mt-3 w-full accent-[var(--color-accent)]"
+            className="mt-3 h-6 w-full accent-[var(--color-accent)]"
           />
         </label>
         <div className="grid gap-4 sm:grid-cols-3">

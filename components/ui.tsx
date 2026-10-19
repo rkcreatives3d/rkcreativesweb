@@ -82,14 +82,18 @@ export function Reveal({
   className = "",
   delay = 0,
   y = 40,
+  as = "div",
 }: {
   children: React.ReactNode;
   className?: string;
   delay?: number;
   y?: number;
+  /** "li" when it's an item in a list, so the list stays valid */
+  as?: "div" | "li";
 }) {
+  const Tag = as === "li" ? motion.li : motion.div;
   return (
-    <motion.div
+    <Tag
       className={className}
       initial={{ opacity: 0, y }}
       whileInView={{ opacity: 1, y: 0 }}
@@ -97,7 +101,7 @@ export function Reveal({
       transition={{ duration: 0.9, delay, ease: [0.16, 1, 0.3, 1] }}
     >
       {children}
-    </motion.div>
+    </Tag>
   );
 }
 

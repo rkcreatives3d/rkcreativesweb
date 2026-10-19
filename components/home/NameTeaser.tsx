@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Reveal, SectionLabel } from "../ui";
-import { MAX_NAME } from "../three/nameplate";
+import { MAX_NAME } from "@/lib/personalise";
 
 /** Home-page hook into the Personalise studio: type a name, jump to the live 3D preview. */
 export function NameTeaser() {

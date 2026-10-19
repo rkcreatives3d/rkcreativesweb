@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { motion } from "motion/react";
 import type { Product, Size } from "@/lib/products";
-import { dispatchLabel } from "@/lib/site";
+import { faqFor, type FaqItem } from "@/lib/faq";
 
 // ── Size guide ───────────────────────────────────────────────
 // Bars drawn to scale against everyday objects, so "12 cm" means something.
@@ -64,54 +64,36 @@ export function SizeGuide({ product: p, size }: { product: Product; size: Size }
 
 // ── FAQ ──────────────────────────────────────────────────────
 
-export type Faq = [question: string, answer: React.ReactNode];
-
-const general: Faq[] = [
-  [
-    "Is it made after I order?",
-    `Yes. Every piece is printed to order on our own machines, then cleaned up and checked by hand. Allow ${dispatchLabel} working days before it ships.`,
-  ],
-  [
-    "Will the colour look like the photos?",
-    "Very close. Screens show colours a little differently, and up close you'll see fine layer lines. That's how 3D prints look. Ask on WhatsApp and we'll send a real photo of the colour.",
-  ],
-  [
-    "Can I get a different size or colour?",
+function Answer({ item }: { item: FaqItem }) {
+  if (!item.link) return <>{item.a}</>;
+  const [before, after] = item.a.split(item.link.text);
+  return (
     <>
-      Usually, yes. Message us with what you need, or use the{" "}
-      <Link href="/custom/" className="font-semibold text-accent underline-offset-4 hover:underline">
-        custom order form
+      {before}
+      <Link href={item.link.href} className="font-semibold text-accent underline-offset-4 hover:underline">
+        {item.link.text}
       </Link>
-      , and we&apos;ll quote it.
-    </>,
-  ],
-  [
-    "What if it arrives damaged?",
-    <>
-      Message us within 48 hours with photos and we&apos;ll reprint it or refund you. See the{" "}
-      <Link href="/policies/returns/" className="font-semibold text-accent underline-offset-4 hover:underline">
-        returns policy
-      </Link>
-      .
-    </>,
-  ],
-];
+      {after}
+    </>
+  );
+}
 
 export function ProductFaq({ product: p }: { product: Product }) {
-  const items = [...(p.faq ?? []), ...general];
   return (
     <div className="mt-10">
       <h2 className="text-xs font-semibold uppercase tracking-[0.12em] text-muted">Questions</h2>
-      <div className="mt-3 divide-y divide-fg/10 border-y border-fg/10">
-        {items.map(([q, a]) => (
-          <details key={q} className="group py-1">
+      <div className="mt-3 divide-y divide-line border-y border-line">
+        {faqFor(p).map((item) => (
+          <details key={item.q} className="group py-1">
             <summary className="flex cursor-pointer list-none items-center justify-between gap-4 rounded-lg py-3 font-semibold [&::-webkit-details-marker]:hidden">
-              {q}
+              {item.q}
               <span aria-hidden className="text-xl leading-none text-muted transition-transform group-open:rotate-45">
                 +
               </span>
             </summary>
-            <div className="pb-4 leading-relaxed text-fg/75">{a}</div>
+            <div className="pb-4 leading-relaxed text-fg/75">
+              <Answer item={item} />
+            </div>
           </details>
         ))}
       </div>

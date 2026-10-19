@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { ProductDetail } from "@/components/ProductDetail";
 import { getProduct, products } from "@/lib/products";
 import { site } from "@/lib/site";
+import { faqFor } from "@/lib/faq";
 
 export const dynamicParams = false;
 
@@ -55,9 +56,22 @@ export default async function ProductPage({ params }: Props) {
       url: `${site.url}/shop/${p.slug}/`,
     },
   };
+  const breadcrumbs = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Shop", item: `${site.url}/shop/` },
+      { "@type": "ListItem", position: 2, name: p.name, item: `${site.url}/shop/${p.slug}/` },
+    ],
+  };
+  const faq = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: faqFor(p).map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })),
+  };
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify([jsonLd, breadcrumbs, faq]) }} />
       <ProductDetail key={p.slug} product={p} />
     </>
   );

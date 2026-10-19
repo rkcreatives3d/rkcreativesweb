@@ -42,7 +42,7 @@
   --on-grad: #000000;
   --display-weight: 800;
   --display-case: uppercase;
-  --display-stretch: 88%;
+  --display-stretch: normal; /* the font file is already semi-condensed */
   --holo-style: normal;
   --hue-anim: none;
   --glow-a: 7%;

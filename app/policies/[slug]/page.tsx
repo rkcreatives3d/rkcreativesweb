@@ -14,7 +14,7 @@ type Props = { params: Promise<{ slug: string }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const p = getPolicy((await params).slug);
-  return p ? { title: `${p.title} policy`, description: p.summary } : {};
+  return p ? { title: `${p.title} policy`, description: p.summary, alternates: { canonical: `/policies/${p.slug}/` } } : {};
 }
 
 export default async function PolicyPage({ params }: Props) {

@@ -1,12 +1,12 @@
 "use client";
 
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
 import { useFrame, useThree } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
 import type { PlateFont, PlateIcon } from "@/lib/personalise";
 import { ViewRig, useFinishMaterial } from "./Studio";
-import { buildKey, buildPlate, type PlateStyle } from "./nameplate";
+import { buildKey, buildPlate, loadPlateFont, plateFontLoaded, type PlateStyle } from "./nameplate";
 import { useLive } from "./live";
 
 /**
@@ -35,7 +35,17 @@ export function NameplateScene({
   visible?: boolean;
 }) {
   useLive(visible);
-  const plateGeo = useMemo(() => buildPlate(text, style, font, icon), [text, style, font, icon]);
+  // Script and Bubbly download on first use; keep showing the last font until then
+  const [shownFont, setShownFont] = useState<PlateFont>(() => (plateFontLoaded(font) ? font : "bold"));
+  useEffect(() => {
+    let live = true;
+    if (plateFontLoaded(font)) setShownFont(font);
+    else loadPlateFont(font).then(() => live && setShownFont(font), () => {});
+    return () => {
+      live = false;
+    };
+  }, [font]);
+  const plateGeo = useMemo(() => buildPlate(text, style, shownFont, icon), [text, style, shownFont, icon]);
   useEffect(
     () => () => {
       plateGeo.letters.dispose();

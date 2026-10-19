@@ -9,13 +9,20 @@ Built with Next.js 16, React Three Fiber, drei, Tailwind 4, Motion, Lenis and zu
 ```bash
 npm install
 npm run dev        # http://localhost:3000
-npm run build      # static site → ./out
-npm start          # preview the built site
+npm run build      # static site → ./out (also prints what's left before launch)
+npm start          # preview the built site at http://localhost:3000
+npm test           # browser tests against the build (run `npx playwright install chromium` once)
+npm run check      # typecheck + build + tests, the same as GitHub runs
 ```
 
 ## Before you launch
 
-1. **`lib/site.ts`:** set your real domain (`url`), city, the **PIN code you ship from** (`originPin`), WhatsApp number, email, Instagram and **UPI ID**. The UPI box stays hidden on the live site until the UPI ID is set.
+1. **`lib/site.ts`:** set your real domain (`url`), city, the **PIN code you ship from** (`originPin`), WhatsApp number, email, Instagram and **UPI ID**. Until the WhatsApp number, email and UPI ID are real, every build prints a reminder and the site tells search engines not to index it, so sample details never reach Google. In the same file:
+   - `payments.cardPayUrl`: a Razorpay Payment Page link to also take cards, netbanking and wallets. Leave it empty to offer UPI only.
+   - `payments.cod`: switch cash on delivery on, with its fee and order limit. It's never offered for personalised items, which can't be resold if refused.
+   - `business`: legal name, GSTIN, address and hours. Empty fields stay hidden.
+   - `tracking`: your courier's tracking link, for the Track page.
+   - `reviewUrl`: where customers leave a review (e.g. your Google Business review link).
 2. **`lib/delivery.ts`:** check the courier days per zone (same city, same state, nearby states, rest of India, remote areas) and the remote-area surcharge.
 3. **`lib/products.ts`:** set your real products and prices, and add photos and 3D files (see below). Edit `finishes` to list only the filaments you actually stock, with `color` matched to the real spool.
 4. **`lib/content.ts`:** write your story, and fill the trust slots: a 15-second printer video, real reviews, workshop, packing and customer photos, your latest Instagram posts, and before/after pairs of custom jobs. Every empty slot keeps its section hidden.
@@ -106,9 +113,11 @@ Customers can tap or hover over the colour swatches on shop cards and product pa
 - **Personalise** (`/personalise/`, and the second section of the home page): type a name and see it as a live 3D keychain or desk nameplate. Pick a lettering style (Bold, Script, Bubbly), an icon (heart, star, crown, paw, bolt) and a colour, and switch the preview to "On keys" or "On a desk" to judge the size. The choices go into the cart and the order message.
 - **Product page:** one main "Add to cart" button, with "buy now" and "Ask on WhatsApp" as quieter options; a PIN-code check that shows the delivery dates and shipping for the customer's area; a "How big is it?" size guide compared with everyday objects; and a short FAQ.
 - **Checkout and order page:** the PIN code shows delivery dates as the customer types (and is pre-filled if they checked it on a product page). After sending the order, customers land on `/order/`: next steps, a button to reopen WhatsApp, the UPI QR code, and a summary they can print or save as PDF.
+- **Payment:** UPI is always offered, with a QR code and a "pay in UPI app" button after ordering. Cards via Razorpay and cash on delivery appear at checkout as soon as you switch them on in `lib/site.ts`, and the chosen method goes into the order message.
+- **Help pages:** `/contact/` (WhatsApp, email, hours, reply time, business details) and `/track/` (courier tracking, or ask about an order that hasn't shipped yet).
+- **Trust badges** next to the buy buttons and at checkout: safe payment, free reprint if damaged, dispatch time, a real person on WhatsApp. Each one matches a promise in the policies.
 - **Selling tools:**
   - an "Ask on WhatsApp" link on every product, plus a floating WhatsApp button
-  - a UPI QR code and a "pay in UPI app" button after ordering
   - shop search, sorting and occasion filters
   - an add-to-cart animation
 - **Custom orders** (`/custom/`):
@@ -120,19 +129,36 @@ Customers can tap or hover over the colour swatches on shop cards and product pa
 - **Analytics events** (`lib/track.ts`): `add_to_cart`, `buy_now`, `begin_checkout`, `order_sent`, `whatsapp_click`, `custom_request`, `ar_view` and `pin_check`, sent to Plausible or GA4 when they're set up. No names, phone numbers or addresses are ever sent. In Plausible, add the event names under Site settings → Goals to see them.
 - **Accessibility:** a "Skip to content" link, visible keyboard focus, a focus-trapped cart drawer, readable text behind every animated heading, and reduced motion respected throughout (no intro, no smooth-scroll easing).
 - **Search and sharing:**
-  - every page except checkout can be linked and shared
+  - every page except checkout can be linked and shared, and has its own canonical URL
   - each product gets its own share image (`/og/<slug>.png`, built at export)
-  - Google gets product and shop details
+  - Google gets product, price, breadcrumb, FAQ and shop details (structured data)
   - `sitemap.xml` and `robots.txt` are generated automatically
+- **Speed:** the 3D engine (about 400 KB) never loads before the page is on screen. Pages show their content in well under a second, and the first download is about 250 KB. Lighthouse on a simulated mid-range phone: 95–100 for performance, 100 for accessibility and best practices on every page, and 100 for SEO once the launch details are set.
+- **Works everywhere:** tested from 320 px phones to wide desktops. Nothing scrolls sideways, every button is at least 24 × 24 px, and the layout respects notches and home bars. If a 3D file fails to download, that spot simply stays flat, and the opening animation always ends within 7 seconds.
 - **Lite mode:** the site uses photos and flat artwork instead of live 3D on phones with 2 GB of memory or less (or 4 GB with 4 cores or fewer), on data saver or 2G connections, and on devices without a usable GPU. If 3D still runs below about 24 frames a second, the site first lowers the resolution, then switches to Lite mode itself and says so, with a "Use 3D" button. Visitors can switch it on or off in the footer, and their choice is remembered.
 
 ## Link rules
 
 Every page can be opened directly from a link except **checkout**, which needs a cart. Landing on `/checkout/` from outside the site sends visitors to the home page. This is handled in `lib/routeGuard.ts`.
 
+## Tests
+
+`tests/` holds browser tests (Playwright) that run against the built site, on a desktop and a phone screen:
+
+- the full order flow, from Personalise and a product page to checkout and the order page, checking the WhatsApp message line by line
+- the intro, the checkout link guard, the Track page
+- 3D: the cover animates, the shop grid stops drawing when idle, and Lite mode loads no 3D at all
+- no page logs an error
+- layout at 320, 360, 390, 768 and 1440 px: no sideways scrolling, the nav fits, tap targets are big enough
+- an automated accessibility audit (axe, WCAG 2.2 AA) and search basics (one h1, title, description, canonical) on every page
+
+GitHub runs the typecheck, the build and all tests on every push (`.github/workflows/ci.yml`).
+
 ## Deploy (free)
 
 The site is fully static, so you don't need a server. Push the repo to GitHub and import it on Vercel, Netlify or Cloudflare Pages. Use `npm run build` as the build command and `out` as the output folder (Vercel detects both automatically). Point your domain at it, set `site.url` to match, then add the site in Google Search Console and submit `https://your-domain/sitemap.xml`.
+
+Security headers and long caching for static files come with the repo: `vercel.json` for Vercel and `public/_headers` for Netlify and Cloudflare Pages.
 
 ## Colours
 
@@ -147,7 +173,9 @@ Products are shown on a neutral grey stage with white studio light, so a white p
 
 ## How the 3D works
 
-The page has one transparent WebGL canvas fixed over it (`components/Providers.tsx`). Each 3D spot on the page is a drei `<View>` that draws into that canvas, positioned over its own `<div>`. This lets every 3D scene share a single GPU context. In Lite mode the canvas is never created.
+The page has one transparent WebGL canvas fixed over it (`components/three/CanvasRoot.tsx`). Each 3D spot on the page is a drei `<View>` that draws into that canvas, positioned over its own `<div>`. This lets every 3D scene share a single GPU context. In Lite mode the canvas is never created.
+
+Page code never imports three.js directly: everything 3D goes through `components/three/lazy.tsx`, so it downloads after the page is on screen and the browser is idle. Whether a device gets 3D at all (memory, cores, data saver, a real graphics chip) is decided by a tiny script before the first paint (`lib/lite.ts`).
 
 The canvas only draws while something moves (`components/three/live.ts`): the cover while it's on screen, a shop card while it's hovered (or for one demo turn as it scrolls into view on touch screens), a colour change while it eases in, and the page while it scrolls. Every product comes to rest at the same turntable angle. When nothing moves, the GPU idles.
 

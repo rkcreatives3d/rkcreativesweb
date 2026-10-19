@@ -1,12 +1,13 @@
 "use client";
 
-import { Suspense, useCallback, useEffect, useRef, useState } from "react";
-import { Canvas } from "@react-three/fiber";
+import { Suspense, lazy, useCallback, useEffect, useRef, useState } from "react";
 import { useLenis } from "lenis/react";
-import { useIntro } from "@/lib/intro";
 import { INTRO_KEY } from "@/lib/lite";
 import { site } from "@/lib/site";
-import { INTRO_LAYERS, PrinterScene } from "./PrinterScene";
+import { INTRO_LAYERS, useIntro } from "@/lib/intro";
+
+// if the 3D can't load, skip straight past it (the timer below opens the site)
+const IntroCanvas = lazy(() => import("./IntroCanvas").catch(() => ({ default: (() => null) as unknown as typeof import("./IntroCanvas").default })));
 
 /**
  * Opening animation: a 3D printer prints the logo, then fades into the cover
@@ -44,8 +45,16 @@ export function Intro() {
     try {
       sessionStorage.setItem(INTRO_KEY, "1");
     } catch {}
+    import("./IntroCanvas").catch(() => {}); // warm the chunk while React finishes hydrating
     setMounted(true);
   }, [finish]);
+
+  // safety net: whatever happens (slow phone, no WebGL, chunk failed), the site opens within 7 s
+  useEffect(() => {
+    if (!mounted) return;
+    const id = setTimeout(leave, 7000);
+    return () => clearTimeout(id);
+  }, [mounted, leave]);
 
   // no scrolling the page underneath while the intro is up
   useEffect(() => {
@@ -81,17 +90,9 @@ export function Intro() {
       className={`fixed inset-0 z-[90] bg-black transition-opacity duration-700 ease-out ${leaving ? "pointer-events-none opacity-0" : ""}`}
     >
       {mounted && (
-        <Canvas
-          dpr={[1, 1.75]}
-          gl={{ antialias: true, alpha: true }}
-          onCreated={({ gl }) => {
-            gl.localClippingEnabled = true;
-          }}
-        >
-          <Suspense fallback={null}>
-            <PrinterScene onProgress={onProgress} onDone={leave} />
-          </Suspense>
-        </Canvas>
+        <Suspense fallback={null}>
+          <IntroCanvas onProgress={onProgress} onDone={leave} />
+        </Suspense>
       )}
 
       <div className="absolute inset-x-0 top-0 flex items-center justify-between p-5 font-mono text-[10px] uppercase tracking-[0.3em] text-muted sm:p-8 sm:text-[11px]">

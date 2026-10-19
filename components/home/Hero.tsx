@@ -1,13 +1,14 @@
 "use client";
 
-import { View } from "@react-three/drei";
 import { motion } from "motion/react";
-import { LogoScene } from "../three/LogoScene";
+import { LogoScene, View3D } from "../three/lazy";
 import { ButtonLink } from "../ui";
 import { products } from "@/lib/products";
 import { site } from "@/lib/site";
 import { useIntro } from "@/lib/intro";
 import { useFull3D } from "@/lib/lite";
+
+const LOGO_SRCSET = "/brand/logo-480.webp 480w, /brand/logo-720.webp 720w, /brand/logo-1080.webp 1080w";
 
 /** Cover page: the brand logo in 3D, with the shop's way in underneath. */
 export function Hero() {
@@ -26,19 +27,23 @@ export function Hero() {
       </h1>
       <div className="pointer-events-none absolute left-1/2 top-[46%] h-[60vmin] w-[60vmin] -translate-x-1/2 -translate-y-1/2 rounded-full bg-accent/10 blur-[120px]" />
       {/* plain logo: in the page HTML so it shows instantly; fades out under the identical 3D plaque */}
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src="/brand/logo.jpg"
-        alt=""
-        aria-hidden
-        className={`logo-feather logo-float pointer-events-none absolute left-1/2 top-[46%] h-[min(70svh,86vw)] w-[min(70svh,86vw)] -translate-x-1/2 -translate-y-1/2 transition-opacity duration-700 ${
-          full3D ? "opacity-0" : "opacity-100"
-        }`}
-      />
+      <picture>
+        <source type="image/webp" srcSet={LOGO_SRCSET} sizes="min(70svh, 86vw)" />
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/brand/logo.jpg"
+          alt=""
+          aria-hidden
+          fetchPriority="high"
+          className={`logo-feather logo-float pointer-events-none absolute left-1/2 top-[46%] h-[min(70svh,86vw)] w-[min(70svh,86vw)] -translate-x-1/2 -translate-y-1/2 transition-opacity duration-700 ${
+            full3D ? "opacity-0" : "opacity-100"
+          }`}
+        />
+      </picture>
       {full3D && (
-        <View className="absolute inset-0">
+        <View3D className="absolute inset-0">
           <LogoScene />
-        </View>
+        </View3D>
       )}
 
       <motion.div

@@ -6,6 +6,7 @@ import { about, customerPhotos, instagramPosts, packingPhotos, reviews } from "@
 import { site, whatsappUrl } from "@/lib/site";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/about/" },
   title: "About",
   description: `The maker behind ${site.name}: printed to order and finished by hand in ${site.city}.`,
 };
@@ -36,35 +37,42 @@ export default function AboutPage() {
             <KineticText text="behind it" holo delay={0.15} />
           </h1>
           <div className="mt-8 max-w-xl space-y-4 text-lg leading-relaxed text-fg/80">
+            {/* top of the page: shown straight away, no fade-in (it's what people came to read) */}
             {about.story.map((p, i) => (
-              <Reveal key={i} delay={0.1 + i * 0.08}>
-                <p>{p}</p>
-              </Reveal>
+              <p key={i}>{p}</p>
             ))}
           </div>
           <p className="mt-6 tabular-nums text-xs uppercase tracking-[0.12em] text-muted">Based in {site.city}</p>
         </div>
-        <Reveal className="relative">
+        <div className="relative">
           {about.photos[0] ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={about.photos[0].src} alt={about.photos[0].caption ?? ""} className="aspect-square w-full rounded-[32px] border border-fg/10 object-cover" />
+            <img src={about.photos[0].src} alt={about.photos[0].caption ?? ""} className="aspect-square w-full rounded-[32px] border border-line object-cover" />
           ) : (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src="/brand/logo.jpg" alt={`${site.name} logo`} className="w-full rounded-[32px] border border-line bg-black" />
+            <picture>
+              <source type="image/webp" srcSet="/brand/logo-480.webp 480w, /brand/logo-720.webp 720w, /brand/logo-1080.webp 1080w" sizes="(min-width: 1024px) 45vw, 90vw" />
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/brand/logo.jpg"
+                alt={`${site.name} logo`}
+                width={1254}
+                height={1254}
+                fetchPriority="high"
+                className="h-auto w-full rounded-[32px] border border-line bg-black"
+              />
+            </picture>
           )}
-        </Reveal>
+        </div>
       </section>
 
       <section className="mx-auto max-w-7xl px-5 py-16 sm:px-8">
         <SectionLabel>How every order is made</SectionLabel>
         <ol className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {steps.map(([title, body], i) => (
-            <Reveal key={title} delay={i * 0.08}>
-              <li className="h-full rounded-[28px] border border-line bg-surface p-6">
+            <Reveal as="li" key={title} delay={i * 0.08} className="h-full rounded-[28px] border border-line bg-surface p-6">
                 <span className="tabular-nums text-xs text-pop">0{i + 1}</span>
                 <p className="mt-2 font-display text-2xl display-case">{title}</p>
                 <p className="mt-2 text-sm leading-relaxed text-muted">{body}</p>
-              </li>
             </Reveal>
           ))}
         </ol>

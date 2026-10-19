@@ -29,6 +29,35 @@ export const site = {
   /** EDIT: UPI details shown as a QR code after someone places an order */
   upi: { id: "yourname@okaxis", payee: "RK Creative Builds" },
 
+  /** EDIT: how customers can pay. UPI is always offered. */
+  payments: {
+    /**
+     * Card / netbanking / wallets: a Razorpay Payment Page or Payment Link
+     * (create it free in the Razorpay dashboard, with "customer enters amount"),
+     * e.g. "https://rzp.io/l/rkcreativebuilds". Leave empty to hide the option.
+     */
+    cardPayUrl: "",
+    /** Cash on delivery. Most couriers charge for COD, so you can pass on a fee. */
+    cod: { enabled: false, fee: 49, maxOrder: 3000 },
+  },
+
+  /** EDIT: business details for the footer, Contact page and invoices. Empty fields are hidden. */
+  business: {
+    legalName: "",
+    /** 15-character GSTIN, once you're registered */
+    gstin: "",
+    /** full address, if you want it public (city is shown either way) */
+    address: "",
+    hours: "Mon–Sat, 10 am – 7 pm",
+    replyTime: "usually within a few hours",
+  },
+
+  /** EDIT: your courier's tracking page; {awb} is replaced by the tracking number */
+  tracking: { courier: "Shiprocket", url: "https://shiprocket.co/tracking/{awb}" },
+
+  /** EDIT: link where happy customers can leave a review (e.g. your Google Business "Ask for reviews" link) */
+  reviewUrl: "",
+
   currency: "INR",
   locale: "en-IN",
   shippingFlat: 99,

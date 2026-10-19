@@ -4,6 +4,7 @@ import { KineticText } from "@/components/ui";
 import { dispatchLabel } from "@/lib/site";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/personalise/" },
   title: "Personalise",
   description: "Type any name and see it as a 3D-printed keychain or desk nameplate, live. Order it in a few taps.",
 };

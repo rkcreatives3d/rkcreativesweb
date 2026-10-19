@@ -127,7 +127,7 @@ export function CartDrawer() {
                   </AnimatePresence>
                 </ul>
 
-                <div className="space-y-4 border-t border-fg/10 px-6 py-5">
+                <div className="space-y-4 border-t border-line px-6 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-5">
                   <div>
                     <p className="mb-2 text-xs text-muted">
                       {toFree > 0 ? (

@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { loadOrder, type OrderSnapshot } from "@/lib/order";
-import { formatPrice } from "@/lib/site";
+import { formatPrice, site } from "@/lib/site";
 import { ButtonLink } from "./ui";
 import { UpiPay } from "./UpiPay";
 
@@ -30,7 +31,14 @@ export function OrderConfirmation() {
   const steps: [string, string][] = [
     ["Send it", `${order.via === "whatsapp" ? "WhatsApp" : "Your email app"} opened with your order filled in. Hit send there, or nothing reaches us.`],
     ["We confirm", "We reply, usually within a few hours, to confirm colours, sizes and the total."],
-    ["You pay", "By UPI or bank transfer. Payment locks in your print slot."],
+    [
+      "You pay",
+      order.pay === "cod"
+        ? "Cash to the courier when it arrives. Please keep the exact amount ready."
+        : order.pay === "card"
+          ? "By card, netbanking or wallet on Razorpay. Payment locks in your print slot."
+          : "By UPI or bank transfer. Payment locks in your print slot.",
+    ],
     ["We print and ship", `Printed, checked and packed by hand. Expected delivery ${order.delivery}.`],
   ];
 
@@ -70,10 +78,27 @@ export function OrderConfirmation() {
       </div>
 
       <div className="print:hidden">
-        <UpiPay amount={order.total} orderId={order.id} />
+        {order.pay === "cod" ? (
+          <p className="mx-auto mt-8 max-w-md rounded-[28px] border border-line bg-surface p-6 text-sm text-muted">
+            <span className="block font-semibold text-fg">Cash on delivery</span>
+            Pay {formatPrice(order.total)} to the courier when your order arrives.
+          </p>
+        ) : order.pay === "card" && site.payments.cardPayUrl ? (
+          <div className="mx-auto mt-8 max-w-md rounded-[28px] border border-line bg-surface p-6 text-sm">
+            <p className="font-semibold">Pay by card, netbanking or wallet</p>
+            <p className="mt-1 text-muted">
+              Opens Razorpay&apos;s secure page. Enter {formatPrice(order.total)} and your order number <span className="text-fg">{order.id}</span>.
+            </p>
+            <a href={site.payments.cardPayUrl} target="_blank" rel="noreferrer" className="btn mt-4 w-full">
+              Pay {formatPrice(order.total)} on Razorpay →
+            </a>
+          </div>
+        ) : (
+          <UpiPay amount={order.total} orderId={order.id} />
+        )}
       </div>
 
-      <section className="mt-10 rounded-[28px] border border-fg/10 p-6" aria-labelledby="summary">
+      <section className="mt-10 rounded-[28px] border border-line bg-surface p-6" aria-labelledby="summary">
         <h2 id="summary" className="font-display text-2xl font-bold">
           Summary
         </h2>
@@ -97,6 +122,12 @@ export function OrderConfirmation() {
             <dt>Shipping</dt>
             <dd className="tabular-nums text-fg">{order.shipping === 0 ? "Free" : formatPrice(order.shipping)}</dd>
           </div>
+          {order.codFee ? (
+            <div className="flex justify-between">
+              <dt>Cash on delivery fee</dt>
+              <dd className="tabular-nums text-fg">{formatPrice(order.codFee)}</dd>
+            </div>
+          ) : null}
           <div className="flex justify-between pt-2 font-display text-2xl font-bold text-fg">
             <dt>Total</dt>
             <dd>{formatPrice(order.total)}</dd>
@@ -108,8 +139,16 @@ export function OrderConfirmation() {
         </p>
       </section>
 
-      <div className="mt-8 print:hidden">
+      <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-3 print:hidden">
         <ButtonLink href="/shop/">← Keep shopping</ButtonLink>
+        <Link href="/track/" className="py-2 text-sm font-semibold text-accent hover:underline">
+          Track an order →
+        </Link>
+        {site.reviewUrl && (
+          <a href={site.reviewUrl} target="_blank" rel="noreferrer" className="py-2 text-sm font-semibold text-accent hover:underline">
+            Already got it? Leave a review →
+          </a>
+        )}
       </div>
     </div>
   );

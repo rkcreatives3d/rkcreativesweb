@@ -3,16 +3,14 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion, useInView } from "motion/react";
-import { View } from "@react-three/drei";
 import { getFinish, getProduct, type Product } from "@/lib/products";
 import { itemPrice, useCart } from "@/lib/cart";
 import { flyToCart } from "@/lib/fly";
 import { useLiteMode } from "@/lib/lite";
 import { formatPrice, site, whatsappUrl } from "@/lib/site";
-import { plateFonts, plateIcons, type PlateFont, type PlateIcon } from "@/lib/personalise";
+import { MAX_NAME, plateFonts, plateIcons, type PlateFont, type PlateIcon, type PlateStyle } from "@/lib/personalise";
 import { track } from "@/lib/track";
-import { MAX_NAME, loadPlateFont, plateFontLoaded, type PlateStyle } from "./three/nameplate";
-import { NameplateScene } from "./three/NameplateScene";
+import { NameplateScene, View3D } from "./three/lazy";
 import { DeliveryEstimate } from "./Delivery";
 import { WhatsAppIcon } from "./CheckoutForm";
 import { Button, Swatch } from "./ui";
@@ -38,17 +36,7 @@ export function NameplateStudio() {
   const [nudge, setNudge] = useState(false);
   const [icon, setIcon] = useState<PlateIcon>("none");
   const [context, setContext] = useState(false);
-  // the font the 3D preview uses; switches once the chosen font has downloaded
   const [font, setFont] = useState<PlateFont>("bold");
-  const [shownFont, setShownFont] = useState<PlateFont>("bold");
-  useEffect(() => {
-    let live = true;
-    if (plateFontLoaded(font)) setShownFont(font);
-    else loadPlateFont(font).then(() => live && setShownFont(font), () => {});
-    return () => {
-      live = false;
-    };
-  }, [font]);
   const box = useRef<HTMLDivElement>(null);
   const visible = useInView(box);
 
@@ -90,20 +78,20 @@ export function NameplateStudio() {
           </div>
         ) : (
           <div ref={setViewEl} className="absolute inset-0 cursor-grab active:cursor-grabbing">
-            <View className="absolute inset-0">
+            <View3D className="absolute inset-0">
               {viewEl && (
                 <NameplateScene
                   text={shown}
                   style={style}
                   finish={finish}
-                  font={shownFont}
+                  font={font}
                   icon={icon}
                   context={context}
                   visible={visible}
                   domElement={viewEl}
                 />
               )}
-            </View>
+            </View3D>
           </div>
         )}
         <span className="pointer-events-none absolute left-5 top-5 text-xs text-muted">
@@ -279,7 +267,7 @@ export function NameplateStudio() {
               track("buy_now", { product: product.slug, value: price });
               router.push("/checkout/");
             }}
-            className="font-semibold text-fg underline decoration-fg/30 underline-offset-4 transition-colors hover:decoration-accent"
+            className="py-2 font-semibold text-fg underline decoration-fg/30 underline-offset-4 transition-colors hover:decoration-accent"
           >
             or buy now →
           </button>
@@ -287,7 +275,7 @@ export function NameplateStudio() {
             href={whatsappUrl(`Hi ${site.name}! I'd like a ${product.name.toLowerCase()} that says "${text.trim() || "…"}".`)}
             target="_blank"
             rel="noreferrer"
-            className="inline-flex items-center gap-1.5 text-muted transition-colors hover:text-fg"
+            className="inline-flex items-center gap-1.5 py-2 text-muted transition-colors hover:text-fg"
           >
             <span className="text-[#25D366]">
               <WhatsAppIcon />

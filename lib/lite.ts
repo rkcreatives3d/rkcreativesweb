@@ -6,6 +6,7 @@ import { create } from "zustand";
 
 export const LITE_KEY = "rk-lite";
 export const INTRO_KEY = "rk-intro";
+export const GPU_KEY = "rk-gpu";
 
 /** Blocking <head> script: pick Lite mode and whether the intro plays, before paint. */
 export const bootScript = `(function () {
@@ -16,7 +17,26 @@ export const bootScript = `(function () {
   // (deviceMemory is Chrome-only and capped at 8; iPhones report neither and get 3D.)
   var n = navigator, mem = n.deviceMemory || 8, cores = n.hardwareConcurrency || 8, c = n.connection || {};
   var slow = mem <= 2 || (mem <= 4 && cores <= 4) || c.saveData || /2g/.test(c.effectiveType || "");
-  if (saved === "1" || (saved === null && slow)) d.classList.add("lite");
+  // no WebGL, or WebGL drawn in software (no usable graphics chip): 3D would crawl.
+  // Checked once per device and remembered, so later visits skip the test.
+  var gpu = null;
+  try { gpu = localStorage.getItem("${GPU_KEY}"); } catch (e) {}
+  if (saved === null && !slow && gpu === null) {
+    gpu = "ok";
+    try {
+      var gl = document.createElement("canvas").getContext("webgl");
+      if (!gl) gpu = "weak";
+      else {
+        var info = gl.getExtension("WEBGL_debug_renderer_info");
+        var name = info ? String(gl.getParameter(info.UNMASKED_RENDERER_WEBGL)) : "";
+        if (/swiftshader|llvmpipe|software|basic render/i.test(name)) gpu = "weak";
+        var lose = gl.getExtension("WEBGL_lose_context");
+        if (lose) lose.loseContext();
+      }
+      localStorage.setItem("${GPU_KEY}", gpu);
+    } catch (e) {}
+  }
+  if (saved === "1" || (saved === null && (slow || gpu === "weak"))) d.classList.add("lite");
 
   // the printing intro: home page only, once per visit, never in Lite mode
   var seen = null;
@@ -59,20 +79,6 @@ export const useLite = create<LiteState>((set) => ({
 export function choseFull3D() {
   try {
     return localStorage.getItem(LITE_KEY) === "0";
-  } catch {
-    return false;
-  }
-}
-
-/** No WebGL, or WebGL drawn in software (no usable GPU): 3D would crawl. */
-export function weakGpu() {
-  try {
-    const gl = document.createElement("canvas").getContext("webgl");
-    if (!gl) return true;
-    const info = gl.getExtension("WEBGL_debug_renderer_info");
-    const name = info ? String(gl.getParameter(info.UNMASKED_RENDERER_WEBGL)) : "";
-    gl.getExtension("WEBGL_lose_context")?.loseContext();
-    return /swiftshader|llvmpipe|software|basic render/i.test(name);
   } catch {
     return false;
   }

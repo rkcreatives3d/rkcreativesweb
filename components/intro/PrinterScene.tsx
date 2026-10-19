@@ -4,6 +4,7 @@ import { useMemo, useRef } from "react";
 import * as THREE from "three";
 import { useFrame, useThree } from "@react-three/fiber";
 import { Sparkles } from "@react-three/drei";
+import { INTRO_LAYERS } from "@/lib/intro";
 import { theme } from "@/lib/theme";
 import { ViewRig } from "../three/Studio";
 import { LOGO_FILL_H, LOGO_FILL_W, LOGO_SHIFT_Y, LogoPlaque } from "../three/LogoPlaque";
@@ -15,7 +16,6 @@ const CY = BED + S / 2; // logo centre height
 const IN = 0.45; // printer settles into view
 const PRINT = 2.1; // layer-by-layer print
 const OUT = 0.95; // printer clears away, camera lands on the cover framing
-export const INTRO_LAYERS = 240;
 
 const clamp01 = (x: number) => Math.min(1, Math.max(0, x));
 const ease = (x: number) => (x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2);

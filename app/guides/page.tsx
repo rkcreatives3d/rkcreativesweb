@@ -4,6 +4,7 @@ import { KineticText, Reveal, SectionLabel } from "@/components/ui";
 import { guides } from "@/lib/guides";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/guides/" },
   title: "Guides",
   description: "Choosing the right material and caring for your 3D prints.",
 };

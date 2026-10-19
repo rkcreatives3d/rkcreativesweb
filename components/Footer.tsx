@@ -4,14 +4,22 @@ import { policies } from "@/lib/policies";
 import { LiteToggle } from "./LiteToggle";
 
 export function Footer() {
+  const b = site.business;
   return (
-    <footer className="relative overflow-hidden border-t border-fg/10 px-5 pb-8 pt-20 sm:px-10">
+    <footer className="relative overflow-hidden border-t border-line px-5 pb-[max(2rem,env(safe-area-inset-bottom))] pt-20 sm:px-10">
       <div className="mx-auto grid max-w-7xl gap-12 sm:grid-cols-2 md:grid-cols-[1.6fr_1fr_1fr_1fr_1fr]">
         <div>
           <p className="max-w-sm text-lg text-muted">{site.tagline}</p>
-          <p className="mt-4 tabular-nums text-xs uppercase tracking-[0.12em] text-muted/70">
+          <p className="mt-4 tabular-nums text-xs uppercase tracking-[0.12em] text-muted">
             Printed to order in {site.city.split(",")[0]} · Dispatch in {dispatchLabel} days
           </p>
+          {(b.legalName || b.gstin || b.address) && (
+            <address className="mt-4 text-xs not-italic leading-relaxed text-muted">
+              {b.legalName && <span className="block">{b.legalName}</span>}
+              {b.address && <span className="block">{b.address}</span>}
+              {b.gstin && <span className="block">GSTIN {b.gstin}</span>}
+            </address>
+          )}
         </div>
         <FooterCol title="Shop">
           <Link href="/shop/">All objects</Link>
@@ -26,11 +34,12 @@ export function Footer() {
           </a>
         </FooterCol>
         <FooterCol title="Help">
+          <Link href="/contact/">Contact us</Link>
+          <Link href="/track/">Track an order</Link>
           <a href={whatsappUrl(`Hi ${site.name}! I have a question.`)} target="_blank" rel="noreferrer">
             WhatsApp
           </a>
           <a href={`mailto:${site.email}`}>Email</a>
-          <span>Pay via UPI / bank transfer</span>
         </FooterCol>
         <FooterCol title="Policies">
           {policies.map((p) => (
@@ -49,7 +58,7 @@ export function Footer() {
       </p>
       <p className="holo-text mt-3 text-center font-display text-xl uppercase tracking-[0.3em] sm:text-2xl">{site.slogan}</p>
 
-      <div className="mx-auto mt-6 flex max-w-7xl flex-wrap items-center justify-between gap-3 tabular-nums text-xs uppercase tracking-[0.12em] text-muted/60">
+      <div className="mx-auto mt-6 flex max-w-7xl flex-wrap items-center justify-between gap-3 tabular-nums text-xs uppercase tracking-[0.12em] text-muted">
         <span>
           © {new Date().getFullYear()} {site.name}
         </span>
@@ -63,7 +72,7 @@ function FooterCol({ title, children }: { title: string; children: React.ReactNo
   return (
     <div>
       <p className="mb-4 tabular-nums text-xs uppercase tracking-[0.12em] text-pop">{title}</p>
-      <div className="flex flex-col gap-2 text-sm text-fg/80 [&_a:hover]:text-accent">{children}</div>
+      <div className="flex flex-col items-start gap-1 text-sm text-fg/80 [&_a]:py-1 [&_a:hover]:text-accent">{children}</div>
     </div>
   );
 }

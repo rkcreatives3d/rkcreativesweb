@@ -8,6 +8,7 @@ import { beforeAfter, customJobs } from "@/lib/content";
 import { dispatchLabel } from "@/lib/site";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/custom/" },
   title: "Custom prints",
   description: "Send us a photo, sketch or STL. We model it, you approve it, we 3D print it.",
 };
@@ -42,8 +43,7 @@ export default function CustomPage() {
         {/* how it works */}
         <ol className="relative mt-16 grid gap-4 sm:grid-cols-2 lg:grid-cols-4" aria-label="How a custom order works">
           {steps.map(([title, body], i) => (
-            <Reveal key={title} delay={i * 0.08}>
-              <li className="relative h-full rounded-[28px] border border-line bg-surface p-6">
+            <Reveal as="li" key={title} delay={i * 0.08} className="relative h-full rounded-[28px] border border-line bg-surface p-6">
                 <span className="grid h-9 w-9 place-items-center rounded-full bg-pop/15 font-display text-lg font-bold tabular-nums text-pop">
                   {i + 1}
                 </span>
@@ -54,7 +54,6 @@ export default function CustomPage() {
                     →
                   </span>
                 )}
-              </li>
             </Reveal>
           ))}
         </ol>

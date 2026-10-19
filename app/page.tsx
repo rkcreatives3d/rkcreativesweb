@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { Hero } from "@/components/home/Hero";
 import { MarqueeStrip } from "@/components/home/MarqueeStrip";
 import { ShopByOccasion } from "@/components/home/ShopByOccasion";
@@ -9,6 +10,8 @@ import { customerPhotos, instagramPosts, reviews } from "@/lib/content";
 import { ProductCard } from "@/components/ProductCard";
 import { ButtonLink, Reveal } from "@/components/ui";
 import { products } from "@/lib/products";
+
+export const metadata: Metadata = { alternates: { canonical: "/" } };
 
 export default function Home() {
   const fresh = products.filter((p) => p.badge).concat(products.filter((p) => !p.badge)).slice(0, 6);

@@ -56,7 +56,7 @@ export function Reviews({ reviews }: { reviews: Review[] }) {
             <figure className="h-full rounded-[28px] border border-line bg-surface p-6">
               <p className="text-pop" aria-label={`${r.rating} out of 5 stars`}>
                 {"★".repeat(r.rating)}
-                <span className="text-fg/20">{"★".repeat(5 - r.rating)}</span>
+                <span className="text-muted">{"☆".repeat(5 - r.rating)}</span>
               </p>
               <blockquote className="mt-3 leading-relaxed text-fg/85">“{r.text}”</blockquote>
               <figcaption className="mt-4 text-sm text-muted">

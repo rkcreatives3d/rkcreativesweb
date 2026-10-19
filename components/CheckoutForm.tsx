@@ -6,12 +6,29 @@ import { useRouter } from "next/navigation";
 import { optionsLabel } from "@/lib/personalise";
 import { useCart, cartSubtotal, lineTotal } from "@/lib/cart";
 import { getFinish, getProduct } from "@/lib/products";
-import { buildOrderMessage, describeItem, newOrderId, orderTotals, saveOrder, type Customer } from "@/lib/order";
+import {
+  buildOrderMessage,
+  describeItem,
+  newOrderId,
+  orderTotals,
+  payLabels,
+  payOptions,
+  saveOrder,
+  type Customer,
+  type PayMethod,
+} from "@/lib/order";
 import { deliveryQuote, shippingTo, validPin } from "@/lib/delivery";
-import { dispatchLabel, formatPrice, mailtoUrl, whatsappUrl } from "@/lib/site";
+import { dispatchLabel, formatPrice, mailtoUrl, site, whatsappUrl } from "@/lib/site";
 import { track } from "@/lib/track";
 import { ButtonLink, Swatch } from "./ui";
 import { DeliveryEstimate, usePin } from "./Delivery";
+import { TrustBadges } from "./TrustBadges";
+
+const payNotes: Record<PayMethod, string> = {
+  upi: "Pay now on the next page, or after we confirm. No extra charge.",
+  card: "Pay securely on Razorpay's page after you send the order.",
+  cod: `Pay the courier when it arrives (+${formatPrice(site.payments.cod.fee)} COD fee).`,
+};
 
 const empty: Customer = { name: "", phone: "", email: "", address: "", city: "", pincode: "", notes: "" };
 
@@ -35,6 +52,10 @@ export function CheckoutForm() {
   // dates depend on today, so they're only worked out in the browser
   useEffect(() => setQuote(deliveryQuote(c.pincode, subtotal)), [c.pincode, subtotal]);
   const shipping = shippingTo(subtotal, c.pincode);
+  const options = payOptions(items, subtotal + shipping);
+  const [payPick, setPay] = useState<PayMethod>("upi");
+  const pay = options.includes(payPick) ? payPick : "upi";
+  const codFee = pay === "cod" ? site.payments.cod.fee : 0;
   const set = (k: keyof Customer) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
     setC((v) => ({ ...v, [k]: e.target.value }));
 
@@ -62,9 +83,9 @@ export function CheckoutForm() {
     e.preventDefault();
     const via = ((e.nativeEvent as SubmitEvent).submitter as HTMLButtonElement | null)?.value === "email" ? "email" : "whatsapp";
     const id = newOrderId();
-    const msg = buildOrderMessage(id, items, c);
+    const msg = buildOrderMessage(id, items, c, pay);
     const url = via === "whatsapp" ? whatsappUrl(msg) : mailtoUrl(`Order ${id} — ${c.name}`, msg);
-    const totals = orderTotals(items, c.pincode);
+    const totals = orderTotals(items, c.pincode, pay);
     saveOrder({
       id,
       via,
@@ -75,13 +96,15 @@ export function CheckoutForm() {
       }),
       subtotal: totals.subtotal,
       shipping: totals.shipping,
+      codFee: totals.codFee,
       total: totals.total,
+      pay,
       delivery: totals.delivery,
       name: c.name.split(" ")[0],
       at: Date.now(),
     });
     if (validPin(c.pincode)) setPin(c.pincode.trim());
-    track("order_sent", { via, value: totals.total, items: items.length });
+    track("order_sent", { via, pay, value: totals.total, items: items.length });
     if (via === "whatsapp") window.open(url, "_blank", "noopener");
     else window.location.href = url;
     clear();
@@ -139,10 +162,35 @@ export function CheckoutForm() {
           <Field label="Notes (gift message, colour tweaks…)" value={c.notes} onChange={set("notes")} textarea />
         </Fieldset>
 
-        <Fieldset title="03 · Send order">
+        <Fieldset title="03 · Payment">
+          {options.length > 1 ? (
+            <div role="radiogroup" aria-label="How would you like to pay?" className="grid gap-2">
+              {options.map((o) => (
+                <label
+                  key={o}
+                  className={`flex cursor-pointer items-start gap-3 rounded-2xl border p-4 transition-colors ${
+                    pay === o ? "border-fg bg-raised" : "border-line hover:border-fg/30"
+                  }`}
+                >
+                  <input type="radio" name="pay" value={o} checked={pay === o} onChange={() => setPay(o)} className="mt-0.5 h-5 w-5 accent-[var(--color-accent)]" />
+                  <span className="text-sm">
+                    <span className="block font-semibold">{payLabels[o]}</span>
+                    <span className="text-muted">{payNotes[o]}</span>
+                  </span>
+                </label>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-muted">
+              Pay by UPI (GPay, PhonePe, Paytm) or bank transfer. You can pay straight away on the next page, or after we confirm on
+              WhatsApp.
+            </p>
+          )}
+        </Fieldset>
+
+        <Fieldset title="04 · Send order">
           <p className="text-sm text-muted">
-            No card needed here. Your order goes straight to us on WhatsApp or email. We confirm stock and print time, then share
-            payment details (UPI / bank transfer).
+            Your order goes straight to us on WhatsApp or email. We confirm colours and print time, usually within a few hours.
           </p>
           <div className="flex flex-col gap-3 sm:flex-row">
             <button type="submit" name="via" value="whatsapp" className="btn btn-primary flex-1">
@@ -190,14 +238,20 @@ export function CheckoutForm() {
           <p className="flex justify-between">
             Shipping <span className="tabular-nums text-fg">{shipping === 0 ? "Free" : formatPrice(shipping)}</span>
           </p>
+          {codFee > 0 && (
+            <p className="flex justify-between">
+              Cash on delivery fee <span className="tabular-nums text-fg">{formatPrice(codFee)}</span>
+            </p>
+          )}
           <p className="flex justify-between pt-2 font-display text-2xl font-bold text-fg">
-            Total <span>{formatPrice(subtotal + shipping)}</span>
+            Total <span>{formatPrice(subtotal + shipping + codFee)}</span>
           </p>
         </div>
         <p className="mt-4 text-xs text-muted">
           Every piece is printed to order. Dispatch in {dispatchLabel} working days after payment.
         </p>
         <DeliveryEstimate pin={c.pincode} className="mt-1 text-xs text-muted" />
+        <TrustBadges className="mt-5" />
         <Link href="/shop/" className="mt-4 inline-block text-xs font-semibold text-accent underline-offset-4 hover:underline">
           ← Keep shopping
         </Link>
