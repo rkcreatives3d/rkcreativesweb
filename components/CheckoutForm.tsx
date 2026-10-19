@@ -23,6 +23,7 @@ import { track } from "@/lib/track";
 import { ButtonLink, Swatch } from "./ui";
 import { DeliveryEstimate, usePin } from "./Delivery";
 import { TrustBadges } from "./TrustBadges";
+import { MailIcon, TruckIcon } from "./Icons";
 
 const payNotes: Record<PayMethod, string> = {
   upi: "Pay now on the next page, or after we confirm. No extra charge.",
@@ -152,7 +153,7 @@ export function CheckoutForm() {
           <p id="pin-quote" aria-live="polite" className="text-sm text-muted">
             {quote?.zone ? (
               <>
-                <span aria-hidden>🚚 </span>
+                <TruckIcon className="mr-1.5 text-pop" />
                 {quote.zoneLabel}: delivered <span className="font-semibold text-fg">{quote.window}</span>
               </>
             ) : (
@@ -168,7 +169,7 @@ export function CheckoutForm() {
               {options.map((o) => (
                 <label
                   key={o}
-                  className={`flex cursor-pointer items-start gap-3 rounded-2xl border p-4 transition-colors ${
+                  className={`flex cursor-pointer items-start gap-3 rounded-xl border p-4 transition-colors ${
                     pay === o ? "border-fg bg-raised" : "border-line hover:border-fg/30"
                   }`}
                 >
@@ -197,13 +198,13 @@ export function CheckoutForm() {
               <WhatsAppIcon /> Order on WhatsApp
             </button>
             <button type="submit" name="via" value="email" className="btn flex-1">
-              ✉ Order by email
+              <MailIcon /> Order by email
             </button>
           </div>
         </Fieldset>
       </form>
 
-      <aside className="h-fit rounded-[28px] border border-line bg-surface p-6 lg:sticky lg:top-28">
+      <aside className="h-fit rounded-3xl border border-line bg-surface p-6 lg:sticky lg:top-28">
         <h2 className="font-display text-2xl font-bold">Order summary</h2>
         <ul className="mt-5 space-y-4">
           {items.map((i) => {
@@ -262,7 +263,7 @@ export function CheckoutForm() {
 
 export function Fieldset({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <fieldset className="space-y-4 rounded-[28px] border border-line bg-surface p-6">
+    <fieldset className="space-y-4 rounded-3xl border border-line bg-surface p-6">
       <legend className="sr-only">{title}</legend>
       <p className="tabular-nums text-xs uppercase tracking-[0.12em] text-pop">{title}</p>
       {children}

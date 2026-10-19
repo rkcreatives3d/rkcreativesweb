@@ -114,7 +114,7 @@ export function ArView({ model, name, slug, sizeCm, tint }: { model: string; nam
         onClose={() => setOpen(false)}
         onClick={(e) => e.target === dialog.current && dialog.current?.close()}
         aria-labelledby="ar-title"
-        className="m-auto w-[min(920px,calc(100vw-2rem))] rounded-[32px] border border-fg/10 bg-page p-0 text-fg backdrop:bg-black/70 backdrop:backdrop-blur-sm"
+        className="m-auto w-[min(920px,calc(100vw-2rem))] rounded-3xl border border-fg/10 bg-page p-0 text-fg backdrop:bg-black/70 backdrop:backdrop-blur-sm"
       >
         {open && (
           <div className="grid md:grid-cols-[1.3fr_1fr]">
@@ -219,7 +219,7 @@ function PhoneHint({ slug }: { slug: string }) {
   if (!desktop)
     return <p className="mt-4 text-sm text-muted">Needs an iPhone, or an Android phone with Google Play Services for AR.</p>;
   return (
-    <div className="mt-6 flex items-center gap-4 rounded-2xl border border-fg/10 p-4">
+    <div className="mt-6 flex items-center gap-4 rounded-xl border border-fg/10 p-4">
       <div className="grid h-28 w-28 shrink-0 place-items-center overflow-hidden rounded-xl bg-white p-1.5">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         {qr ? <img src={qr} alt="QR code to open this product on your phone" className="h-full w-full" /> : null}

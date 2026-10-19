@@ -96,7 +96,7 @@ export function ProductDetail({ product: p }: { product: Product }) {
             <Gallery images={photos.list} finish={finish} preview={photos.recolor} alt={p.name} />
           ) : (
             <>
-              <div className="relative aspect-square overflow-hidden rounded-[32px] border border-fg/10 viewer-bg lg:aspect-auto lg:h-[calc(100svh-8rem)]">
+              <div className="relative aspect-square overflow-hidden rounded-3xl border border-fg/10 viewer-bg lg:aspect-auto lg:h-[calc(100svh-8rem)]">
                 <div className="grid-bg absolute inset-0" />
                 {showViewer ? (
                   // OrbitControls listen on this wrapper; events bubble up from the View div
@@ -200,7 +200,7 @@ export function ProductDetail({ product: p }: { product: Product }) {
                   key={s.id}
                   onClick={() => setSize(s.id)}
                   aria-pressed={size === s.id}
-                  className={`rounded-2xl border px-3 py-3 text-left transition-all ${
+                  className={`rounded-xl border px-3 py-3 text-left transition-all ${
                     size === s.id ? "border-fg bg-fg text-page" : "border-fg/15 hover:border-fg/40"
                   }`}
                 >
@@ -216,7 +216,7 @@ export function ProductDetail({ product: p }: { product: Product }) {
 
           {/* personalisation */}
           {p.personalisation && (
-            <div className="mt-8 rounded-2xl border border-line bg-surface p-4">
+            <div className="mt-8 rounded-xl border border-line bg-surface p-4">
               {included ? (
                 <p className="flex items-center justify-between text-sm">
                   <span className="font-semibold">Name to print</span>
@@ -320,7 +320,7 @@ export function ProductDetail({ product: p }: { product: Product }) {
           </div>
 
           {/* specs */}
-          <dl className="mt-10 grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-fg/10 bg-fg/10 text-sm">
+          <dl className="mt-10 grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-fg/10 bg-fg/10 text-sm">
             {[
               ["Material", p.material],
               ["Print time", p.printTime],
@@ -344,8 +344,8 @@ export function ProductDetail({ product: p }: { product: Product }) {
       </section>
 
       <section className="mx-auto max-w-7xl px-5 pb-24 sm:px-8">
-        <h2 className="font-display text-4xl font-extrabold display-case tracking-tight sm:text-5xl">
-          You might <span className="text-pop">also</span> like
+        <h2 className="font-display text-4xl font-extrabold display-case leading-none tracking-tight sm:text-5xl">
+          You might also like
         </h2>
         <div className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {related.map((r, i) => (

@@ -105,7 +105,7 @@ export function ShopGrid() {
         </div>
       ) : (
         <AnimatePresence>
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mt-10 rounded-[28px] border border-fg/10 p-10 text-center">
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mt-10 rounded-3xl border border-fg/10 p-10 text-center">
             <p className="font-display text-3xl display-case">Nothing matches that</p>
             <p className="mt-2 text-muted">Try another word, or ask us to print exactly what you have in mind.</p>
             <button

@@ -24,6 +24,7 @@ test("checkout can't be opened from a typed link", async ({ page }) => {
 });
 
 test("personalise → product → checkout → order page, with the full order in the message", async ({ page }) => {
+  test.slow(); // walks through four pages with live 3D
   await prepare(page);
 
   // a personalised keychain from the studio, with lettering and an icon

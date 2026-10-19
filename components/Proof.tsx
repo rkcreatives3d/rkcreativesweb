@@ -12,8 +12,8 @@ export function PhotoGrid({ photos, label, title, highlight }: { photos: Photo[]
     <section className="mx-auto max-w-7xl px-5 py-20 sm:px-8">
       <SectionLabel>{label}</SectionLabel>
       <Reveal y={24}>
-        <h2 className="mt-4 font-display text-4xl font-extrabold display-case leading-[0.9] tracking-tight sm:text-6xl">
-          {title} <span className="text-pop">{highlight}</span>
+        <h2 className="mt-4 font-display text-4xl font-extrabold display-case leading-none tracking-tight sm:text-5xl">
+          {title} {highlight}
         </h2>
       </Reveal>
       <div className="mt-10 columns-2 gap-4 sm:columns-3 lg:columns-4">
@@ -40,8 +40,8 @@ export function Reviews({ reviews }: { reviews: Review[] }) {
         <div>
           <SectionLabel>Reviews</SectionLabel>
           <Reveal y={24}>
-            <h2 className="mt-4 font-display text-4xl font-extrabold display-case leading-[0.9] tracking-tight sm:text-6xl">
-              Loved by <span className="text-pop">people</span>
+            <h2 className="mt-4 font-display text-4xl font-extrabold display-case leading-none tracking-tight sm:text-5xl">
+              Loved by people
             </h2>
           </Reveal>
         </div>
@@ -53,7 +53,7 @@ export function Reviews({ reviews }: { reviews: Review[] }) {
       <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {reviews.map((r, i) => (
           <Reveal key={i} delay={(i % 3) * 0.08}>
-            <figure className="h-full rounded-[28px] border border-line bg-surface p-6">
+            <figure className="h-full rounded-3xl border border-line bg-surface p-6">
               <p className="text-pop" aria-label={`${r.rating} out of 5 stars`}>
                 {"★".repeat(r.rating)}
                 <span className="text-muted">{"☆".repeat(5 - r.rating)}</span>
@@ -80,8 +80,8 @@ export function InstagramGrid({ posts }: { posts: (Photo & { href: string })[] }
         <div>
           <SectionLabel>On Instagram</SectionLabel>
           <Reveal y={24}>
-            <h2 className="mt-4 font-display text-4xl font-extrabold display-case leading-[0.9] tracking-tight sm:text-6xl">
-              Fresh from <span className="text-pop">the studio</span>
+            <h2 className="mt-4 font-display text-4xl font-extrabold display-case leading-none tracking-tight sm:text-5xl">
+              Fresh from the studio
             </h2>
           </Reveal>
         </div>
@@ -92,7 +92,7 @@ export function InstagramGrid({ posts }: { posts: (Photo & { href: string })[] }
       <ul className="mt-10 grid grid-cols-3 gap-2 sm:gap-4 lg:grid-cols-6">
         {posts.slice(0, 12).map((p) => (
           <li key={p.href}>
-            <a href={p.href} target="_blank" rel="noreferrer" className="group block overflow-hidden rounded-2xl border border-fg/10">
+            <a href={p.href} target="_blank" rel="noreferrer" className="group block overflow-hidden rounded-xl border border-fg/10">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={p.src}

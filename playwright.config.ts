@@ -7,7 +7,7 @@ export default defineConfig({
   timeout: 60_000,
   fullyParallel: true,
   // each test drives real 3D pages; too many at once starves the CPU
-  workers: process.env.CI ? 2 : 4,
+  workers: process.env.CI ? 2 : 3,
   retries: process.env.CI ? 1 : 0,
   reporter: process.env.CI ? [["github"], ["list"]] : "list",
   use: {

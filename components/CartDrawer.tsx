@@ -88,7 +88,7 @@ export function CartDrawer() {
                           initial={{ opacity: 0, x: 40 }}
                           animate={{ opacity: 1, x: 0 }}
                           exit={{ opacity: 0, x: 40, height: 0, marginTop: 0 }}
-                          className="flex gap-4 rounded-2xl border border-line bg-surface p-4"
+                          className="flex gap-4 rounded-xl border border-line bg-surface p-4"
                         >
                           <div className="grid h-16 w-16 shrink-0 place-items-center rounded-xl" style={{ background: f.swatch }}>
                             <span className="font-display text-xl font-extrabold text-page/70 mix-blend-hard-light">

@@ -37,7 +37,7 @@ export function ProductCard({ product: p, index = 0 }: { product: Product; index
   return (
     <motion.article
       ref={ref}
-      className="group relative flex flex-col overflow-hidden rounded-[28px] border border-line bg-surface transition-colors hover:border-fg/30"
+      className="group relative flex flex-col overflow-hidden rounded-3xl border border-line bg-surface transition-colors hover:border-fg/30"
       initial={{ opacity: 0, y: 50 }}
       animate={inView ? { opacity: 1, y: 0 } : undefined}
       transition={{ duration: 0.8, delay: (index % 3) * 0.08, ease: [0.16, 1, 0.3, 1] }}
@@ -86,7 +86,6 @@ export function ProductCard({ product: p, index = 0 }: { product: Product; index
             <Link href={`/shop/${p.slug}/`} className="font-display text-xl font-bold leading-tight hover:text-accent">
               {p.name}
             </Link>
-            <p className="mt-1 line-clamp-1 text-sm text-muted">{p.tagline}</p>
           </div>
           <span className="shrink-0 tabular-nums text-sm">
             <span className="text-muted">from </span>

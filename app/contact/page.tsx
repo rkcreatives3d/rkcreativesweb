@@ -40,7 +40,7 @@ export default function ContactPage() {
         <ButtonLink href="/track/">Track an order</ButtonLink>
       </div>
 
-      <dl className="mt-12 divide-y divide-line rounded-[28px] border border-line bg-surface">
+      <dl className="mt-12 divide-y divide-line rounded-3xl border border-line bg-surface">
         {rows.map(([k, v]) => (
           <div key={k} className="flex flex-wrap justify-between gap-2 px-6 py-4 text-sm">
             <dt className="text-muted">{k}</dt>
@@ -53,7 +53,7 @@ export default function ContactPage() {
       <ul className="mt-4 grid gap-2 sm:grid-cols-2">
         {policies.map((p) => (
           <li key={p.slug}>
-            <Link href={`/policies/${p.slug}/`} className="block rounded-2xl border border-line p-4 text-sm transition-colors hover:border-fg/30">
+            <Link href={`/policies/${p.slug}/`} className="block rounded-xl border border-line p-4 text-sm transition-colors hover:border-fg/30">
               <span className="font-semibold">{p.title}</span> <span className="text-accent">→</span>
             </Link>
           </li>

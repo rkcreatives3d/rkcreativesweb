@@ -160,7 +160,7 @@ export function Gallery({ images, finish, preview, alt }: { images: string[]; fi
   const main = useFinishPhoto(images[active], finish, preview);
   return (
     <div>
-      <Tilt className="relative aspect-square overflow-hidden rounded-[32px] border border-fg/10 bg-page-2" max={8}>
+      <Tilt className="relative aspect-square overflow-hidden rounded-3xl border border-fg/10 bg-page-2" max={8}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={main.url}
@@ -182,7 +182,7 @@ export function Gallery({ images, finish, preview, alt }: { images: string[]; fi
               onClick={() => setActive(i)}
               aria-label={`Show photo ${i + 1}`}
               aria-pressed={active === i}
-              className={`h-20 w-20 shrink-0 overflow-hidden rounded-2xl border-2 transition-colors ${active === i ? "border-accent" : "border-transparent opacity-70 hover:opacity-100"}`}
+              className={`h-20 w-20 shrink-0 overflow-hidden rounded-xl border-2 transition-colors ${active === i ? "border-accent" : "border-transparent opacity-70 hover:opacity-100"}`}
             >
               <Thumb src={src} finish={finish} preview={preview} />
             </button>

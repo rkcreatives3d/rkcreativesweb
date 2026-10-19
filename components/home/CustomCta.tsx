@@ -4,10 +4,10 @@ import { ButtonLink, Reveal, SectionLabel } from "../ui";
 export function CustomCta() {
   return (
     <section className="px-5 py-24 sm:px-8 sm:py-32">
-      <div className="cta-card relative mx-auto max-w-7xl overflow-hidden rounded-[40px] p-8 sm:p-16">
+      <div className="cta-card relative mx-auto max-w-7xl overflow-hidden rounded-3xl p-8 sm:p-16">
         <SectionLabel>Custom orders</SectionLabel>
         <Reveal y={24}>
-          <h2 className="mt-6 max-w-4xl font-display text-5xl font-extrabold display-case leading-[0.9] tracking-tight sm:text-8xl">
+          <h2 className="mt-6 max-w-4xl font-display text-5xl font-extrabold display-case leading-[0.9] tracking-tight sm:text-7xl">
             Got a wild idea?
             <br />
             <span className="holo-text">We&apos;ll print it.</span>

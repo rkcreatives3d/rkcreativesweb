@@ -52,7 +52,7 @@ export function OrderConfirmation() {
 
       <ol className="mt-10 grid gap-3 sm:grid-cols-2">
         {steps.map(([title, text], i) => (
-          <li key={title} className={`rounded-2xl border p-5 ${i === 0 ? "border-accent/50 bg-accent/[0.06]" : "border-line bg-surface"}`}>
+          <li key={title} className={`rounded-xl border p-5 ${i === 0 ? "border-accent/50 bg-accent/[0.06]" : "border-line bg-surface"}`}>
             <p className="flex items-center gap-3 font-semibold">
               <span
                 className={`grid h-7 w-7 shrink-0 place-items-center rounded-full text-sm tabular-nums ${
@@ -79,12 +79,12 @@ export function OrderConfirmation() {
 
       <div className="print:hidden">
         {order.pay === "cod" ? (
-          <p className="mx-auto mt-8 max-w-md rounded-[28px] border border-line bg-surface p-6 text-sm text-muted">
+          <p className="mx-auto mt-8 max-w-md rounded-3xl border border-line bg-surface p-6 text-sm text-muted">
             <span className="block font-semibold text-fg">Cash on delivery</span>
             Pay {formatPrice(order.total)} to the courier when your order arrives.
           </p>
         ) : order.pay === "card" && site.payments.cardPayUrl ? (
-          <div className="mx-auto mt-8 max-w-md rounded-[28px] border border-line bg-surface p-6 text-sm">
+          <div className="mx-auto mt-8 max-w-md rounded-3xl border border-line bg-surface p-6 text-sm">
             <p className="font-semibold">Pay by card, netbanking or wallet</p>
             <p className="mt-1 text-muted">
               Opens Razorpay&apos;s secure page. Enter {formatPrice(order.total)} and your order number <span className="text-fg">{order.id}</span>.
@@ -98,7 +98,7 @@ export function OrderConfirmation() {
         )}
       </div>
 
-      <section className="mt-10 rounded-[28px] border border-line bg-surface p-6" aria-labelledby="summary">
+      <section className="mt-10 rounded-3xl border border-line bg-surface p-6" aria-labelledby="summary">
         <h2 id="summary" className="font-display text-2xl font-bold">
           Summary
         </h2>

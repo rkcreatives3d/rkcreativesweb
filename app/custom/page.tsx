@@ -43,7 +43,7 @@ export default function CustomPage() {
         {/* how it works */}
         <ol className="relative mt-16 grid gap-4 sm:grid-cols-2 lg:grid-cols-4" aria-label="How a custom order works">
           {steps.map(([title, body], i) => (
-            <Reveal as="li" key={title} delay={i * 0.08} className="relative h-full rounded-[28px] border border-line bg-surface p-6">
+            <Reveal as="li" key={title} delay={i * 0.08} className="relative h-full rounded-3xl border border-line bg-surface p-6">
                 <span className="grid h-9 w-9 place-items-center rounded-full bg-pop/15 font-display text-lg font-bold tabular-nums text-pop">
                   {i + 1}
                 </span>
@@ -62,8 +62,8 @@ export default function CustomPage() {
       <BeforeAfter items={beforeAfter} />
 
       <section className="mx-auto max-w-3xl px-5 py-20 sm:px-8" aria-labelledby="request">
-        <h2 id="request" className="font-display text-4xl font-extrabold display-case tracking-tight sm:text-5xl">
-          Tell us <span className="text-pop">about it</span>
+        <h2 id="request" className="font-display text-4xl font-extrabold display-case leading-none tracking-tight sm:text-5xl">
+          Tell us about it
         </h2>
         <p className="mb-8 mt-3 text-muted">The more detail, the faster and closer the quote.</p>
         <CustomForm />

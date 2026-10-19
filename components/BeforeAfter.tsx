@@ -11,8 +11,8 @@ export function BeforeAfter({ items }: { items: { title: string; before: Photo; 
     <section className="mx-auto max-w-7xl px-5 py-16 sm:px-8">
       <SectionLabel>From photo to print</SectionLabel>
       <Reveal y={24}>
-        <h2 className="mt-4 font-display text-4xl font-extrabold display-case leading-[0.9] tracking-tight sm:text-6xl">
-          What they sent, <span className="text-pop">what we made</span>
+        <h2 className="mt-4 font-display text-4xl font-extrabold display-case leading-none tracking-tight sm:text-5xl">
+          What they sent, what we made
         </h2>
       </Reveal>
       <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -28,7 +28,7 @@ function Compare({ title, before, after }: { title: string; before: Photo; after
   const [pos, setPos] = useState(50);
   return (
     <figure>
-      <div className="relative aspect-square overflow-hidden rounded-[28px] border border-fg/10 has-[input:focus-visible]:ring-2 has-[input:focus-visible]:ring-accent-2">
+      <div className="relative aspect-square overflow-hidden rounded-3xl border border-fg/10 has-[input:focus-visible]:ring-2 has-[input:focus-visible]:ring-accent-2">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={after.src} alt={after.caption ?? `${title}, the finished print`} loading="lazy" className="absolute inset-0 h-full w-full object-cover" />
         <div className="absolute inset-0" style={{ clipPath: `inset(0 ${100 - pos}% 0 0)` }}>

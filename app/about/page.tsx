@@ -47,7 +47,7 @@ export default function AboutPage() {
         <div className="relative">
           {about.photos[0] ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={about.photos[0].src} alt={about.photos[0].caption ?? ""} className="aspect-square w-full rounded-[32px] border border-line object-cover" />
+            <img src={about.photos[0].src} alt={about.photos[0].caption ?? ""} className="aspect-square w-full rounded-3xl border border-line object-cover" />
           ) : (
             <picture>
               <source type="image/webp" srcSet="/brand/logo-480.webp 480w, /brand/logo-720.webp 720w, /brand/logo-1080.webp 1080w" sizes="(min-width: 1024px) 45vw, 90vw" />
@@ -58,7 +58,7 @@ export default function AboutPage() {
                 width={1254}
                 height={1254}
                 fetchPriority="high"
-                className="h-auto w-full rounded-[32px] border border-line bg-black"
+                className="h-auto w-full rounded-3xl border border-line bg-black"
               />
             </picture>
           )}
@@ -69,7 +69,7 @@ export default function AboutPage() {
         <SectionLabel>How every order is made</SectionLabel>
         <ol className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {steps.map(([title, body], i) => (
-            <Reveal as="li" key={title} delay={i * 0.08} className="h-full rounded-[28px] border border-line bg-surface p-6">
+            <Reveal as="li" key={title} delay={i * 0.08} className="h-full rounded-3xl border border-line bg-surface p-6">
                 <span className="tabular-nums text-xs text-pop">0{i + 1}</span>
                 <p className="mt-2 font-display text-2xl display-case">{title}</p>
                 <p className="mt-2 text-sm leading-relaxed text-muted">{body}</p>
@@ -99,10 +99,10 @@ export default function AboutPage() {
       <InstagramGrid posts={instagramPosts} />
 
       <section className="px-5 py-20 sm:px-8">
-        <div className="cta-card mx-auto max-w-7xl rounded-[40px] p-8 text-center sm:p-14">
+        <div className="cta-card mx-auto max-w-7xl rounded-3xl p-8 text-center sm:p-14">
           <Reveal y={24}>
-            <h2 className="font-display text-4xl font-extrabold display-case sm:text-6xl">
-              Say <span className="text-pop">hello</span>
+            <h2 className="font-display text-4xl font-extrabold display-case leading-none tracking-tight sm:text-5xl">
+              Say hello
             </h2>
           </Reveal>
           <p className="mx-auto mt-4 max-w-md text-muted">Questions, ideas or bulk orders. Message the maker directly.</p>

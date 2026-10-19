@@ -26,11 +26,7 @@ export default function Home() {
         <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <Reveal y={24}>
-              <h2 className="font-display text-5xl font-extrabold display-case leading-[0.9] tracking-tight sm:text-7xl">
-                Fresh off
-                <br />
-                <span className="text-pop">the bed</span>
-              </h2>
+              <h2 className="font-display text-4xl font-extrabold display-case leading-none tracking-tight sm:text-5xl">Fresh off the bed</h2>
             </Reveal>
           </div>
           <ButtonLink href="/shop/">View all {products.length} →</ButtonLink>

@@ -37,14 +37,14 @@ export function StudioClip({ link = true }: { link?: boolean }) {
           preload="none"
           controls={calm}
           aria-label="Our printer at work"
-          className="aspect-video w-full rounded-[32px] border border-fg/10 bg-fg/5 object-cover"
+          className="aspect-video w-full rounded-3xl border border-fg/10 bg-fg/5 object-cover"
         />
       </Reveal>
       <div>
         <SectionLabel>Meet the maker</SectionLabel>
         <Reveal y={24}>
-          <h2 className="mt-4 font-display text-4xl font-extrabold display-case leading-[0.9] tracking-tight sm:text-6xl">
-            Printed <span className="text-pop">right here</span>
+          <h2 className="mt-4 font-display text-4xl font-extrabold display-case leading-none tracking-tight sm:text-5xl">
+            Printed right here
           </h2>
         </Reveal>
         <p className="mt-5 max-w-md leading-relaxed text-fg/80">{about.story[0]}</p>

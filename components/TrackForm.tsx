@@ -19,7 +19,7 @@ export function TrackForm() {
   return (
     <div className="grid gap-4 sm:grid-cols-2">
       <form
-        className="rounded-[28px] border border-line bg-surface p-6"
+        className="rounded-3xl border border-line bg-surface p-6"
         onSubmit={(e) => {
           e.preventDefault();
           const id = awb.trim();
@@ -38,7 +38,7 @@ export function TrackForm() {
       </form>
 
       <form
-        className="rounded-[28px] border border-line bg-surface p-6"
+        className="rounded-3xl border border-line bg-surface p-6"
         onSubmit={(e) => {
           e.preventDefault();
           const id = orderId.trim().toUpperCase();

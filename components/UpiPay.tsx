@@ -27,7 +27,7 @@ export function UpiPay({ amount, orderId }: { amount: number; orderId: string })
   if (notSetUp && process.env.NODE_ENV === "production") return null;
 
   return (
-    <div className="mx-auto mt-8 max-w-md rounded-[28px] border border-fg/10 bg-page/60 p-6 text-left">
+    <div className="mx-auto mt-8 max-w-md rounded-3xl border border-fg/10 bg-page/60 p-6 text-left">
       <p className="tabular-nums text-xs uppercase tracking-[0.12em] text-pop">Pay now with UPI (optional)</p>
       <p className="mt-2 text-sm text-muted">
         Pay {formatPrice(amount)} now to lock in your print slot, or wait for us to confirm on WhatsApp. Please send the
@@ -39,7 +39,7 @@ export function UpiPay({ amount, orderId }: { amount: number; orderId: string })
         </p>
       )}
       <div className="mt-5 flex items-center gap-5">
-        <div className="grid h-36 w-36 shrink-0 place-items-center overflow-hidden rounded-2xl bg-white p-2">
+        <div className="grid h-36 w-36 shrink-0 place-items-center overflow-hidden rounded-xl bg-white p-2">
           {qr ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img src={qr} alt={`UPI QR code to pay ${formatPrice(amount)}`} className="h-full w-full" />

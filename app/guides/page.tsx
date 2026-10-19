@@ -21,7 +21,7 @@ export default function GuidesPage() {
           <Reveal key={g.slug} delay={i * 0.08}>
             <Link
               href={`/guides/${g.slug}/`}
-              className="group block h-full rounded-[28px] border border-line bg-surface p-7 transition-colors hover:border-accent/50"
+              className="group block h-full rounded-3xl border border-line bg-surface p-7 transition-colors hover:border-accent/50"
             >
               <p className="tabular-nums text-xs uppercase tracking-[0.12em] text-muted">{g.minutes} min read</p>
               <h2 className="mt-3 font-display text-3xl display-case leading-tight group-hover:text-accent">{g.title}</h2>

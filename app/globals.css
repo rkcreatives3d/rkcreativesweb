@@ -8,7 +8,7 @@
 /* Brand palette, sampled from the RK Creative Builds logo.
    Colour roles (keep to them):
      amber   = actions only: buttons, links, the cart count
-     gold    = brand decoration: badges, labels, accent words
+     champagne = brand decoration: badges, labels, accent words
      cream   = text; greys = secondary text
      danger / ok = errors and confirmations
      light gold = keyboard focus only */
@@ -23,8 +23,10 @@
   --color-accent: #ff9a1a; /* molten amber: actions */
   --color-accent-2: #f5d287; /* light gold: focus rings */
   --color-accent-3: #a8681c; /* deep gold, gradient stop only */
-  --color-gold: #d4973f; /* brushed gold */
-  --color-pop: #d4973f; /* decoration: gold */
+  --color-gold: #d4973f; /* brushed gold: soft background glows only */
+  /* decoration: pale champagne gold, deliberately lighter and softer than the
+     amber buttons so the two never read as "two oranges" */
+  --color-pop: #e6c78a;
   --color-on-pop: #000000;
   --color-danger: #ff6b5a;
   --color-ok: #4cc38a;
@@ -134,6 +136,13 @@ body::before {
     radial-gradient(ellipse 70% 55% at 75% -5%, color-mix(in oklab, #a8681c 14%, transparent), transparent 60%),
     radial-gradient(ellipse 55% 45% at -5% 45%, color-mix(in oklab, #ff9a1a 9%, transparent), transparent 60%),
     #000;
+}
+
+/* headings wrap into even lines, never leaving one word alone at the end */
+h1,
+h2,
+h3 {
+  text-wrap: balance;
 }
 
 /* Unlayered, so it wins over Tailwind's font-weight utilities: each theme

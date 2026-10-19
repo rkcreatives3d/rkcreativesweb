@@ -37,7 +37,7 @@ export function SizeGuide({ product: p, size }: { product: Product; size: Size }
       <h2 className="text-xs font-semibold uppercase tracking-[0.12em] text-muted">How big is it?</h2>
       {p.scalePhoto && (
         // eslint-disable-next-line @next/next/no-img-element
-        <img src={p.scalePhoto} alt={`${p.name} held in a hand, for scale`} className="mt-4 aspect-[4/3] w-full rounded-2xl object-cover" loading="lazy" />
+        <img src={p.scalePhoto} alt={`${p.name} held in a hand, for scale`} className="mt-4 aspect-[4/3] w-full rounded-xl object-cover" loading="lazy" />
       )}
       <ul className="mt-4 space-y-3" aria-label="Size compared with everyday objects">
         {rows.map(([name, v, me]) => (
@@ -85,7 +85,7 @@ export function ProductFaq({ product: p }: { product: Product }) {
       <div className="mt-3 divide-y divide-line border-y border-line">
         {faqFor(p).map((item) => (
           <details key={item.q} className="group py-1">
-            <summary className="flex cursor-pointer list-none items-center justify-between gap-4 rounded-lg py-3 font-semibold [&::-webkit-details-marker]:hidden">
+            <summary className="flex cursor-pointer list-none items-center justify-between gap-4 rounded-xl py-3 font-semibold [&::-webkit-details-marker]:hidden">
               {item.q}
               <span aria-hidden className="text-xl leading-none text-muted transition-transform group-open:rotate-45">
                 +

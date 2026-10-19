@@ -67,7 +67,7 @@ export function NameplateStudio() {
       {/* preview */}
       <div
         ref={box}
-        className="relative aspect-[4/3] overflow-hidden rounded-[32px] border border-fg/10 viewer-bg lg:sticky lg:top-24 lg:aspect-auto lg:h-[min(640px,calc(100svh-8rem))]"
+        className="relative aspect-[4/3] overflow-hidden rounded-3xl border border-fg/10 viewer-bg lg:sticky lg:top-24 lg:aspect-auto lg:h-[min(640px,calc(100svh-8rem))]"
       >
         <div className="grid-bg absolute inset-0" />
         {lite ? (
@@ -129,7 +129,7 @@ export function NameplateStudio() {
             placeholder="Type here…"
             maxLength={MAX_NAME}
             autoComplete="off"
-            className={`mt-2 w-full rounded-2xl border bg-page/60 px-5 py-4 font-display text-3xl display-case text-fg outline-none transition-colors placeholder:text-fg/50 focus:border-accent focus:ring-2 focus:ring-accent/20 ${
+            className={`mt-2 w-full rounded-xl border bg-page/60 px-5 py-4 font-display text-3xl display-case text-fg outline-none transition-colors placeholder:text-fg/50 focus:border-accent focus:ring-2 focus:ring-accent/20 ${
               nudge ? "border-danger" : "border-fg/15"
             }`}
           />
@@ -149,7 +149,7 @@ export function NameplateStudio() {
                 key={s.id}
                 onClick={() => setStyle(s.id)}
                 aria-pressed={style === s.id}
-                className={`rounded-2xl border px-4 py-3 text-left transition-all ${style === s.id ? "border-fg bg-fg text-page" : "border-fg/15 hover:border-fg/40"}`}
+                className={`rounded-xl border px-4 py-3 text-left transition-all ${style === s.id ? "border-fg bg-fg text-page" : "border-fg/15 hover:border-fg/40"}`}
               >
                 <span className="block font-semibold">{s.label}</span>
                 <span className={`tabular-nums text-xs ${style === s.id ? "text-page/70" : "text-muted"}`}>from {formatPrice(p.price)}</span>
@@ -166,7 +166,7 @@ export function NameplateStudio() {
                 key={f.id}
                 onClick={() => setFont(f.id)}
                 aria-pressed={font === f.id}
-                className={`rounded-2xl border px-3 py-2.5 text-left text-sm transition-all ${font === f.id ? "border-fg bg-fg text-page" : "border-fg/15 hover:border-fg/40"}`}
+                className={`rounded-xl border px-3 py-2.5 text-left text-sm transition-all ${font === f.id ? "border-fg bg-fg text-page" : "border-fg/15 hover:border-fg/40"}`}
               >
                 <span className="block font-semibold">{f.label}</span>
                 <span className={`block text-xs ${font === f.id ? "text-page/70" : "text-muted"}`}>{f.note}</span>
@@ -224,7 +224,7 @@ export function NameplateStudio() {
                 key={s.id}
                 onClick={() => setSize(s.id)}
                 aria-pressed={size === s.id}
-                className={`rounded-2xl border px-3 py-2.5 text-left text-sm transition-all ${size === s.id ? "border-fg bg-fg text-page" : "border-fg/15 hover:border-fg/40"}`}
+                className={`rounded-xl border px-3 py-2.5 text-left text-sm transition-all ${size === s.id ? "border-fg bg-fg text-page" : "border-fg/15 hover:border-fg/40"}`}
               >
                 <span className="block font-semibold">{s.label}</span>
                 <span className={`block text-xs ${size === s.id ? "text-page/70" : "text-muted"}`}>{s.dims}</span>

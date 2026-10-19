@@ -5,6 +5,7 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { deliveryQuote, validPin, zoneFor } from "@/lib/delivery";
 import { track } from "@/lib/track";
+import { TruckIcon } from "./Icons";
 import { formatPrice } from "@/lib/site";
 
 /** The visitor's PIN code, remembered so checkout is pre-filled after a "Check delivery". */
@@ -31,7 +32,7 @@ export function DeliveryEstimate({ className = "", pin, inline }: { className?: 
   const Tag = inline ? "span" : "p";
   return (
     <Tag className={className}>
-      <span aria-hidden>🚚 </span>Order today, delivered <span className="text-fg">{quote.window}</span>
+      <TruckIcon className="mr-1.5 text-pop" />Order today, delivered <span className="text-fg">{quote.window}</span>
       {quote.zone && <> to {use}</>}
     </Tag>
   );
@@ -65,7 +66,7 @@ export function PinCheck({ subtotal }: { subtotal: number }) {
   };
 
   return (
-    <div className="rounded-2xl border border-fg/10 p-4">
+    <div className="rounded-xl border border-fg/10 p-4">
       <form onSubmit={check} className="flex items-center gap-2">
         <label htmlFor="pin-check" className="shrink-0 text-sm font-semibold">
           Delivery

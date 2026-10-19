@@ -5,6 +5,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { estimate, estimator } from "@/lib/content";
 import { formatPrice, mailtoUrl, site, whatsappUrl } from "@/lib/site";
 import { track } from "@/lib/track";
+import { MailIcon } from "./Icons";
 import { Field, Fieldset, WhatsAppIcon } from "./CheckoutForm";
 import { ButtonLink } from "./ui";
 
@@ -90,7 +91,7 @@ export function CustomForm() {
 
   if (sent) {
     return (
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="cta-card rounded-[32px] p-8 sm:p-10">
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="cta-card rounded-3xl p-8 sm:p-10">
         <p className="tabular-nums text-xs uppercase tracking-[0.12em] text-pop">Request drafted ✦</p>
         <h2 className="mt-3 font-display text-4xl font-extrabold display-case">Send it over</h2>
         <p className="mt-3 text-muted">
@@ -173,7 +174,7 @@ export function CustomForm() {
             onChange={(e) => setR((v) => ({ ...v, qty: Math.max(1, Number(e.target.value) || 1) }))}
           />
         </div>
-        <div className="rounded-2xl border border-pop/30 bg-pop/[0.06] p-5">
+        <div className="rounded-xl border border-pop/30 bg-pop/[0.06] p-5">
           <p className="tabular-nums text-xs uppercase tracking-[0.12em] text-pop">Estimated price</p>
           <AnimatePresence mode="popLayout">
             <motion.p
@@ -203,7 +204,7 @@ export function CustomForm() {
             <WhatsAppIcon /> Send on WhatsApp
           </button>
           <button type="submit" value="email" className="btn flex-1">
-            ✉ Send by email
+            <MailIcon /> Send by email
           </button>
         </div>
         <p className="text-xs text-muted">
