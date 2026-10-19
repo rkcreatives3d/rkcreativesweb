@@ -1,0 +1,9 @@
+node_modules
+.next
+out
+next-env.d.ts
+*.tsbuildinfo
+.DS_Store
+
+# converted 3D models: rebuilt from models/ by `npm run models` (runs before every build)
+public/models/
