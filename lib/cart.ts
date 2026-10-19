@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import { getProduct, unitPrice, type Product } from "./products";
 import { site } from "./site";
+import type { PlateOptions } from "./personalise";
 
 export type CartItem = {
   key: string;
@@ -11,6 +12,8 @@ export type CartItem = {
   qty: number;
   /** name / message to print on the item, if any */
   engraving?: string;
+  /** lettering style and icon for personalised prints */
+  options?: PlateOptions;
 };
 
 type CartState = {
@@ -23,8 +26,8 @@ type CartState = {
   clear: () => void;
 };
 
-const keyOf = (i: Pick<CartItem, "slug" | "finish" | "size" | "engraving">) =>
-  `${i.slug}|${i.finish}|${i.size}|${i.engraving ?? ""}`;
+const keyOf = (i: Pick<CartItem, "slug" | "finish" | "size" | "engraving" | "options">) =>
+  `${i.slug}|${i.finish}|${i.size}|${i.engraving ?? ""}|${i.options?.font ?? ""}|${i.options?.icon ?? ""}`;
 
 export const useCart = create<CartState>()(
   persist(
@@ -53,7 +56,7 @@ export const useCart = create<CartState>()(
       clear: () => set({ items: [] }),
     }),
     {
-      name: "layr-cart",
+      name: "rk-cart",
       storage: createJSONStorage(() => window.localStorage),
       partialize: (s) => ({ items: s.items }),
       // Rehydrated on the client in <Providers> so server and first client render match.

@@ -22,7 +22,7 @@ export default function GuidesPage() {
               href={`/guides/${g.slug}/`}
               className="group block h-full rounded-[28px] border border-fg/10 bg-fg/[0.03] p-7 transition-colors hover:border-accent/50"
             >
-              <p className="font-mono text-[11px] uppercase tracking-[0.25em] text-muted">{g.minutes} min read</p>
+              <p className="tabular-nums text-xs uppercase tracking-[0.12em] text-muted">{g.minutes} min read</p>
               <h2 className="mt-3 font-display text-3xl display-case leading-tight group-hover:text-accent">{g.title}</h2>
               <p className="mt-3 text-muted">{g.description}</p>
               <span className="mt-6 inline-block text-sm text-accent-2">Read →</span>

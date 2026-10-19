@@ -24,7 +24,7 @@ export type Shape =
 export type Category = "Decor" | "Lighting" | "Desk" | "Toys" | "Personalised";
 
 /** Quick-filter tags on the shop page. */
-export type Tag = "bestseller" | "gift" | "festive";
+export type Tag = "bestseller" | "gift" | "festive" | "birthday" | "desk" | "car";
 
 export type Finish = {
   id: string;
@@ -67,6 +67,10 @@ export type Product = {
   photoFinish?: string;
   /** real photos per colour, e.g. { gold: ["/products/vase-gold.jpg"], onyx: ["/products/vase-black.jpg"] } */
   colorPhotos?: Partial<Record<string, string[]>>;
+  /** a photo of it in someone's hand or on a desk, shown in the size guide, e.g. "/products/vase-in-hand.jpg" */
+  scalePhoto?: string;
+  /** extra questions for this product, shown above the standard ones: [["Is it waterproof?", "Yes, …"]] */
+  faq?: [string, string][];
   /**
    * Real 3D model. Usually leave this out: drop `<slug>.stl` / `.3mf` / `.obj`
    * into models/ and it's converted and picked up automatically (lib/models.ts).
@@ -201,7 +205,7 @@ export const products: Product[] = [
     sizes: sizes(["12 cm tall", "18 cm tall", "25 cm tall"], [0, 400, 900]),
     material: "Silk PLA",
     printTime: "6–14 h",
-    tags: ["bestseller", "gift", "festive"],
+    tags: ["bestseller", "gift", "festive", "birthday"],
     personalisation: "optional",
     badge: "Bestseller",
   },
@@ -218,7 +222,7 @@ export const products: Product[] = [
     sizes: sizes(["8 cm", "12 cm", "18 cm"], [0, 250, 650]),
     material: "Silk PLA",
     printTime: "4–9 h",
-    tags: ["gift"],
+    tags: ["gift", "birthday"],
   },
   {
     slug: "geodesic-orb-lamp",
@@ -233,7 +237,7 @@ export const products: Product[] = [
     sizes: sizes(["12 cm Ø", "16 cm Ø", "22 cm Ø"], [0, 500, 1200]),
     material: "PETG + LED",
     printTime: "10–20 h",
-    tags: ["gift", "festive"],
+    tags: ["gift", "festive", "birthday"],
     badge: "New",
   },
   {
@@ -295,7 +299,7 @@ export const products: Product[] = [
     sizes: sizes(["30 cm long", "45 cm long", "60 cm long"], [0, 350, 700]),
     material: "PLA",
     printTime: "5–12 h",
-    tags: ["bestseller", "gift"],
+    tags: ["bestseller", "gift", "birthday"],
     badge: "Articulated",
   },
   {
@@ -311,7 +315,7 @@ export const products: Product[] = [
     sizes: sizes(["8 cm", "12 cm", "16 cm"], [0, 250, 550]),
     material: "Silk PLA",
     printTime: "4–9 h",
-    tags: ["gift"],
+    tags: ["gift", "birthday"],
   },
   {
     slug: "saturn-lamp",
@@ -326,7 +330,7 @@ export const products: Product[] = [
     sizes: sizes(["12 cm", "16 cm", "20 cm"], [0, 450, 950]),
     material: "PLA + LED",
     printTime: "8–16 h",
-    tags: ["gift", "festive"],
+    tags: ["gift", "festive", "birthday"],
     personalisation: "optional",
   },
   {
@@ -359,7 +363,7 @@ export const products: Product[] = [
     material: "PLA, two colours",
     printTime: "1–2 h",
     badge: "Personalised",
-    tags: ["bestseller", "gift", "festive"],
+    tags: ["bestseller", "gift", "festive", "birthday", "car"],
     personalisation: "included",
   },
   {
@@ -375,7 +379,7 @@ export const products: Product[] = [
     sizes: sizes(["15 cm", "20 cm", "25 cm"], [0, 150, 300]),
     material: "PLA, two colours",
     printTime: "3–5 h",
-    tags: ["gift", "festive"],
+    tags: ["gift", "festive", "birthday", "desk"],
     personalisation: "included",
   },
 ];

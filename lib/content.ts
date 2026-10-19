@@ -21,12 +21,17 @@ export type Review = {
 export const about = {
   /** EDIT: your own story, in your words. One string per paragraph. */
   story: [
-    "RK Creative Builds 3D is a small 3D printing studio that turns ideas into objects you can hold. Every piece is printed to order on our own machines, then cleaned up, checked and packed by hand.",
+    "RK Creative Builds is a small 3D printing studio that turns ideas into objects you can hold. Every piece is printed to order on our own machines, then cleaned up, checked and packed by hand.",
     "We print decor, lamps, desk gear, gifts and one-off custom builds. If you can describe it, sketch it or send a file, we can usually make it.",
     "Have something in mind? Message us on WhatsApp and we'll help you bring it to life.",
   ],
   /** EDIT: e.g. { src: "/photos/me-and-my-printer.jpg", caption: "The workshop" } */
   photos: [] as Photo[],
+  /**
+   * EDIT: a ~15 second clip of your printer at work, shown on the home and About pages.
+   * Silent MP4, 720p, under 3 MB, e.g. { src: "/video/printing.mp4", poster: "/video/printing.jpg" }
+   */
+  video: null as { src: string; poster: string } | null,
 };
 
 /** EDIT: real customer reviews only (with their permission). */
@@ -40,6 +45,21 @@ export const packingPhotos: Photo[] = [];
 
 /** EDIT: custom jobs you've printed before, shown on the Custom page. */
 export const customJobs: Photo[] = [];
+
+/**
+ * EDIT: custom jobs as before / after pairs: the photo or sketch the customer
+ * sent, and the finished print. Shown as a drag-to-compare slider on the Custom page.
+ * e.g. { title: "Pet portrait", before: { src: "/photos/dog-photo.jpg" }, after: { src: "/photos/dog-print.jpg" } }
+ * Use photos with the same shape (both square works best).
+ */
+export const beforeAfter: { title: string; before: Photo; after: Photo }[] = [];
+
+/**
+ * EDIT: your latest Instagram posts: a square thumbnail saved in public/photos/
+ * and the post's link. Shown as a grid on the home and About pages.
+ * e.g. { src: "/photos/ig-1.jpg", href: "https://instagram.com/p/XXXX", caption: "Ganesha in silk gold" }
+ */
+export const instagramPosts: (Photo & { href: string })[] = [];
 
 /** EDIT: rough custom-order pricing used by the estimator on the Custom page. */
 export const estimator = {

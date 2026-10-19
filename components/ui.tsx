@@ -35,11 +35,12 @@ export function KineticText({
   return (
     <motion.span
       className={`${className} ${holo ? "holo-hue" : ""}`}
-      aria-label={text}
       initial="hidden"
       whileInView="show"
       viewport={{ once: true, margin: "-5% 0px" }}
     >
+      {/* screen readers get the plain words; the animated letters are hidden from them */}
+      <span className="sr-only">{text}</span>
       {words.map((word, w) => (
         <span key={w} aria-hidden className="inline-block whitespace-nowrap overflow-hidden pb-[0.08em] -mb-[0.08em] align-bottom">
           {word.split("").map((ch) => {
@@ -95,63 +96,65 @@ export function Reveal({
   );
 }
 
-/** Pointer handlers that pull an element a little toward the cursor. */
-const magnet = {
-  onPointerMove(e: React.PointerEvent<HTMLElement>) {
-    if (e.pointerType !== "mouse") return;
-    const el = e.currentTarget;
-    const r = el.getBoundingClientRect();
-    el.style.setProperty("--mx", `${(e.clientX - r.left - r.width / 2) * 0.22}px`);
-    el.style.setProperty("--my", `${(e.clientY - r.top - r.height / 2) * 0.35}px`);
-  },
-  onPointerLeave(e: React.PointerEvent<HTMLElement>) {
-    e.currentTarget.style.setProperty("--mx", "0px");
-    e.currentTarget.style.setProperty("--my", "0px");
-  },
-};
-
-type HoloProps = {
+type ButtonProps = {
   children: React.ReactNode;
-  solid?: boolean;
+  /** the one solid amber action on a screen; everything else stays quiet */
+  primary?: boolean;
   className?: string;
 };
 
-export function HoloLink({ href, children, solid, className = "", ...rest }: HoloProps & { href: string; target?: string; rel?: string }) {
+export function ButtonLink({
+  href,
+  children,
+  primary,
+  className = "",
+  ...rest
+}: ButtonProps & { href: string; target?: string; rel?: string; onClick?: () => void }) {
   const external = /^(https?:|mailto:)/.test(href);
-  const cls = `holo-btn ${solid ? "holo-btn-solid" : ""} ${className}`;
+  const cls = `btn ${primary ? "btn-primary" : ""} ${className}`;
   return external ? (
-    <a href={href} className={cls} {...magnet} {...rest}>
+    <a href={href} className={cls} {...rest}>
       {children}
     </a>
   ) : (
-    <Link href={href} className={cls} {...magnet}>
+    <Link href={href} className={cls} onClick={rest.onClick}>
       {children}
     </Link>
   );
 }
 
-export function HoloButton({
+export function Button({
   children,
-  solid,
+  primary,
   className = "",
   ...rest
-}: HoloProps & React.ButtonHTMLAttributes<HTMLButtonElement>) {
+}: ButtonProps & React.ButtonHTMLAttributes<HTMLButtonElement>) {
   return (
-    <button className={`holo-btn ${solid ? "holo-btn-solid" : ""} ${className}`} {...magnet} {...rest}>
+    <button className={`btn ${primary ? "btn-primary" : ""} ${className}`} {...rest}>
       {children}
     </button>
+  );
+}
+
+/** Section heading: fades up as one piece (letter-by-letter animation is kept for page titles). */
+export function Heading({ children, className = "" }: { children: React.ReactNode; className?: string }) {
+  return (
+    <Reveal y={24}>
+      <h2 className={`font-display font-extrabold display-case leading-[0.92] tracking-tight ${className}`}>{children}</h2>
+    </Reveal>
   );
 }
 
 export function Marquee({ items, reverse = false, className = "" }: { items: string[]; reverse?: boolean; className?: string }) {
   const row = items.flatMap((t, i) => [
     <span key={`t${i}`}>{t}</span>,
-    <span key={`s${i}`} aria-hidden className="mx-6 inline-block">
-      ✦
+    <span key={`s${i}`} aria-hidden className="mx-6 inline-block opacity-60">
+      •
     </span>,
   ]);
   return (
-    <div className={`overflow-hidden whitespace-nowrap ${className}`} aria-label={items.join(", ")}>
+    <div className={`overflow-hidden whitespace-nowrap ${className}`}>
+      <p className="sr-only">{items.join(", ")}</p>
       <div className={`marquee-track ${reverse ? "reverse" : ""}`} aria-hidden>
         <div className="flex shrink-0 items-center">{row}</div>
         <div className="flex shrink-0 items-center">{row}</div>
@@ -171,8 +174,9 @@ export function Swatch({ css, size = 18, ring = false }: { css: string; size?: n
 
 export function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
-    <p className="font-mono text-[11px] uppercase tracking-[0.35em] text-muted">
-      <span className="text-accent">[</span> {children} <span className="text-accent-2">]</span>
+    <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.12em] text-muted">
+      <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-accent-2" />
+      {children}
     </p>
   );
 }

@@ -1,27 +1,22 @@
 import type { Metadata, Viewport } from "next";
-import { Great_Vibes, JetBrains_Mono, Manrope, Saira } from "next/font/google";
+import { Manrope, Saira } from "next/font/google";
 import "lenis/dist/lenis.css";
 import "./globals.css";
 import { Providers } from "@/components/Providers";
 import { Nav } from "@/components/Nav";
 import { Footer } from "@/components/Footer";
 import { CartDrawer } from "@/components/CartDrawer";
-import { Cursor } from "@/components/Cursor";
 import { Intro } from "@/components/intro/Intro";
-import { PageTransition } from "@/components/PageTransition";
-import { ScrollProgress } from "@/components/ScrollProgress";
 import { WhatsAppBubble } from "@/components/WhatsAppBubble";
 import { Analytics } from "@/components/Analytics";
 import { site } from "@/lib/site";
 import { routeGuardScript } from "@/lib/routeGuard";
 import { bootScript } from "@/lib/lite";
 
-// Saira's squared, semi-condensed caps match the logo wordmark; Great Vibes
-// matches the "Bring Ideas to Life" script.
+// Two families: Saira's squared caps (close to the logo wordmark) for
+// headings, Manrope for everything else.
 const saira = Saira({ subsets: ["latin"], variable: "--font-saira", axes: ["wdth"] });
-const script = Great_Vibes({ subsets: ["latin"], variable: "--font-script-face", weight: "400" });
 const manrope = Manrope({ subsets: ["latin"], variable: "--font-manrope" });
-const mono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-jetbrains", weight: ["400", "500"] });
 
 export const metadata: Metadata = {
   metadataBase: new URL(site.url),
@@ -57,7 +52,7 @@ export const viewport: Viewport = { themeColor: "#000000" };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={[saira, script, manrope, mono].map((f) => f.variable).join(" ")} suppressHydrationWarning>
+    <html lang="en" className={[saira, manrope].map((f) => f.variable).join(" ")} suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: routeGuardScript }} />
         <script dangerouslySetInnerHTML={{ __html: bootScript }} />
@@ -67,19 +62,20 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </noscript>
       </head>
       <body>
+        <a href="#main" className="skip-link">
+          Skip to content
+        </a>
         <Providers>
-          <ScrollProgress />
           <Nav />
-          <main>{children}</main>
+          <main id="main" tabIndex={-1} className="outline-none">
+            {children}
+          </main>
           <Footer />
           <CartDrawer />
           <WhatsAppBubble />
-          <PageTransition />
           <Intro />
         </Providers>
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(storeJsonLd) }} />
-        <div className="grain" aria-hidden />
-        <Cursor />
         <Analytics />
       </body>
     </html>

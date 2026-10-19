@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
-import { HoloLink, KineticText, Reveal, SectionLabel } from "@/components/ui";
-import { PhotoGrid, Reviews } from "@/components/Proof";
-import { about, customerPhotos, packingPhotos, reviews } from "@/lib/content";
+import { ButtonLink, KineticText, Reveal, SectionLabel } from "@/components/ui";
+import { InstagramGrid, PhotoGrid, Reviews } from "@/components/Proof";
+import { StudioClip } from "@/components/StudioClip";
+import { about, customerPhotos, instagramPosts, packingPhotos, reviews } from "@/lib/content";
 import { site, whatsappUrl } from "@/lib/site";
 
 export const metadata: Metadata = {
@@ -41,7 +42,7 @@ export default function AboutPage() {
               </Reveal>
             ))}
           </div>
-          <p className="mt-6 font-mono text-[11px] uppercase tracking-[0.3em] text-muted">Based in {site.city}</p>
+          <p className="mt-6 tabular-nums text-xs uppercase tracking-[0.12em] text-muted">Based in {site.city}</p>
         </div>
         <Reveal className="relative">
           {about.photos[0] ? (
@@ -60,7 +61,7 @@ export default function AboutPage() {
           {steps.map(([title, body], i) => (
             <Reveal key={title} delay={i * 0.08}>
               <li className="h-full rounded-[28px] border border-fg/10 bg-fg/[0.03] p-6">
-                <span className="font-mono text-xs text-accent">0{i + 1}</span>
+                <span className="tabular-nums text-xs text-pop">0{i + 1}</span>
                 <p className="mt-2 font-display text-2xl display-case">{title}</p>
                 <p className="mt-2 text-sm leading-relaxed text-muted">{body}</p>
               </li>
@@ -82,25 +83,29 @@ export default function AboutPage() {
         </div>
       </section>
 
+      <StudioClip link={false} />
       <PhotoGrid photos={about.photos.slice(1)} label="The workshop" title="Behind the" highlight="scenes" />
       <PhotoGrid photos={packingPhotos} label="Packed with care" title="How we" highlight="pack" />
       <Reviews reviews={reviews} />
       <PhotoGrid photos={customerPhotos} label="From our customers" title="In their" highlight="homes" />
+      <InstagramGrid posts={instagramPosts} />
 
       <section className="px-5 py-20 sm:px-8">
         <div className="cta-card mx-auto max-w-7xl rounded-[40px] p-8 text-center sm:p-14">
-          <h2 className="font-display text-4xl font-extrabold display-case sm:text-6xl">
-            <KineticText text="Say" /> <KineticText text="hello" holo delay={0.1} />
-          </h2>
+          <Reveal y={24}>
+            <h2 className="font-display text-4xl font-extrabold display-case sm:text-6xl">
+              Say <span className="holo-text">hello</span>
+            </h2>
+          </Reveal>
           <p className="mx-auto mt-4 max-w-md text-muted">Questions, ideas or bulk orders. Message the maker directly.</p>
           <div className="mt-8 flex flex-wrap justify-center gap-3">
-            <HoloLink href={whatsappUrl(`Hi ${site.name}!`)} solid target="_blank" rel="noreferrer">
+            <ButtonLink href={whatsappUrl(`Hi ${site.name}!`)} primary target="_blank" rel="noreferrer">
               WhatsApp us
-            </HoloLink>
-            <HoloLink href={`mailto:${site.email}`}>Email</HoloLink>
-            <HoloLink href={site.instagram} target="_blank" rel="noreferrer">
+            </ButtonLink>
+            <ButtonLink href={`mailto:${site.email}`}>Email</ButtonLink>
+            <ButtonLink href={site.instagram} target="_blank" rel="noreferrer">
               Instagram
-            </HoloLink>
+            </ButtonLink>
           </div>
         </div>
       </section>

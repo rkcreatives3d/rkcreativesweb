@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { HoloLink, SectionLabel } from "@/components/ui";
+import { ButtonLink, SectionLabel } from "@/components/ui";
 import { getGuide, guides } from "@/lib/guides";
 
 export const dynamicParams = false;
@@ -22,7 +22,7 @@ export default async function GuidePage({ params }: Props) {
   if (!guide) notFound();
   return (
     <article className="mx-auto max-w-2xl px-5 pb-24 pt-28 sm:px-8 sm:pt-36">
-      <Link href="/guides/" className="font-mono text-[11px] uppercase tracking-[0.25em] text-muted hover:text-fg">
+      <Link href="/guides/" className="tabular-nums text-xs uppercase tracking-[0.12em] text-muted hover:text-fg">
         ← All guides
       </Link>
       <h1 className="mt-6 font-display text-5xl font-extrabold display-case leading-[0.92] tracking-tight sm:text-6xl">{guide.title}</h1>
@@ -43,7 +43,7 @@ export default async function GuidePage({ params }: Props) {
               <ul className="mt-4 space-y-2">
                 {s.list.map((li) => (
                   <li key={li} className="flex gap-3 text-fg/85">
-                    <span className="text-accent">✦</span>
+                    <span className="text-pop">✦</span>
                     {li}
                   </li>
                 ))}
@@ -53,10 +53,10 @@ export default async function GuidePage({ params }: Props) {
         ))}
       </div>
       <div className="mt-14 flex flex-wrap gap-3">
-        <HoloLink href="/shop/" solid>
+        <ButtonLink href="/shop/" primary>
           Shop prints →
-        </HoloLink>
-        <HoloLink href="/custom/">Ask for something custom</HoloLink>
+        </ButtonLink>
+        <ButtonLink href="/custom/">Ask for something custom</ButtonLink>
       </div>
     </article>
   );

@@ -1,41 +1,51 @@
 "use client";
 
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import * as THREE from "three";
-import { useFrame } from "@react-three/fiber";
-import { Float, OrbitControls, Sparkles } from "@react-three/drei";
+import { useFrame, useThree } from "@react-three/fiber";
+import { Float, OrbitControls } from "@react-three/drei";
 import type { Shape } from "@/lib/products";
 import { theme } from "@/lib/theme";
 import { ViewRig } from "./Studio";
 import { PrintModel } from "./PrintModel";
+import { step, useLive } from "./live";
 
-/** Small spinning model inside a product card. Pops in when scrolled into view. */
+/**
+ * Model inside a product card. Pops in when scrolled into view, then rests at
+ * the shared turntable angle; spins only while `active` (hovered, or a short
+ * demo turn on touch screens), so an idle grid costs no GPU time.
+ */
 export function CardScene({
   shape,
   model,
   finish,
-  hovered,
+  active,
   inView,
 }: {
   shape: Shape;
   model?: string;
   finish: string;
-  hovered: boolean;
+  active: boolean;
   inView: boolean;
 }) {
   const g = useRef<THREE.Group>(null!);
-  useFrame((_, dt) => {
-    const target = inView ? (hovered ? 1.12 : 1) : 0.001;
-    const s = g.current.scale.x + (target - g.current.scale.x) * (1 - Math.exp(-dt * (inView ? 5 : 20)));
-    g.current.scale.setScalar(s);
+  const invalidate = useThree((s) => s.invalidate);
+  useEffect(() => invalidate(), [inView, active, invalidate]);
+  useFrame((_, raw) => {
+    const target = inView ? (active ? 1.1 : 1) : 0.001;
+    const cur = g.current.scale.x;
+    if (Math.abs(target - cur) < 1e-3) {
+      g.current.scale.setScalar(target);
+      return;
+    }
+    g.current.scale.setScalar(cur + (target - cur) * (1 - Math.exp(-step(raw) * (inView ? 5 : 20))));
+    invalidate();
   });
   return (
     <>
       <ViewRig position={[0, 0.25, 4.5]} fov={35} />
       <group ref={g} scale={0.001}>
-        <Float speed={2} floatIntensity={0.5} rotationIntensity={0.3}>
-          <PrintModel shape={shape} model={model} finish={finish} spin={hovered ? 2.4 : 0.45} />
-        </Float>
+        <PrintModel shape={shape} model={model} finish={finish} spin={active ? 2.4 : 0} />
       </group>
     </>
   );
@@ -57,7 +67,8 @@ export function ViewerScene({
   autoSpin: boolean;
   domElement: HTMLElement;
 }) {
-  const { sparkles, rings, wire } = theme;
+  const { rings } = theme;
+  useLive(autoSpin); // otherwise frames only come while it's dragged or settling
   return (
     <>
       <ViewRig position={[0, 0.5, 5.4]} fov={35} />
@@ -71,10 +82,7 @@ export function ViewerScene({
         minPolarAngle={0.35}
         maxPolarAngle={Math.PI - 0.6}
       />
-      <Float speed={1.4} floatIntensity={0.5} rotationIntensity={0.25}>
-        <PrintModel shape={shape} model={model} finish={finish} wireframe={wireframe} spin={0} scale={0.95} />
-      </Float>
-      <Sparkles count={40} scale={[5, 4, 4]} size={2.5} speed={0.3} color={wireframe ? wire : sparkles[0]} />
+      <PrintModel shape={shape} model={model} finish={finish} wireframe={wireframe} spin={0} scale={0.95} />
       <mesh rotation-x={-Math.PI / 2} position-y={-1.55}>
         <ringGeometry args={[1.25, 1.27, 128]} />
         <meshBasicMaterial color={rings[0]} toneMapped={false} transparent opacity={0.8} />
@@ -87,16 +95,15 @@ export function ViewerScene({
   );
 }
 
-/** Wireframe "slicer preview" for the custom-order page. */
-export function SlicerScene() {
-  const { wire } = theme;
+/** Wireframe "slicer preview" for the custom-order page. Animates only while on screen. */
+export function SlicerScene({ visible }: { visible: boolean }) {
+  useLive(visible);
   return (
     <>
       <ViewRig position={[0, 0.3, 4.6]} fov={35} />
       <Float speed={1.2} floatIntensity={0.6}>
-        <PrintModel shape="knot" finish="holo" wireframe spin={0.5} />
+        <PrintModel shape="knot" finish="holo" wireframe spin={visible ? 0.5 : 0} />
       </Float>
-      <Sparkles count={50} scale={[5, 4, 4]} size={2} speed={0.3} color={wire} />
     </>
   );
 }

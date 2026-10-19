@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from "react";
 import { getFinish, type Product } from "@/lib/products";
-import { deliveryWindow } from "@/lib/site";
 import { recolor } from "@/lib/recolor";
 
 /**
@@ -145,8 +144,8 @@ export function PhotoStack({
 function PreviewTag({ large = false }: { large?: boolean }) {
   return (
     <span
-      className={`pointer-events-none absolute bottom-3 left-3 rounded-full bg-black/60 font-mono uppercase tracking-widest text-white/80 backdrop-blur ${
-        large ? "px-3 py-1.5 text-[10px]" : "px-2.5 py-1 text-[9px]"
+      className={`pointer-events-none absolute bottom-3 left-3 rounded-full bg-black/60 tabular-nums uppercase tracking-widest text-white/80 backdrop-blur ${
+        large ? "px-3 py-1.5 text-xs" : "px-2.5 py-1 text-xs"
       }`}
     >
       Colour preview
@@ -198,16 +197,4 @@ function Thumb({ src, finish, preview }: { src: string; finish: string; preview:
   const { url } = useFinishPhoto(src, finish, preview);
   // eslint-disable-next-line @next/next/no-img-element
   return <img src={url} alt="" className="h-full w-full object-cover" />;
-}
-
-/** "Delivered by …" — computed in the visitor's browser so the date is never stale. */
-export function DeliveryEstimate({ className = "" }: { className?: string }) {
-  const [range, setRange] = useState<string | null>(null);
-  useEffect(() => setRange(deliveryWindow()), []);
-  if (!range) return null;
-  return (
-    <p className={className}>
-      <span aria-hidden>🚚 </span>Order today, delivered <span className="text-fg">{range}</span>
-    </p>
-  );
 }

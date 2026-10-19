@@ -1,60 +1,48 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { motion } from "motion/react";
+import { useRouter } from "next/navigation";
+import { optionsLabel } from "@/lib/personalise";
 import { useCart, cartSubtotal, lineTotal } from "@/lib/cart";
 import { getFinish, getProduct } from "@/lib/products";
-import { buildOrderMessage, newOrderId, type Customer } from "@/lib/order";
-import { dispatchLabel, formatPrice, mailtoUrl, shippingFor, site, whatsappUrl } from "@/lib/site";
-import { HoloLink, Swatch } from "./ui";
-import { DeliveryEstimate } from "./ProductMedia";
-import { UpiPay } from "./UpiPay";
+import { buildOrderMessage, describeItem, newOrderId, orderTotals, saveOrder, type Customer } from "@/lib/order";
+import { deliveryQuote, shippingTo, validPin } from "@/lib/delivery";
+import { dispatchLabel, formatPrice, mailtoUrl, whatsappUrl } from "@/lib/site";
+import { track } from "@/lib/track";
+import { ButtonLink, Swatch } from "./ui";
+import { DeliveryEstimate, usePin } from "./Delivery";
 
 const empty: Customer = { name: "", phone: "", email: "", address: "", city: "", pincode: "", notes: "" };
 
 export function CheckoutForm() {
+  const router = useRouter();
   const { items, clear } = useCart();
+  const savedPin = usePin((s) => s.pin);
+  const setPin = usePin((s) => s.setPin);
   const [c, setC] = useState<Customer>(empty);
-  const [sent, setSent] = useState<{ id: string; via: "whatsapp" | "email"; url: string; total: number } | null>(null);
+  const [quote, setQuote] = useState<ReturnType<typeof deliveryQuote> | null>(null);
+
+  // pre-fill the PIN someone already checked on a product page
+  useEffect(() => {
+    if (!usePin.persist.hasHydrated()) usePin.persist.rehydrate();
+  }, []);
+  useEffect(() => {
+    if (savedPin) setC((v) => (v.pincode ? v : { ...v, pincode: savedPin }));
+  }, [savedPin]);
 
   const subtotal = cartSubtotal(items);
-  const shipping = shippingFor(subtotal);
+  // dates depend on today, so they're only worked out in the browser
+  useEffect(() => setQuote(deliveryQuote(c.pincode, subtotal)), [c.pincode, subtotal]);
+  const shipping = shippingTo(subtotal, c.pincode);
   const set = (k: keyof Customer) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
     setC((v) => ({ ...v, [k]: e.target.value }));
 
-  if (sent) {
-    return (
-      <motion.div
-        initial={{ opacity: 0, scale: 0.96 }}
-        animate={{ opacity: 1, scale: 1 }}
-        className="cta-card mx-auto max-w-2xl rounded-[32px] p-8 text-center sm:p-12"
-      >
-        <p className="font-mono text-xs uppercase tracking-[0.3em] text-pop">Order drafted ✦ {sent.id}</p>
-        <h2 className="mt-4 font-display text-4xl font-extrabold display-case sm:text-5xl">Almost there</h2>
-        <p className="mx-auto mt-4 max-w-md text-muted">
-          {sent.via === "whatsapp"
-            ? "WhatsApp should have opened with your order pre-filled. Hit send there and we'll reply to confirm."
-            : "Your email app should have opened with the order pre-filled. Hit send there and we'll reply to confirm."}
-        </p>
-        <UpiPay amount={sent.total} orderId={sent.id} />
-        <div className="mt-8 flex flex-wrap justify-center gap-3">
-          <HoloLink href={sent.url} target="_blank" rel="noreferrer">
-            Didn&apos;t open? Try again
-          </HoloLink>
-          <button
-            onClick={() => {
-              clear();
-              setSent(null);
-            }}
-            className="holo-btn holo-btn-solid"
-          >
-            I sent it, clear my cart
-          </button>
-        </div>
-      </motion.div>
-    );
-  }
+  useEffect(() => {
+    if (items.length) track("begin_checkout", { value: subtotal, items: items.length });
+    // once per visit to the page
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   if (items.length === 0) {
     return (
@@ -62,9 +50,9 @@ export function CheckoutForm() {
         <p className="font-display text-4xl font-extrabold display-case">Cart&apos;s empty</p>
         <p className="mt-3 text-muted">Nothing to check out yet.</p>
         <div className="mt-8">
-          <HoloLink href="/shop/" solid>
-            Browse the drop →
-          </HoloLink>
+          <ButtonLink href="/shop/" primary>
+            Browse the shop →
+          </ButtonLink>
         </div>
       </div>
     );
@@ -76,9 +64,28 @@ export function CheckoutForm() {
     const id = newOrderId();
     const msg = buildOrderMessage(id, items, c);
     const url = via === "whatsapp" ? whatsappUrl(msg) : mailtoUrl(`Order ${id} — ${c.name}`, msg);
+    const totals = orderTotals(items, c.pincode);
+    saveOrder({
+      id,
+      via,
+      url,
+      lines: items.flatMap((i) => {
+        const d = describeItem(i);
+        return d ? [{ ...d, qty: i.qty, total: lineTotal(i) }] : [];
+      }),
+      subtotal: totals.subtotal,
+      shipping: totals.shipping,
+      total: totals.total,
+      delivery: totals.delivery,
+      name: c.name.split(" ")[0],
+      at: Date.now(),
+    });
+    if (validPin(c.pincode)) setPin(c.pincode.trim());
+    track("order_sent", { via, value: totals.total, items: items.length });
     if (via === "whatsapp") window.open(url, "_blank", "noopener");
     else window.location.href = url;
-    setSent({ id, via, url, total: subtotal + shipping });
+    clear();
+    router.push("/order/");
   };
 
   return (
@@ -110,12 +117,25 @@ export function CheckoutForm() {
               label="PIN code"
               required
               inputMode="numeric"
-              pattern="[0-9]{4,10}"
+              pattern="[1-9][0-9]{5}"
+              title="6-digit PIN code"
+              maxLength={6}
               value={c.pincode}
               onChange={set("pincode")}
               autoComplete="postal-code"
+              aria-describedby="pin-quote"
             />
           </div>
+          <p id="pin-quote" aria-live="polite" className="text-sm text-muted">
+            {quote?.zone ? (
+              <>
+                <span aria-hidden>🚚 </span>
+                {quote.zoneLabel}: delivered <span className="font-semibold text-fg">{quote.window}</span>
+              </>
+            ) : (
+              "Enter your PIN code to see delivery dates."
+            )}
+          </p>
           <Field label="Notes (gift message, colour tweaks…)" value={c.notes} onChange={set("notes")} textarea />
         </Fieldset>
 
@@ -125,10 +145,10 @@ export function CheckoutForm() {
             payment details (UPI / bank transfer).
           </p>
           <div className="flex flex-col gap-3 sm:flex-row">
-            <button type="submit" name="via" value="whatsapp" className="holo-btn holo-btn-solid flex-1">
+            <button type="submit" name="via" value="whatsapp" className="btn btn-primary flex-1">
               <WhatsAppIcon /> Order on WhatsApp
             </button>
-            <button type="submit" name="via" value="email" className="holo-btn flex-1">
+            <button type="submit" name="via" value="email" className="btn flex-1">
               ✉ Order by email
             </button>
           </div>
@@ -147,33 +167,37 @@ export function CheckoutForm() {
                 <Swatch css={f.swatch} size={36} />
                 <div className="min-w-0 flex-1">
                   <p className="truncate font-semibold">
-                    {p.name} <span className="font-mono text-xs text-muted">×{i.qty}</span>
+                    {p.name} <span className="tabular-nums text-xs text-muted">×{i.qty}</span>
                   </p>
                   <p className="text-xs text-muted">
                     {f.name} · {p.sizes.find((s) => s.id === i.size)?.label}
                   </p>
-                  {i.engraving && <p className="truncate text-xs text-accent-2">“{i.engraving}”</p>}
+                  {i.engraving && (
+                    <p className="truncate text-xs text-accent-2">
+                      “{i.engraving}”{optionsLabel(i.options) && ` · ${optionsLabel(i.options)}`}
+                    </p>
+                  )}
                 </div>
-                <span className="font-mono text-sm">{formatPrice(lineTotal(i))}</span>
+                <span className="tabular-nums text-sm">{formatPrice(lineTotal(i))}</span>
               </li>
             );
           })}
         </ul>
         <div className="mt-6 space-y-1 border-t border-fg/10 pt-4 text-sm text-muted">
           <p className="flex justify-between">
-            Subtotal <span className="font-mono text-fg">{formatPrice(subtotal)}</span>
+            Subtotal <span className="tabular-nums text-fg">{formatPrice(subtotal)}</span>
           </p>
           <p className="flex justify-between">
-            Shipping <span className="font-mono text-fg">{shipping === 0 ? "Free" : formatPrice(shipping)}</span>
+            Shipping <span className="tabular-nums text-fg">{shipping === 0 ? "Free" : formatPrice(shipping)}</span>
           </p>
           <p className="flex justify-between pt-2 font-display text-2xl font-bold text-fg">
             Total <span>{formatPrice(subtotal + shipping)}</span>
           </p>
         </div>
         <p className="mt-4 text-xs text-muted">
-          Every piece is printed to order. Dispatch in {dispatchLabel} days after payment.
+          Every piece is printed to order. Dispatch in {dispatchLabel} working days after payment.
         </p>
-        <DeliveryEstimate className="mt-1 text-xs text-muted" />
+        <DeliveryEstimate pin={c.pincode} className="mt-1 text-xs text-muted" />
         <Link href="/shop/" className="mt-4 inline-block text-xs text-accent-2 underline-offset-4 hover:underline">
           ← Keep shopping
         </Link>
@@ -186,7 +210,7 @@ export function Fieldset({ title, children }: { title: string; children: React.R
   return (
     <fieldset className="space-y-4 rounded-[28px] border border-fg/10 bg-fg/[0.025] p-6">
       <legend className="sr-only">{title}</legend>
-      <p className="font-mono text-[11px] uppercase tracking-[0.3em] text-accent">{title}</p>
+      <p className="tabular-nums text-xs uppercase tracking-[0.12em] text-pop">{title}</p>
       {children}
     </fieldset>
   );

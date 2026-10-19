@@ -1,18 +1,10 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { categories, products, type Category, type Product } from "@/lib/products";
+import { getOccasion, occasions } from "@/lib/occasions";
 import { ProductCard } from "./ProductCard";
-
-type Quick = "bestseller" | "gift" | "festive" | "under500";
-
-const quick: { id: Quick; label: string; test: (p: Product) => boolean }[] = [
-  { id: "bestseller", label: "★ Bestsellers", test: (p) => !!p.tags?.includes("bestseller") },
-  { id: "gift", label: "🎁 Gifts", test: (p) => !!p.tags?.includes("gift") },
-  { id: "festive", label: "🪔 Festive picks", test: (p) => !!p.tags?.includes("festive") },
-  { id: "under500", label: "Under ₹499", test: (p) => p.price <= 499 },
-];
 
 const sorts = {
   featured: { label: "Featured", fn: () => 0 },
@@ -28,7 +20,13 @@ const chip = (on: boolean) =>
 
 export function ShopGrid() {
   const [cat, setCat] = useState<Category | "All">("All");
-  const [filter, setFilter] = useState<Quick | null>(null);
+  const [filter, setFilter] = useState<string | null>(null);
+
+  // /shop/?for=birthday (from the home page occasion tiles)
+  useEffect(() => {
+    const id = new URLSearchParams(window.location.search).get("for");
+    if (getOccasion(id)) setFilter(id);
+  }, []);
   const [sort, setSort] = useState<keyof typeof sorts>("featured");
   const [q, setQ] = useState("");
 
@@ -36,7 +34,7 @@ export function ShopGrid() {
     const needle = q.trim().toLowerCase();
     return products
       .filter((p) => cat === "All" || p.category === cat)
-      .filter((p) => !filter || quick.find((f) => f.id === filter)!.test(p))
+      .filter((p) => !filter || !!getOccasion(filter)?.test(p))
       .filter(
         (p) =>
           !needle ||
@@ -77,8 +75,8 @@ export function ShopGrid() {
         </label>
       </div>
 
-      <div className="mt-4 flex flex-wrap gap-2" aria-label="Quick filters">
-        {quick.map((f) => (
+      <div className="mt-4 flex flex-wrap gap-2" aria-label="Shop by occasion">
+        {occasions.map((f) => (
           <button key={f.id} aria-pressed={filter === f.id} onClick={() => setFilter(filter === f.id ? null : f.id)} className={chip(filter === f.id)}>
             {f.label}
           </button>
@@ -89,13 +87,13 @@ export function ShopGrid() {
           const n = c === "All" ? products.length : products.filter((p) => p.category === c).length;
           return (
             <button key={c} role="tab" aria-selected={cat === c} onClick={() => setCat(c)} className={chip(cat === c)}>
-              {c} <span className="ml-1 font-mono text-[10px] opacity-60">{n}</span>
+              {c} <span className="ml-1 tabular-nums text-xs opacity-60">{n}</span>
             </button>
           );
         })}
       </div>
 
-      <p className="mt-6 font-mono text-[11px] uppercase tracking-[0.25em] text-muted" aria-live="polite">
+      <p className="mt-6 tabular-nums text-xs uppercase tracking-[0.12em] text-muted" aria-live="polite">
         {list.length} {list.length === 1 ? "object" : "objects"}
       </p>
 
@@ -116,7 +114,7 @@ export function ShopGrid() {
                 setFilter(null);
                 setCat("All");
               }}
-              className="holo-btn mt-6"
+              className="btn mt-6"
             >
               Clear filters
             </button>

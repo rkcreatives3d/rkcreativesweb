@@ -4,8 +4,9 @@ import { useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { estimate, estimator } from "@/lib/content";
 import { formatPrice, mailtoUrl, site, whatsappUrl } from "@/lib/site";
+import { track } from "@/lib/track";
 import { Field, Fieldset, WhatsAppIcon } from "./CheckoutForm";
-import { HoloLink } from "./ui";
+import { ButtonLink } from "./ui";
 
 const materials = Object.keys(estimator.materials);
 const details = Object.keys(estimator.detail);
@@ -64,6 +65,7 @@ export function CustomForm() {
     ]
       .filter((l) => l !== null)
       .join("\n");
+    track("custom_request", { via, files: files.length });
 
     if (via === "email") {
       const url = mailtoUrl(`Custom print request — ${r.name}`, msg);
@@ -89,17 +91,17 @@ export function CustomForm() {
   if (sent) {
     return (
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="cta-card rounded-[32px] p-8 sm:p-10">
-        <p className="font-mono text-xs uppercase tracking-[0.3em] text-pop">Request drafted ✦</p>
+        <p className="tabular-nums text-xs uppercase tracking-[0.12em] text-pop">Request drafted ✦</p>
         <h2 className="mt-3 font-display text-4xl font-extrabold display-case">Send it over</h2>
         <p className="mt-3 text-muted">
           Hit send in the window that just opened. We usually reply with an exact quote within a day.
           {sent.attachHint && " Your files couldn't be attached automatically, so please attach them in the chat."}
         </p>
         <div className="mt-6 flex flex-wrap gap-3">
-          <HoloLink href={sent.url} target="_blank" rel="noreferrer">
+          <ButtonLink href={sent.url} target="_blank" rel="noreferrer">
             Didn&apos;t open? Try again
-          </HoloLink>
-          <button className="holo-btn" onClick={() => setSent(null)}>
+          </ButtonLink>
+          <button className="btn" onClick={() => setSent(null)}>
             Edit request
           </button>
         </div>
@@ -148,7 +150,7 @@ export function CustomForm() {
         <label className="block text-sm">
           <span className="flex justify-between text-muted">
             Approximate size (longest side)
-            <span className="font-mono text-fg">{r.size} cm</span>
+            <span className="tabular-nums text-fg">{r.size} cm</span>
           </span>
           <input
             type="range"
@@ -172,7 +174,7 @@ export function CustomForm() {
           />
         </div>
         <div className="rounded-2xl border border-accent/30 bg-accent/[0.06] p-5">
-          <p className="font-mono text-[11px] uppercase tracking-[0.3em] text-accent">Estimated price</p>
+          <p className="tabular-nums text-xs uppercase tracking-[0.12em] text-pop">Estimated price</p>
           <AnimatePresence mode="popLayout">
             <motion.p
               key={`${est.low}-${est.high}`}
@@ -197,10 +199,10 @@ export function CustomForm() {
           <Field label="Phone (WhatsApp)" required type="tel" value={r.phone} onChange={set("phone")} autoComplete="tel" />
         </div>
         <div className="flex flex-col gap-3 pt-2 sm:flex-row">
-          <button type="submit" value="whatsapp" className="holo-btn holo-btn-solid flex-1">
+          <button type="submit" value="whatsapp" className="btn btn-primary flex-1">
             <WhatsAppIcon /> Send on WhatsApp
           </button>
-          <button type="submit" value="email" className="holo-btn flex-1">
+          <button type="submit" value="email" className="btn flex-1">
             ✉ Send by email
           </button>
         </div>

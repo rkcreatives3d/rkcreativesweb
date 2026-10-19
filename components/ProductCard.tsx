@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { motion, useInView } from "motion/react";
 import { View } from "@react-three/drei";
@@ -25,6 +25,15 @@ export function ProductCard({ product: p, index = 0 }: { product: Product; index
   const [finish, setFinish] = useState(p.finishes[0]);
   const photos = photosFor(p, finish);
   const model = modelFor(p);
+  // touch screens can't hover: give each card one demo turn as it scrolls into view
+  const [demo, setDemo] = useState(false);
+  useEffect(() => {
+    if (!inView || !window.matchMedia("(hover: none)").matches) return;
+    setDemo(true);
+    const t = setTimeout(() => setDemo(false), 2600);
+    return () => clearTimeout(t);
+  }, [inView]);
+  const active = hovered || demo;
 
   return (
     <motion.article
@@ -58,23 +67,23 @@ export function ProductCard({ product: p, index = 0 }: { product: Product; index
           {/* real 3D model → photo (with tilt) → placeholder 3D → flat art in Lite mode */}
           {model && !lite ? (
             <View className="absolute inset-0">
-              <CardScene shape={p.shape} model={model} finish={finish} hovered={hovered} inView={inView} />
+              <CardScene shape={p.shape} model={model} finish={finish} active={active} inView={inView} />
             </View>
           ) : photos.list.length ? (
             <PhotoStack images={photos.list} finish={finish} preview={photos.recolor} alt={p.name} hovered={hovered} />
           ) : !lite ? (
             <View className="absolute inset-0">
-              <CardScene shape={p.shape} finish={finish} hovered={hovered} inView={inView} />
+              <CardScene shape={p.shape} finish={finish} active={active} inView={inView} />
             </View>
           ) : (
             <ProductArt product={p} finish={finish} />
           )}
           {p.badge && (
-            <span className="absolute left-4 top-4 rounded-full bg-pop px-3 py-1 font-mono text-[10px] font-semibold uppercase tracking-widest text-on-pop">
+            <span className="absolute left-4 top-4 rounded-full bg-pop px-3 py-1 tabular-nums text-xs font-semibold uppercase tracking-widest text-on-pop">
               {p.badge}
             </span>
           )}
-          <span className="absolute right-4 top-4 font-mono text-[10px] uppercase tracking-widest text-muted">
+          <span className="absolute right-4 top-4 tabular-nums text-xs uppercase tracking-widest text-muted">
             {p.category}
           </span>
         </div>
@@ -88,7 +97,7 @@ export function ProductCard({ product: p, index = 0 }: { product: Product; index
             </Link>
             <p className="mt-1 line-clamp-1 text-sm text-muted">{p.tagline}</p>
           </div>
-          <span className="shrink-0 font-mono text-sm">
+          <span className="shrink-0 tabular-nums text-sm">
             <span className="text-muted">from </span>
             {formatPrice(p.price)}
           </span>

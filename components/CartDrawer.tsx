@@ -1,14 +1,16 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "motion/react";
 import { useLenis } from "lenis/react";
+import { optionsLabel } from "@/lib/personalise";
 import { useCart, cartSubtotal, lineTotal } from "@/lib/cart";
 import { getFinish, getProduct } from "@/lib/products";
 import { formatPrice, shippingFor, site } from "@/lib/site";
+import { useFocusTrap } from "@/lib/focus";
 import { Swatch } from "./ui";
-import { DeliveryEstimate } from "./ProductMedia";
+import { DeliveryEstimate } from "./Delivery";
 
 export function CartDrawer() {
   const { items, open, setOpen, setQty, remove } = useCart();
@@ -16,6 +18,8 @@ export function CartDrawer() {
   const subtotal = cartSubtotal(items);
   const shipping = shippingFor(subtotal);
   const toFree = Math.max(0, site.freeShippingOver - subtotal);
+  const panel = useRef<HTMLElement>(null);
+  useFocusTrap(panel, open);
 
   useEffect(() => {
     if (open) lenis?.stop();
@@ -39,7 +43,9 @@ export function CartDrawer() {
           />
           <motion.aside
             key="panel"
+            ref={panel}
             role="dialog"
+            aria-modal="true"
             aria-label="Cart"
             className="fixed inset-y-0 right-0 z-50 flex w-full max-w-md flex-col border-l border-fg/10 bg-page-2/95 backdrop-blur-2xl"
             initial={{ x: "100%" }}
@@ -61,9 +67,9 @@ export function CartDrawer() {
             {items.length === 0 ? (
               <div className="flex flex-1 flex-col items-center justify-center gap-5 px-8 text-center">
                 <p className="font-display text-3xl font-bold">Nothing printed yet.</p>
-                <p className="text-muted">Your cart is empty. Go find something weird.</p>
-                <Link href="/shop/" onClick={() => setOpen(false)} className="holo-btn holo-btn-solid">
-                  Browse the drop →
+                <p className="text-muted">Your cart is empty.</p>
+                <Link href="/shop/" onClick={() => setOpen(false)} className="btn btn-primary">
+                  Browse the shop →
                 </Link>
               </div>
             ) : (
@@ -98,12 +104,16 @@ export function CartDrawer() {
                               >
                                 {p.name}
                               </Link>
-                              <span className="shrink-0 font-mono text-sm">{formatPrice(lineTotal(i))}</span>
+                              <span className="shrink-0 tabular-nums text-sm">{formatPrice(lineTotal(i))}</span>
                             </div>
                             <p className="mt-1 flex items-center gap-2 text-xs text-muted">
                               <Swatch css={f.swatch} size={12} /> {f.name} · {size?.label}
                             </p>
-                            {i.engraving && <p className="mt-1 truncate text-xs text-accent-2">“{i.engraving}”</p>}
+                            {i.engraving && (
+                              <p className="mt-1 truncate text-xs text-accent-2">
+                                “{i.engraving}”{optionsLabel(i.options) && ` · ${optionsLabel(i.options)}`}
+                              </p>
+                            )}
                             <div className="mt-3 flex items-center justify-between">
                               <Stepper value={i.qty} min={0} onChange={(q) => setQty(i.key, q)} />
                               <button onClick={() => remove(i.key)} className="text-xs text-muted underline-offset-4 hover:text-accent hover:underline">
@@ -143,7 +153,7 @@ export function CartDrawer() {
                       <span>{formatPrice(subtotal + shipping)}</span>
                     </div>
                   </div>
-                  <Link href="/checkout/" onClick={() => setOpen(false)} className="holo-btn holo-btn-solid w-full">
+                  <Link href="/checkout/" onClick={() => setOpen(false)} className="btn btn-primary w-full">
                     Checkout →
                   </Link>
                   <DeliveryEstimate className="text-center text-xs text-muted" />
@@ -162,7 +172,7 @@ function Row({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex justify-between text-muted">
       <span>{label}</span>
-      <span className="font-mono text-fg">{value}</span>
+      <span className="tabular-nums text-fg">{value}</span>
     </div>
   );
 }
@@ -179,7 +189,7 @@ export function Stepper({ value, onChange, min = 1 }: { value: number; onChange:
       >
         −
       </button>
-      <span className="w-7 text-center font-mono text-sm">{value}</span>
+      <span className="w-7 text-center tabular-nums text-sm">{value}</span>
       <button
         type="button"
         onClick={() => onChange(Math.min(99, value + 1))}

@@ -1,19 +1,22 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { AnimatePresence, motion } from "motion/react";
+import { AnimatePresence, motion, useInView } from "motion/react";
 import { View } from "@react-three/drei";
 import { getFinish, getProduct, type Product } from "@/lib/products";
 import { itemPrice, useCart } from "@/lib/cart";
 import { flyToCart } from "@/lib/fly";
 import { useLiteMode } from "@/lib/lite";
 import { formatPrice, site, whatsappUrl } from "@/lib/site";
-import { MAX_NAME, type PlateStyle } from "./three/nameplate";
+import { plateFonts, plateIcons, type PlateFont, type PlateIcon } from "@/lib/personalise";
+import { track } from "@/lib/track";
+import { MAX_NAME, loadPlateFont, plateFontLoaded, type PlateStyle } from "./three/nameplate";
 import { NameplateScene } from "./three/NameplateScene";
-import { DeliveryEstimate } from "./ProductMedia";
+import { DeliveryEstimate } from "./Delivery";
 import { WhatsAppIcon } from "./CheckoutForm";
-import { HoloButton, Swatch } from "./ui";
+import { Button, Swatch } from "./ui";
+import { IconGlyph } from "./PlateIcons";
 
 const styles: { id: PlateStyle; slug: string; label: string }[] = [
   { id: "keychain", slug: "name-keychain", label: "Keychain" },
@@ -33,6 +36,21 @@ export function NameplateStudio() {
   const [size, setSize] = useState("M");
   const [viewEl, setViewEl] = useState<HTMLElement | null>(null);
   const [nudge, setNudge] = useState(false);
+  const [icon, setIcon] = useState<PlateIcon>("none");
+  const [context, setContext] = useState(false);
+  // the font the 3D preview uses; switches once the chosen font has downloaded
+  const [font, setFont] = useState<PlateFont>("bold");
+  const [shownFont, setShownFont] = useState<PlateFont>("bold");
+  useEffect(() => {
+    let live = true;
+    if (plateFontLoaded(font)) setShownFont(font);
+    else loadPlateFont(font).then(() => live && setShownFont(font), () => {});
+    return () => {
+      live = false;
+    };
+  }, [font]);
+  const box = useRef<HTMLDivElement>(null);
+  const visible = useInView(box);
 
   // a name passed from the home page teaser: /personalise/?name=Ananya
   useEffect(() => {
@@ -46,7 +64,8 @@ export function NameplateStudio() {
   }, [text]);
 
   const price = itemPrice(product, size);
-  const item = { slug: product.slug, finish, size, engraving: text.trim() };
+  const options = { font, icon };
+  const item = { slug: product.slug, finish, size, engraving: text.trim(), options };
   const ready = () => {
     if (!text.trim()) {
       setNudge(true);
@@ -58,7 +77,10 @@ export function NameplateStudio() {
   return (
     <div className="grid gap-8 lg:grid-cols-[1.25fr_1fr] lg:gap-14">
       {/* preview */}
-      <div className="relative aspect-[4/3] overflow-hidden rounded-[32px] border border-fg/10 viewer-bg lg:aspect-auto lg:min-h-[560px]">
+      <div
+        ref={box}
+        className="relative aspect-[4/3] overflow-hidden rounded-[32px] border border-fg/10 viewer-bg lg:sticky lg:top-24 lg:aspect-auto lg:h-[min(640px,calc(100svh-8rem))]"
+      >
         <div className="grid-bg absolute inset-0" />
         {lite ? (
           <div className="absolute inset-0 grid place-items-center p-8">
@@ -67,21 +89,49 @@ export function NameplateStudio() {
             </div>
           </div>
         ) : (
-          <div ref={setViewEl} className="absolute inset-0 cursor-grab active:cursor-grabbing" data-cursor>
+          <div ref={setViewEl} className="absolute inset-0 cursor-grab active:cursor-grabbing">
             <View className="absolute inset-0">
-              {viewEl && <NameplateScene text={shown} style={style} finish={finish} domElement={viewEl} />}
+              {viewEl && (
+                <NameplateScene
+                  text={shown}
+                  style={style}
+                  finish={finish}
+                  font={shownFont}
+                  icon={icon}
+                  context={context}
+                  visible={visible}
+                  domElement={viewEl}
+                />
+              )}
             </View>
           </div>
         )}
-        <span className="pointer-events-none absolute left-5 top-5 font-mono text-[10px] uppercase tracking-[0.3em] text-muted">
+        <span className="pointer-events-none absolute left-5 top-5 tabular-nums text-xs uppercase tracking-[0.12em] text-muted">
           Live preview{lite ? "" : " · drag to rotate"}
         </span>
+        {!lite && (
+          <div className="absolute bottom-4 left-4 flex gap-1 rounded-full border border-fg/10 bg-page/70 p-1 backdrop-blur" role="group" aria-label="Preview">
+            {[
+              [false, "Studio"],
+              [true, style === "keychain" ? "On keys" : "On a desk"],
+            ].map(([on, label]) => (
+              <button
+                key={String(on)}
+                onClick={() => setContext(on as boolean)}
+                aria-pressed={context === on}
+                className={`rounded-full px-3.5 py-1.5 text-xs font-semibold transition-colors ${context === on ? "bg-fg text-page" : "text-muted hover:text-fg"}`}
+              >
+                {label as string}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* controls */}
       <div>
         <label className="block">
-          <span className="font-mono text-[11px] uppercase tracking-[0.3em] text-muted">Your name or word</span>
+          <span className="tabular-nums text-xs uppercase tracking-[0.12em] text-muted">Your name or word</span>
           <input
             value={text}
             onChange={(e) => {
@@ -97,7 +147,7 @@ export function NameplateStudio() {
           />
           <span className={`mt-1.5 flex justify-between text-xs ${nudge ? "text-accent" : "text-muted"}`}>
             <span>{nudge ? "Type a name first." : "Letters, numbers and simple symbols."}</span>
-            <span className="font-mono">
+            <span className="tabular-nums">
               {text.length}/{MAX_NAME}
             </span>
           </span>
@@ -114,10 +164,48 @@ export function NameplateStudio() {
                 className={`rounded-2xl border px-4 py-3 text-left transition-all ${style === s.id ? "border-fg bg-fg text-page" : "border-fg/15 hover:border-fg/40"}`}
               >
                 <span className="block font-semibold">{s.label}</span>
-                <span className={`font-mono text-xs ${style === s.id ? "text-page/70" : "text-muted"}`}>from {formatPrice(p.price)}</span>
+                <span className={`tabular-nums text-xs ${style === s.id ? "text-page/70" : "text-muted"}`}>from {formatPrice(p.price)}</span>
               </button>
             );
           })}
+        </div>
+
+        <div className="mt-6">
+          <p className="text-sm text-muted">Lettering</p>
+          <div className="mt-3 grid grid-cols-3 gap-2">
+            {plateFonts.map((f) => (
+              <button
+                key={f.id}
+                onClick={() => setFont(f.id)}
+                aria-pressed={font === f.id}
+                className={`rounded-2xl border px-3 py-2.5 text-left text-sm transition-all ${font === f.id ? "border-fg bg-fg text-page" : "border-fg/15 hover:border-fg/40"}`}
+              >
+                <span className="block font-semibold">{f.label}</span>
+                <span className={`block text-xs ${font === f.id ? "text-page/70" : "text-muted"}`}>{f.note}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="mt-6">
+          <p className="flex justify-between text-sm">
+            <span className="text-muted">Icon after the name</span>
+            <span className="font-semibold">{plateIcons.find((i) => i.id === icon)?.label}</span>
+          </p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {plateIcons.map((i) => (
+              <button
+                key={i.id}
+                onClick={() => setIcon(i.id)}
+                aria-pressed={icon === i.id}
+                aria-label={i.label}
+                title={i.label}
+                className={`grid h-11 w-11 place-items-center rounded-xl border transition-all ${icon === i.id ? "border-fg bg-fg text-page" : "border-fg/15 text-fg hover:border-fg/40"}`}
+              >
+                <IconGlyph icon={i.id} />
+              </button>
+            ))}
+          </div>
         </div>
 
         <div className="mt-6">
@@ -171,35 +259,42 @@ export function NameplateStudio() {
           </AnimatePresence>
           <DeliveryEstimate className="text-xs text-muted" />
         </div>
-        <div className="mt-4 grid gap-3 sm:grid-cols-2">
-          <HoloButton
-            solid
-            onClick={(e) => {
-              if (!ready()) return;
-              add(item);
-              flyToCart(e.currentTarget, getFinish(finish).swatch).then(() => useCart.getState().setOpen(true));
-            }}
-          >
-            Add to cart
-          </HoloButton>
-          <HoloButton
+        <Button
+          primary
+          className="mt-4 w-full"
+          onClick={(e) => {
+            if (!ready()) return;
+            add(item);
+            track("add_to_cart", { product: product.slug, finish, size, font, icon, value: price });
+            flyToCart(e.currentTarget, getFinish(finish).swatch).then(() => useCart.getState().setOpen(true));
+          }}
+        >
+          Add to cart · {formatPrice(price)}
+        </Button>
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-x-6 gap-y-2 px-1 text-sm">
+          <button
             onClick={() => {
               if (!ready()) return;
               add(item);
+              track("buy_now", { product: product.slug, value: price });
               router.push("/checkout/");
             }}
+            className="font-semibold text-fg underline decoration-fg/30 underline-offset-4 transition-colors hover:decoration-accent"
           >
-            Buy now →
-          </HoloButton>
+            or buy now →
+          </button>
+          <a
+            href={whatsappUrl(`Hi ${site.name}! I'd like a ${product.name.toLowerCase()} that says "${text.trim() || "…"}".`)}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center gap-1.5 text-muted transition-colors hover:text-fg"
+          >
+            <span className="text-[#25D366]">
+              <WhatsAppIcon />
+            </span>
+            Questions? Ask on WhatsApp
+          </a>
         </div>
-        <a
-          href={whatsappUrl(`Hi ${site.name}! I'd like a ${product.name.toLowerCase()} that says "${text.trim() || "…"}".`)}
-          target="_blank"
-          rel="noreferrer"
-          className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-full border border-[#25D366]/40 px-5 py-3 text-sm font-semibold text-[#25D366] transition-colors hover:bg-[#25D366] hover:text-black"
-        >
-          <WhatsAppIcon /> Ask on WhatsApp
-        </a>
       </div>
     </div>
   );

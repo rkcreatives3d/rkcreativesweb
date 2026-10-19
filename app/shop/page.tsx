@@ -16,7 +16,7 @@ export default function ShopPage() {
         </h1>
       </div>
       <Marquee
-        className="my-10 border-y border-fg/10 py-3 font-mono text-xs uppercase tracking-[0.3em] text-muted"
+        className="my-10 border-y border-fg/10 py-3 tabular-nums text-xs uppercase tracking-[0.12em] text-muted"
         items={["Pick a finish", "Pick a size", "Order on WhatsApp", "We print it", "It shows up"]}
       />
       <div className="mx-auto max-w-7xl px-5 pb-24 sm:px-8">

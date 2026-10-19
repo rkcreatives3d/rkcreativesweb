@@ -28,7 +28,7 @@ export function UpiPay({ amount, orderId }: { amount: number; orderId: string })
 
   return (
     <div className="mx-auto mt-8 max-w-md rounded-[28px] border border-fg/10 bg-page/60 p-6 text-left">
-      <p className="font-mono text-[11px] uppercase tracking-[0.3em] text-accent">Pay now with UPI (optional)</p>
+      <p className="tabular-nums text-xs uppercase tracking-[0.12em] text-pop">Pay now with UPI (optional)</p>
       <p className="mt-2 text-sm text-muted">
         Pay {formatPrice(amount)} now to lock in your print slot, or wait for us to confirm on WhatsApp. Please send the
         payment screenshot in the chat.
@@ -51,12 +51,12 @@ export function UpiPay({ amount, orderId }: { amount: number; orderId: string })
           <p className="text-xs text-muted">Scan with GPay, PhonePe, Paytm or any UPI app</p>
           <button
             onClick={() => navigator.clipboard?.writeText(site.upi.id).then(() => setCopied(true))}
-            className="block w-full truncate rounded-xl border border-fg/15 px-3 py-2 text-left font-mono text-sm hover:border-accent"
+            className="block w-full truncate rounded-xl border border-fg/15 px-3 py-2 text-left tabular-nums text-sm hover:border-accent"
           >
             {copied ? "Copied ✓" : site.upi.id}
           </button>
           {phone && (
-            <a href={link} className="holo-btn holo-btn-solid w-full !py-2.5 text-sm">
+            <a href={link} className="btn w-full !py-2.5 text-sm">
               Pay {formatPrice(amount)} in UPI app
             </a>
           )}

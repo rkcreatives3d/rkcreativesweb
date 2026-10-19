@@ -36,10 +36,8 @@ export function WhatsAppBubble() {
           initial={{ scale: 0, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0, opacity: 0 }}
-          whileHover={{ scale: 1.08 }}
           className="fixed bottom-5 right-5 z-[45] grid h-14 w-14 place-items-center rounded-full bg-[#25D366] text-black shadow-[0_10px_30px_-5px_rgba(37,211,102,0.5)] sm:bottom-7 sm:right-7"
         >
-          <span className="absolute inset-0 animate-ping rounded-full bg-[#25D366] opacity-20" aria-hidden />
           <span className="relative scale-150">
             <WhatsAppIcon />
           </span>

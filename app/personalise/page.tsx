@@ -26,7 +26,7 @@ export default function PersonalisePage() {
       <ol className="mb-10 mt-6 flex flex-wrap gap-x-8 gap-y-2 text-sm text-muted">
         {steps.map(([t, d], i) => (
           <li key={t}>
-            <span className="font-mono text-accent">0{i + 1}</span> <span className="font-semibold text-fg">{t}</span> · {d}
+            <span className="tabular-nums text-pop">0{i + 1}</span> <span className="font-semibold text-fg">{t}</span> · {d}
           </li>
         ))}
       </ol>

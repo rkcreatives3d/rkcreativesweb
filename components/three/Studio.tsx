@@ -6,6 +6,7 @@ import { useFrame, useThree } from "@react-three/fiber";
 import { Environment, PerspectiveCamera } from "@react-three/drei";
 import { getFinish } from "@/lib/products";
 import { theme } from "@/lib/theme";
+import { step } from "./live";
 
 // ── Studio environment ───────────────────────────────────────
 // A "light box" of coloured panels baked into a PMREM env map and shared by
@@ -118,9 +119,23 @@ export function useFinishMaterial(finishId: string, wireframe = false) {
 
   useEffect(() => () => mat.dispose(), [mat]);
 
+  // keep drawing until the colour change has finished easing in
+  const invalidate = useThree((s) => s.invalidate);
+  const settle = useRef(0);
+  const settled = useRef(false);
+  useEffect(() => {
+    settle.current = performance.now() + 900;
+    settled.current = false;
+    invalidate();
+  }, [finishId, wireframe, invalidate]);
+
   useFrame((_, dt) => {
+    if (settled.current) return;
+    const done = performance.now() > settle.current;
+    if (done) settled.current = true; // land exactly on the target
+    else invalidate();
     const f = getFinish(finishId);
-    const k = 1 - Math.exp(-dt * 7);
+    const k = done ? 1 : 1 - Math.exp(-step(dt) * 7);
     if (wireframe) {
       mat.color.lerp(tmpColor.set(wire), k);
       mat.emissive.lerp(tmpColor.set(wire), k);

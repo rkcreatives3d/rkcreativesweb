@@ -9,7 +9,7 @@ export function Footer() {
       <div className="mx-auto grid max-w-7xl gap-12 sm:grid-cols-2 md:grid-cols-[1.6fr_1fr_1fr_1fr_1fr]">
         <div>
           <p className="max-w-sm text-lg text-muted">{site.tagline}</p>
-          <p className="mt-4 font-mono text-xs uppercase tracking-[0.3em] text-muted/70">
+          <p className="mt-4 tabular-nums text-xs uppercase tracking-[0.12em] text-muted/70">
             Printed to order in {site.city.split(",")[0]} · Dispatch in {dispatchLabel} days
           </p>
         </div>
@@ -45,11 +45,11 @@ export function Footer() {
         aria-hidden
         className="footer-giant mx-auto mt-16 max-w-7xl select-none whitespace-nowrap text-center font-display leading-[0.9] display-case"
       >
-        {site.handle}
+        {site.name}
       </p>
-      <p className="holo-text mt-2 text-center font-script text-4xl sm:text-6xl">{site.slogan}</p>
+      <p className="holo-text mt-3 text-center font-display text-xl uppercase tracking-[0.3em] sm:text-2xl">{site.slogan}</p>
 
-      <div className="mx-auto mt-6 flex max-w-7xl flex-wrap items-center justify-between gap-3 font-mono text-[11px] uppercase tracking-[0.25em] text-muted/60">
+      <div className="mx-auto mt-6 flex max-w-7xl flex-wrap items-center justify-between gap-3 tabular-nums text-xs uppercase tracking-[0.12em] text-muted/60">
         <span>
           © {new Date().getFullYear()} {site.name}
         </span>
@@ -62,7 +62,7 @@ export function Footer() {
 function FooterCol({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div>
-      <p className="mb-4 font-mono text-[11px] uppercase tracking-[0.3em] text-accent">{title}</p>
+      <p className="mb-4 tabular-nums text-xs uppercase tracking-[0.12em] text-pop">{title}</p>
       <div className="flex flex-col gap-2 text-sm text-fg/80 [&_a:hover]:text-accent-2">{children}</div>
     </div>
   );

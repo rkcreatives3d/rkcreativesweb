@@ -43,7 +43,7 @@ export default async function PolicyPage({ params }: Props) {
       <article className="max-w-2xl">
         <h1 className="font-display text-5xl font-extrabold display-case leading-[0.9] tracking-tight sm:text-7xl">{policy.title}</h1>
         <p className="mt-4 text-lg text-fg/80">{policy.summary}</p>
-        <p className="mt-2 font-mono text-[11px] uppercase tracking-[0.25em] text-muted">Last updated {POLICIES_UPDATED}</p>
+        <p className="mt-2 tabular-nums text-xs uppercase tracking-[0.12em] text-muted">Last updated {POLICIES_UPDATED}</p>
         <div className="mt-10 space-y-10">
           {policy.sections.map((s) => (
             <section key={s.heading}>

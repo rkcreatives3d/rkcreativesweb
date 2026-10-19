@@ -1,6 +1,7 @@
 import type { Photo, Review } from "@/lib/content";
 import { getProduct } from "@/lib/products";
-import { KineticText, Reveal, SectionLabel } from "./ui";
+import { site } from "@/lib/site";
+import { Reveal, SectionLabel } from "./ui";
 
 // Trust sections built from lib/content.ts. Each one renders nothing until it
 // has real content, so the site never shows placeholder reviews or photos.
@@ -10,9 +11,11 @@ export function PhotoGrid({ photos, label, title, highlight }: { photos: Photo[]
   return (
     <section className="mx-auto max-w-7xl px-5 py-20 sm:px-8">
       <SectionLabel>{label}</SectionLabel>
-      <h2 className="mt-4 font-display text-4xl font-extrabold display-case leading-[0.9] tracking-tight sm:text-6xl">
-        <KineticText text={title} /> <KineticText text={highlight} holo delay={0.15} />
-      </h2>
+      <Reveal y={24}>
+        <h2 className="mt-4 font-display text-4xl font-extrabold display-case leading-[0.9] tracking-tight sm:text-6xl">
+          {title} <span className="holo-text">{highlight}</span>
+        </h2>
+      </Reveal>
       <div className="mt-10 columns-2 gap-4 sm:columns-3 lg:columns-4">
         {photos.map((p, i) => (
           <Reveal key={p.src} delay={(i % 4) * 0.06} className="mb-4 break-inside-avoid">
@@ -36,12 +39,14 @@ export function Reviews({ reviews }: { reviews: Review[] }) {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <SectionLabel>Reviews</SectionLabel>
-          <h2 className="mt-4 font-display text-4xl font-extrabold display-case leading-[0.9] tracking-tight sm:text-6xl">
-            <KineticText text="Loved by" /> <KineticText text="people" holo delay={0.15} />
-          </h2>
+          <Reveal y={24}>
+            <h2 className="mt-4 font-display text-4xl font-extrabold display-case leading-[0.9] tracking-tight sm:text-6xl">
+              Loved by <span className="holo-text">people</span>
+            </h2>
+          </Reveal>
         </div>
-        <p className="font-mono text-sm text-muted">
-          <span className="text-accent">{"★".repeat(Math.round(avg))}</span> {avg.toFixed(1)} from {reviews.length}{" "}
+        <p className="tabular-nums text-sm text-muted">
+          <span className="text-pop">{"★".repeat(Math.round(avg))}</span> {avg.toFixed(1)} from {reviews.length}{" "}
           {reviews.length === 1 ? "review" : "reviews"}
         </p>
       </div>
@@ -49,7 +54,7 @@ export function Reviews({ reviews }: { reviews: Review[] }) {
         {reviews.map((r, i) => (
           <Reveal key={i} delay={(i % 3) * 0.08}>
             <figure className="h-full rounded-[28px] border border-fg/10 bg-fg/[0.03] p-6">
-              <p className="text-accent" aria-label={`${r.rating} out of 5 stars`}>
+              <p className="text-pop" aria-label={`${r.rating} out of 5 stars`}>
                 {"★".repeat(r.rating)}
                 <span className="text-fg/20">{"★".repeat(5 - r.rating)}</span>
               </p>
@@ -63,6 +68,42 @@ export function Reviews({ reviews }: { reviews: Review[] }) {
           </Reveal>
         ))}
       </div>
+    </section>
+  );
+}
+
+export function InstagramGrid({ posts }: { posts: (Photo & { href: string })[] }) {
+  if (!posts.length) return null;
+  return (
+    <section className="mx-auto max-w-7xl px-5 py-20 sm:px-8">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <SectionLabel>On Instagram</SectionLabel>
+          <Reveal y={24}>
+            <h2 className="mt-4 font-display text-4xl font-extrabold display-case leading-[0.9] tracking-tight sm:text-6xl">
+              Fresh from <span className="holo-text">the studio</span>
+            </h2>
+          </Reveal>
+        </div>
+        <a href={site.instagram} target="_blank" rel="noreferrer" className="text-sm font-semibold underline underline-offset-4 hover:text-accent">
+          @{site.handle} →
+        </a>
+      </div>
+      <ul className="mt-10 grid grid-cols-3 gap-2 sm:gap-4 lg:grid-cols-6">
+        {posts.slice(0, 12).map((p) => (
+          <li key={p.href}>
+            <a href={p.href} target="_blank" rel="noreferrer" className="group block overflow-hidden rounded-2xl border border-fg/10">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={p.src}
+                alt={p.caption ?? "Instagram post"}
+                loading="lazy"
+                className="aspect-square w-full object-cover transition-transform duration-700 group-hover:scale-105"
+              />
+            </a>
+          </li>
+        ))}
+      </ul>
     </section>
   );
 }

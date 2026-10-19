@@ -10,14 +10,18 @@ import { itemPrice, useCart } from "@/lib/cart";
 import { flyToCart } from "@/lib/fly";
 import { useLiteMode } from "@/lib/lite";
 import { modelFor } from "@/lib/models";
+import { track } from "@/lib/track";
 import { dispatchLabel, formatPrice, site, whatsappUrl } from "@/lib/site";
 import { MAX_NAME } from "./three/nameplate";
 import { ViewerScene } from "./three/ProductScenes";
 import { Stepper } from "./CartDrawer";
 import { ProductCard } from "./ProductCard";
-import { DeliveryEstimate, Gallery, ProductArt } from "./ProductMedia";
+import { Gallery, ProductArt } from "./ProductMedia";
+import { PinCheck } from "./Delivery";
+import { ProductFaq, SizeGuide, sizeCm } from "./ProductInfo";
+import { ArView } from "./ArView";
 import { WhatsAppIcon } from "./CheckoutForm";
-import { HoloButton, KineticText, SectionLabel, Swatch } from "./ui";
+import { Button, KineticText, Swatch } from "./ui";
 
 export function ProductDetail({ product: p }: { product: Product }) {
   const router = useRouter();
@@ -69,14 +73,23 @@ export function ProductDetail({ product: p }: { product: Product }) {
       <section className="mx-auto grid max-w-7xl gap-10 px-5 pb-20 pt-28 sm:px-8 lg:grid-cols-[1.15fr_1fr] lg:gap-16 lg:pt-32">
         {/* media: photos if the product has them, otherwise the 3D preview (or flat art in Lite mode) */}
         <div className="lg:sticky lg:top-24 lg:self-start">
-          {has3D && photos.list.length > 0 && (
-            <div className="mb-3 flex gap-2">
-              <Toggle on={!showPhotos} onClick={() => setMedia("3d")}>
-                3D view
-              </Toggle>
-              <Toggle on={showPhotos} onClick={() => setMedia("photos")}>
-                Photos ({photos.list.length})
-              </Toggle>
+          {(model || (has3D && photos.list.length > 0)) && (
+            <div className="mb-3 flex flex-wrap items-center gap-2">
+              {has3D && photos.list.length > 0 && (
+                <>
+                  <Toggle on={!showPhotos} onClick={() => setMedia("3d")}>
+                    3D view
+                  </Toggle>
+                  <Toggle on={showPhotos} onClick={() => setMedia("photos")}>
+                    Photos ({photos.list.length})
+                  </Toggle>
+                </>
+              )}
+              {model && (
+                <span className="ml-auto">
+                  <ArView model={model} name={p.name} slug={p.slug} sizeCm={sizeInfo ? sizeCm(sizeInfo) : null} tint={getFinish(finish)} />
+                </span>
+              )}
             </div>
           )}
           {showPhotos ? (
@@ -87,7 +100,7 @@ export function ProductDetail({ product: p }: { product: Product }) {
                 <div className="grid-bg absolute inset-0" />
                 {showViewer ? (
                   // OrbitControls listen on this wrapper; events bubble up from the View div
-                  <div ref={setViewEl} className="absolute inset-0 cursor-grab active:cursor-grabbing" data-cursor>
+                  <div ref={setViewEl} className="absolute inset-0 cursor-grab active:cursor-grabbing">
                     <View className="absolute inset-0">
                       {viewEl && (
                         <ViewerScene
@@ -104,7 +117,7 @@ export function ProductDetail({ product: p }: { product: Product }) {
                 ) : (
                   <ProductArt product={p} finish={finish} large />
                 )}
-                <span className="pointer-events-none absolute left-5 top-5 font-mono text-[10px] uppercase tracking-[0.3em] text-muted">
+                <span className="pointer-events-none absolute left-5 top-5 tabular-nums text-xs uppercase tracking-[0.12em] text-muted">
                   {showViewer ? `${slicer ? "Slicer preview" : "Live render"} · drag to rotate` : "Preview"}
                 </span>
               </div>
@@ -128,14 +141,14 @@ export function ProductDetail({ product: p }: { product: Product }) {
 
         {/* details */}
         <div>
-          <nav className="font-mono text-[11px] uppercase tracking-[0.25em] text-muted">
+          <nav className="tabular-nums text-xs uppercase tracking-[0.12em] text-muted">
             <Link href="/shop/" className="hover:text-fg">
               Shop
             </Link>{" "}
             / {p.category}
           </nav>
           {p.badge && (
-            <span className="mt-5 inline-block rounded-full bg-pop px-3 py-1 font-mono text-[10px] font-semibold uppercase tracking-widest text-on-pop">
+            <span className="mt-5 inline-block rounded-full bg-pop px-3 py-1 tabular-nums text-xs font-semibold uppercase tracking-widest text-on-pop">
               {p.badge}
             </span>
           )}
@@ -156,7 +169,7 @@ export function ProductDetail({ product: p }: { product: Product }) {
                 {formatPrice(price * qty)}
               </motion.span>
             </AnimatePresence>
-            {qty > 1 && <span className="font-mono text-sm text-muted">{formatPrice(price)} each</span>}
+            {qty > 1 && <span className="tabular-nums text-sm text-muted">{formatPrice(price)} each</span>}
           </div>
 
           {/* finish */}
@@ -195,7 +208,7 @@ export function ProductDetail({ product: p }: { product: Product }) {
                 >
                   <span className="block font-semibold">{s.label}</span>
                   <span className={`block text-xs ${size === s.id ? "text-page/70" : "text-muted"}`}>{s.dims}</span>
-                  <span className={`mt-1 block font-mono text-[11px] ${size === s.id ? "text-page/70" : "text-muted"}`}>
+                  <span className={`mt-1 block tabular-nums text-xs ${size === s.id ? "text-page/70" : "text-muted"}`}>
                     {s.priceDelta ? `+${formatPrice(s.priceDelta)}` : "base"}
                   </span>
                 </button>
@@ -217,7 +230,7 @@ export function ProductDetail({ product: p }: { product: Product }) {
                 <label className="flex cursor-pointer items-center justify-between gap-3 text-sm">
                   <span>
                     <span className="font-semibold">Add a name or message</span>{" "}
-                    <span className="font-mono text-xs text-muted">+{formatPrice(site.engravingPrice)}</span>
+                    <span className="tabular-nums text-xs text-muted">+{formatPrice(site.engravingPrice)}</span>
                   </span>
                   <input
                     type="checkbox"
@@ -244,7 +257,7 @@ export function ProductDetail({ product: p }: { product: Product }) {
                   />
                   <p className={`mt-1.5 flex justify-between text-xs ${nudge ? "text-accent" : "text-muted"}`}>
                     <span>{nudge ? "Type the name you want printed first." : "Printed exactly as typed."}</span>
-                    <span className="font-mono">
+                    <span className="tabular-nums">
                       {text.length}/{maxLen}
                     </span>
                   </p>
@@ -253,49 +266,55 @@ export function ProductDetail({ product: p }: { product: Product }) {
             </div>
           )}
 
-          {/* buy */}
+          {/* buy: one main action; buy-now and WhatsApp are quieter ways in */}
           <div className="mt-8 flex flex-wrap items-center gap-3">
             <Stepper value={qty} onChange={setQty} />
-            <HoloButton
-              solid
+            <Button
+              primary
               className="flex-1"
               onClick={(e) => {
                 if (!ready()) return;
                 add(item, qty);
+                track("add_to_cart", { product: p.slug, finish, size, value: price * qty });
                 flyToCart(e.currentTarget, getFinish(finish).swatch).then(() => useCart.getState().setOpen(true));
               }}
             >
               Add to cart · {formatPrice(price * qty)}
-            </HoloButton>
+            </Button>
           </div>
-          <div className="mt-3 grid gap-3 sm:grid-cols-2">
-            <HoloButton
+          <div className="mt-4 flex flex-wrap items-center justify-between gap-x-6 gap-y-2 px-1 text-sm">
+            <button
               onClick={() => {
                 if (!ready()) return;
                 add(item, qty);
+                track("buy_now", { product: p.slug, value: price * qty });
                 router.push("/checkout/");
               }}
+              className="font-semibold text-fg underline decoration-fg/30 underline-offset-4 transition-colors hover:decoration-accent"
             >
-              Buy now →
-            </HoloButton>
+              or buy now →
+            </button>
             <a
               href={ask}
               target="_blank"
               rel="noreferrer"
-              className="inline-flex items-center justify-center gap-2 rounded-full border border-[#25D366]/40 px-5 py-3 text-sm font-semibold text-[#25D366] transition-colors hover:bg-[#25D366] hover:text-black"
+              className="inline-flex items-center gap-1.5 text-muted transition-colors hover:text-fg"
             >
-              <WhatsAppIcon /> Ask on WhatsApp
+              <span className="text-[#25D366]">
+                <WhatsAppIcon />
+              </span>
+              Questions? Ask on WhatsApp
             </a>
           </div>
-          <div className="mt-4 space-y-1 text-center text-xs text-muted">
-            <DeliveryEstimate />
-            <p>
-              Free shipping over {formatPrice(site.freeShippingOver)} · Dispatch in {dispatchLabel} days ·{" "}
-              <Link href="/policies/shipping/" className="underline-offset-4 hover:text-fg hover:underline">
+          <div className="mt-6">
+            <PinCheck subtotal={price * qty} />
+            <p className="mt-2 px-1 text-xs text-muted">
+              Free shipping over {formatPrice(site.freeShippingOver)} · Dispatch in {dispatchLabel} working days ·{" "}
+              <Link href="/policies/shipping/" className="underline underline-offset-4 hover:text-fg">
                 Shipping
               </Link>{" "}
               ·{" "}
-              <Link href="/policies/returns/" className="underline-offset-4 hover:text-fg hover:underline">
+              <Link href="/policies/returns/" className="underline underline-offset-4 hover:text-fg">
                 Returns
               </Link>
             </p>
@@ -310,16 +329,18 @@ export function ProductDetail({ product: p }: { product: Product }) {
               ["Size", sizeInfo?.dims ?? ""],
             ].map(([k, v]) => (
               <div key={k} className="bg-page p-4">
-                <dt className="font-mono text-[10px] uppercase tracking-[0.25em] text-muted">{k}</dt>
+                <dt className="tabular-nums text-xs uppercase tracking-[0.12em] text-muted">{k}</dt>
                 <dd className="mt-1 font-semibold">{v}</dd>
               </div>
             ))}
           </dl>
 
           <div className="mt-10">
-            <SectionLabel>About this object</SectionLabel>
-            <p className="mt-4 leading-relaxed text-fg/80">{p.description}</p>
+            <h2 className="text-xs font-semibold uppercase tracking-[0.12em] text-muted">About it</h2>
+            <p className="mt-3 leading-relaxed text-fg/80">{p.description}</p>
           </div>
+          {sizeInfo && <SizeGuide product={p} size={sizeInfo} />}
+          <ProductFaq product={p} />
         </div>
       </section>
 
@@ -342,7 +363,7 @@ function Toggle({ on, onClick, children }: { on: boolean; onClick: () => void; c
     <button
       onClick={onClick}
       aria-pressed={on}
-      className={`rounded-full border px-4 py-1.5 font-mono text-[11px] uppercase tracking-widest transition-all ${
+      className={`rounded-full border px-4 py-1.5 tabular-nums text-xs uppercase tracking-widest transition-all ${
         on ? "border-accent-2 bg-accent-2/10 text-accent-2" : "border-fg/15 text-muted hover:text-fg"
       }`}
     >

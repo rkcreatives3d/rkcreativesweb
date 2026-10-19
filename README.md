@@ -1,6 +1,6 @@
-# RK Creative Builds 3D: online shop
+# RK Creative Builds: online shop
 
-This is the 3D-animated storefront for RK Creative Builds 3D ("Bring Ideas to Life"). Customers browse, personalise and add products to a cart, then send the order to you on WhatsApp or by email. After that, they can pay right away with a UPI QR code, or wait until you confirm.
+This is the 3D-animated storefront for RK Creative Builds ("Bring Ideas to Life"). Customers browse, personalise and add products to a cart, then send the order to you on WhatsApp or by email. After that, they can pay right away with a UPI QR code, or wait until you confirm.
 
 Built with Next.js 16, React Three Fiber, drei, Tailwind 4, Motion, Lenis and zustand.
 
@@ -15,19 +15,23 @@ npm start          # preview the built site
 
 ## Before you launch
 
-1. **`lib/site.ts`:** set your real domain (`url`), city, WhatsApp number, email, Instagram and **UPI ID**. The UPI box stays hidden on the live site until the UPI ID is set.
-2. **`lib/products.ts`:** set your real products and prices, and add photos (see below).
-3. **`lib/content.ts`:** write your story, and add real reviews and photos (workshop, packing, customer photos, past custom jobs). Every empty list keeps its section hidden.
-4. **`lib/policies.ts`:** read through the shipping, returns, privacy and terms policies and adjust them to how you actually work. They're a sensible starting point, not legal advice.
-5. **Optional:** add your analytics ID in `site.analytics` (Plausible domain or GA4 ID).
+1. **`lib/site.ts`:** set your real domain (`url`), city, the **PIN code you ship from** (`originPin`), WhatsApp number, email, Instagram and **UPI ID**. The UPI box stays hidden on the live site until the UPI ID is set.
+2. **`lib/delivery.ts`:** check the courier days per zone (same city, same state, nearby states, rest of India, remote areas) and the remote-area surcharge.
+3. **`lib/products.ts`:** set your real products and prices, and add photos and 3D files (see below).
+4. **`lib/content.ts`:** write your story, and fill the trust slots: a 15-second printer video, real reviews, workshop, packing and customer photos, your latest Instagram posts, and before/after pairs of custom jobs. Every empty slot keeps its section hidden.
+5. **`lib/policies.ts`:** read through the shipping, returns, privacy and terms policies and adjust them to how you actually work. They're a sensible starting point, not legal advice.
+6. **Optional:** add your analytics ID in `site.analytics` (Plausible domain or GA4 ID).
 
 ## Where things live
 
 | What | Where |
 | --- | --- |
 | Shop details, contact, UPI, shipping rules, engraving price, analytics | `lib/site.ts` |
-| Products: name, price, sizes, finishes, tags, photos, personalisation | `lib/products.ts` |
-| About story, reviews, photo galleries, custom-price estimator rates | `lib/content.ts` |
+| Delivery dates and surcharges by PIN code | `lib/delivery.ts` |
+| Products: name, price, sizes, finishes, tags, photos, size photo, FAQ, personalisation | `lib/products.ts` |
+| "Shop by occasion" tiles on the home page | `lib/occasions.ts` |
+| Personalise lettering styles and icons | `lib/personalise.ts` (3D shapes in `components/three/nameplate.ts`) |
+| About story, video, reviews, photo galleries, Instagram posts, before/after jobs, custom-price estimator rates | `lib/content.ts` |
 | Policies (shipping, returns, privacy, terms) | `lib/policies.ts` |
 | Guides | `lib/guides.ts` |
 | Brand colours: page / 3D | `app/globals.css` (`@theme`) / `lib/theme.ts` |
@@ -37,12 +41,12 @@ The WhatsApp number must be in international format with digits only. For exampl
 
 ### Showing your products in real 3D
 
-Every product can be shown as its real 3D model, which customers can rotate and drag, and see in every colour, on the shop cards, the product page and the home carousel. Use the files you print from:
+Every product can be shown as its real 3D model, which customers can rotate and drag, and see in every colour, on the shop cards, the product page, the home page tiles and orbiting the logo on the cover. Products with a model also get a **"View in your room"** button: on a phone it places the model, at its real size and in the chosen colour, on the customer's table or floor using AR (an iPhone, or an Android phone with Google Play Services for AR). On a computer it shows a QR code that opens the same view on a phone. Use the files you print from:
 
 1. Put the file in the `models/` folder, named after the product's slug: `models/vortex-vase.stl`, `models/name-keychain.3mf`. You can use `.stl`, `.3mf` (Bambu Studio, Orca and PrusaSlicer projects work), `.obj`, `.glb` or `.gltf`.
 2. Run `npm run models`. This also happens automatically on `npm run build`.
 
-The converter turns the print-bed orientation upright, keeps sharp edges crisp, and shrinks the file for the web. For example, a 7.6 MB 3MF becomes about 800 KB. The original files in `models/` are never published.
+The converter turns the print-bed orientation upright, keeps sharp edges crisp, and shrinks the file for the web. For example, a 7.6 MB 3MF becomes about 800 KB. The original files in `models/` are never published. For AR, the model is scaled so its longest side matches the size the customer picked (the cm figure in each size's `dims`).
 
 **No file for a product?** A single photo can't become a full 360° model on its own. Instead, use an image-to-3D tool, such as MakerWorld's **"Image to 3D"** in MakerLab (the same tool that made your Hanuman file), then drop the resulting `.3mf` into `models/`.
 
@@ -88,30 +92,38 @@ Customers can tap or hover over the colour swatches on shop cards and product pa
 
 ### Product options
 
-- **`tags`:** `"bestseller"`, `"gift"` or `"festive"`. These power the quick filters on the Shop page.
+- **`tags`:** `"bestseller"`, `"gift"`, `"festive"`, `"birthday"`, `"desk"` or `"car"`. These power the "Shop by occasion" tiles and the Shop page filters. Up to four bestsellers orbit the logo on the cover page.
 - **`personalisation: "optional"`:** customers can add a name or message for `site.engravingPrice`.
 - **`personalisation: "included"`:** the product *is* the name (keychain, nameplate), so the text is required.
+- **`scalePhoto`:** a photo of the item in someone's hand or on a desk, shown in the "How big is it?" size guide. The size guide itself is drawn automatically from the cm figure in each size's `dims`.
+- **`faq`:** extra questions for this product, shown above the standard ones on the product page.
 
 ## Features
 
-- **Opening animation** (`components/intro/`): a 3D printer prints the logo. It only plays on the home page, once per visit, and takes about 3 seconds. It can be skipped and never plays in Lite mode. To change its length, edit `IN`, `PRINT` and `OUT` in `PrinterScene.tsx`.
-- **Personalise** (`/personalise/`): type a name and see it as a live 3D keychain or desk nameplate in your font, then order it. The home page has a shortcut that goes to `/personalise/?name=…`.
+- **Cover page:** the RK monogram as a real 3D object in black and brushed gold, with your bestsellers orbiting it. Click one to open it.
+- **Opening animation** (`components/intro/`): a 3D printer prints the RK monogram in under 2 seconds, then lands exactly on the cover. It only plays on the home page, on someone's first visit. It can be skipped and never plays in Lite mode or for people who prefer reduced motion. To change its length, edit `IN`, `PRINT` and `OUT` in `PrinterScene.tsx`.
+- **Personalise** (`/personalise/`, and the second section of the home page): type a name and see it as a live 3D keychain or desk nameplate. Pick a lettering style (Bold, Script, Bubbly), an icon (heart, star, crown, paw, bolt) and a colour, and switch the preview to "On keys" or "On a desk" to judge the size. The choices go into the cart and the order message.
+- **Product page:** one main "Add to cart" button, with "buy now" and "Ask on WhatsApp" as quieter options; a PIN-code check that shows the delivery dates and shipping for the customer's area; a "How big is it?" size guide compared with everyday objects; and a short FAQ.
+- **Checkout and order page:** the PIN code shows delivery dates as the customer types (and is pre-filled if they checked it on a product page). After sending the order, customers land on `/order/`: next steps, a button to reopen WhatsApp, the UPI QR code, and a summary they can print or save as PDF.
 - **Selling tools:**
-  - an "Ask on WhatsApp" button on every product, plus a floating WhatsApp button
+  - an "Ask on WhatsApp" link on every product, plus a floating WhatsApp button
   - a UPI QR code and a "pay in UPI app" button after ordering
-  - "delivered by …" estimates
-  - shop search, sorting and quick filters
+  - shop search, sorting and occasion filters
   - an add-to-cart animation
 - **Custom orders** (`/custom/`):
+  - a "you send a photo → we model it → you approve → we print" timeline
+  - drag-to-compare before/after examples (from `beforeAfter` in `lib/content.ts`)
   - an instant price estimate based on size, material, detail and quantity (rates in `lib/content.ts`)
   - file attachments: on phones, photos go straight into the WhatsApp share sheet
-- **Trust:** an About page, policy pages, and review and photo sections that appear as soon as you add content.
+- **Trust:** an About page, policy pages, and slots for a printer video ("Meet the maker"), reviews, packing photos, customer photos and an Instagram grid. Each appears as soon as you add content.
+- **Analytics events** (`lib/track.ts`): `add_to_cart`, `buy_now`, `begin_checkout`, `order_sent`, `whatsapp_click`, `custom_request`, `ar_view` and `pin_check`, sent to Plausible or GA4 when they're set up. No names, phone numbers or addresses are ever sent. In Plausible, add the event names under Site settings → Goals to see them.
+- **Accessibility:** a "Skip to content" link, visible keyboard focus, a focus-trapped cart drawer, readable text behind every animated heading, and reduced motion respected throughout (no intro, no smooth-scroll easing).
 - **Search and sharing:**
   - every page except checkout can be linked and shared
   - each product gets its own share image (`/og/<slug>.png`, built at export)
   - Google gets product and shop details
   - `sitemap.xml` and `robots.txt` are generated automatically
-- **Lite mode:** on low-memory phones and data-saver connections, the site uses photos and flat artwork instead of live 3D. Visitors can switch it on or off in the footer.
+- **Lite mode:** the site uses photos and flat artwork instead of live 3D on phones with 2 GB of memory or less (or 4 GB with 4 cores or fewer), on data saver or 2G connections, and on devices without a usable GPU. If 3D still runs below about 24 frames a second, the site first lowers the resolution, then switches to Lite mode itself and says so, with a "Use 3D" button. Visitors can switch it on or off in the footer, and their choice is remembered.
 
 ## Link rules
 
@@ -125,4 +137,11 @@ The site is fully static, so you don't need a server. Push the repo to GitHub an
 
 The page has one transparent WebGL canvas fixed over it (`components/Providers.tsx`). Each 3D spot on the page is a drei `<View>` that draws into that canvas, positioned over its own `<div>`. This lets every 3D scene share a single GPU context. In Lite mode the canvas is never created.
 
-The opening animation uses its own temporary canvas. Gold and metal finishes reflect a small light-box environment baked in memory (`components/three/Studio.tsx`). The logo is drawn by a small shader (`components/three/LogoPlaque.tsx`). The 3D name text uses the Saira font, converted to `lib/fonts/saira-extrabold.typeface.json`.
+The canvas only draws while something moves (`components/three/live.ts`): the cover while it's on screen, a shop card while it's hovered (or for one demo turn as it scrolls into view on touch screens), a colour change while it eases in, and the page while it scrolls. Every product comes to rest at the same turntable angle. When nothing moves, the GPU idles.
+
+The opening animation uses its own temporary canvas. Gold and metal finishes reflect a small light-box environment baked in memory (`components/three/Studio.tsx`). The RK monogram (`components/three/brandMark.tsx`) and the Bold lettering use the Saira font, converted to `lib/fonts/saira-extrabold.typeface.json`. The Script and Bubbly lettering use Pacifico and Titan One, which only download when someone picks them.
+
+## Third-party files
+
+- `public/vendor/model-viewer-4.3.1.min.js`: Google's [model-viewer](https://modelviewer.dev) for "View in your room" (Apache-2.0, see `model-viewer-LICENSE.txt`). It only loads when someone opens the AR view.
+- `lib/fonts/pacifico.typeface.json` and `titan-one.typeface.json`: converted from the Pacifico and Titan One fonts (SIL Open Font License, see `lib/fonts/OFL-*.txt`).

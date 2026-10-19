@@ -61,7 +61,7 @@ export async function GET(_: Request, { params }: { params: Promise<{ file: stri
           <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={logo} width={64} height={64} style={{ borderRadius: 999 }} alt="" />
-            <span style={{ fontSize: 22, letterSpacing: 4, color: "#d4973f" }}>{site.handle}</span>
+            <span style={{ fontSize: 24, letterSpacing: 4, color: "#d4973f", textTransform: "uppercase" }}>{site.name}</span>
           </div>
           <div style={{ fontSize: 84, fontFamily: "Saira", lineHeight: 1, marginTop: 36, textTransform: "uppercase" }}>{p.name}</div>
           <div style={{ fontSize: 28, color: "#a39a8c", marginTop: 18 }}>{p.tagline}</div>
