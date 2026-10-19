@@ -9,9 +9,8 @@ import { site } from "@/lib/site";
 import { INTRO_LAYERS, PrinterScene } from "./PrinterScene";
 
 /**
- * Opening animation: a 3D printer prints the RK monogram (under 2s), then
- * fades into the cover page. Plays on the home page on someone's first visit
- * only (the boot script in <head> adds
+ * Opening animation: a 3D printer prints the logo, then fades into the cover
+ * page. Plays on the home page, once per visit (the boot script in <head> adds
  * `no-intro` otherwise, which hides the overlay before first paint). The black
  * overlay is part of the static HTML, so the site never flashes before it.
  * Skippable; never shown in Lite mode or to people who prefer reduced motion.
@@ -32,7 +31,7 @@ export function Intro() {
     left.current = true;
     finish();
     setLeaving(true);
-    setTimeout(() => setGone(true), 500);
+    setTimeout(() => setGone(true), 800);
   }, [finish]);
 
   useEffect(() => {
@@ -43,7 +42,7 @@ export function Intro() {
       return;
     }
     try {
-      localStorage.setItem(INTRO_KEY, "1");
+      sessionStorage.setItem(INTRO_KEY, "1");
     } catch {}
     setMounted(true);
   }, [finish]);
@@ -79,7 +78,7 @@ export function Intro() {
       id="intro"
       role="dialog"
       aria-label={`${site.name} opening animation`}
-      className={`fixed inset-0 z-[90] bg-page transition-opacity duration-500 ease-out ${leaving ? "pointer-events-none opacity-0" : ""}`}
+      className={`fixed inset-0 z-[90] bg-page transition-opacity duration-700 ease-out ${leaving ? "pointer-events-none opacity-0" : ""}`}
     >
       {mounted && (
         <Canvas
@@ -95,18 +94,18 @@ export function Intro() {
         </Canvas>
       )}
 
-      <div className="absolute inset-x-0 top-0 flex items-center justify-between p-5 tabular-nums text-xs uppercase tracking-[0.12em] text-muted sm:p-8 sm:text-xs">
-        <span>{site.name}</span>
+      <div className="absolute inset-x-0 top-0 flex items-center justify-between p-5 font-mono text-[10px] uppercase tracking-[0.3em] text-muted sm:p-8 sm:text-[11px]">
+        <span>{site.handle}</span>
         <button
           onClick={leave}
-          className="rounded-full border border-fg/15 px-4 py-2 tracking-[0.12em] transition-colors hover:border-accent hover:text-fg"
+          className="rounded-full border border-fg/15 px-4 py-2 tracking-[0.25em] transition-colors hover:border-accent hover:text-fg"
         >
           Skip →
         </button>
       </div>
 
       <div className="pointer-events-none absolute inset-x-0 bottom-0 px-5 pb-8 sm:pb-10">
-        <div className="mx-auto max-w-md tabular-nums text-xs uppercase tracking-[0.12em] text-muted sm:text-xs">
+        <div className="mx-auto max-w-md font-mono text-[10px] uppercase tracking-[0.3em] text-muted sm:text-[11px]">
           <div className="flex justify-between gap-4">
             <span>
               Printing <span ref={pct} className="text-accent">000</span>%

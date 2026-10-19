@@ -18,9 +18,9 @@ export const bootScript = `(function () {
   var slow = mem <= 2 || (mem <= 4 && cores <= 4) || c.saveData || /2g/.test(c.effectiveType || "");
   if (saved === "1" || (saved === null && slow)) d.classList.add("lite");
 
-  // the printing intro: home page, first visit ever, never in Lite mode
+  // the printing intro: home page only, once per visit, never in Lite mode
   var seen = null;
-  try { seen = localStorage.getItem("${INTRO_KEY}"); } catch (e) {}
+  try { seen = sessionStorage.getItem("${INTRO_KEY}"); } catch (e) {}
   var calm = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
   if (location.pathname !== "/" || seen || calm || d.classList.contains("lite")) d.classList.add("no-intro");
 })();`;

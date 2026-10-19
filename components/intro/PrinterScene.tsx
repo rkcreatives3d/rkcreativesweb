@@ -6,14 +6,16 @@ import { useFrame, useThree } from "@react-three/fiber";
 import { Sparkles } from "@react-three/drei";
 import { theme } from "@/lib/theme";
 import { ViewRig } from "../three/Studio";
-import { BrandMark, HERO_FOV, MARK_FILL_H, MARK_FILL_W, MARK_SHIFT_Y, getMarkGeometry } from "../three/brandMark";
+import { LOGO_FILL_H, LOGO_FILL_W, LOGO_SHIFT_Y, LogoPlaque } from "../three/LogoPlaque";
+import { HERO_FOV } from "../three/LogoScene";
 
-const S = 3; // printed mark width
+const S = 3; // printed logo size
 const BED = -1.6; // bed surface height
-const IN = 0.25; // printer settles into view
-const PRINT = 0.95; // layer-by-layer print
-const OUT = 0.55; // printer clears away, camera lands on the cover framing
-export const INTRO_LAYERS = 180;
+const CY = BED + S / 2; // logo centre height
+const IN = 0.45; // printer settles into view
+const PRINT = 2.1; // layer-by-layer print
+const OUT = 0.95; // printer clears away, camera lands on the cover framing
+export const INTRO_LAYERS = 240;
 
 const clamp01 = (x: number) => Math.min(1, Math.max(0, x));
 const ease = (x: number) => (x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2);
@@ -21,7 +23,7 @@ const ease = (x: number) => (x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 
 const black = { color: theme.carriage, metalness: 0.5, roughness: 0.35 } as const;
 const gold = { color: theme.gold, metalness: 1, roughness: 0.28 } as const;
 
-/** A 3D printer printing the RK monogram, ending framed exactly like the cover page. */
+/** A 3D printer printing the logo, ending framed exactly like the cover page. */
 export function PrinterScene({
   onProgress,
   onDone,
@@ -32,17 +34,13 @@ export function PrinterScene({
   const { camera, size } = useThree();
   const tan = Math.tan(THREE.MathUtils.degToRad(HERO_FOV / 2));
   const aspect = size.width / size.height;
-  const { width: mw, height: mh } = getMarkGeometry();
-  const k = S / mw; // mark scale
-  const H = mh * k; // printed height
-  const CY = BED + H / 2 + 0.04;
-  // start: whole printer in shot; end: mark framed exactly like the hero (see brandMark)
+  // start: whole printer in shot; end: logo framed like the hero (see LogoPlaque)
   const startZ = Math.max(9.5, 5.8 / aspect / (2 * tan));
-  const endZ = Math.max(H / (MARK_FILL_H * 2 * tan), S / (MARK_FILL_W * 2 * tan * aspect));
-  const endY = CY - MARK_SHIFT_Y * 2 * endZ * tan;
+  const endZ = Math.max(S / (LOGO_FILL_H * 2 * tan), S / (LOGO_FILL_W * 2 * tan * aspect));
+  const endY = CY - LOGO_SHIFT_Y * 2 * endZ * tan;
 
+  const reveal = useRef(0);
   const clip = useMemo(() => new THREE.Plane(new THREE.Vector3(0, -1, 0), BED), []);
-  const clipList = useMemo(() => [clip], [clip]);
   const t0 = useRef<number | null>(null);
   const done = useRef(false);
   const look = useMemo(() => new THREE.Vector3(), []);
@@ -82,12 +80,13 @@ export function PrinterScene({
     const pout = ease(clamp01((t - IN - PRINT) / OUT));
     const printing = p > 0 && p < 1;
 
-    const layerY = BED + p * (H + 0.08);
-    clip.constant = p >= 1 ? 1e3 : layerY;
+    const layerY = BED + p * S;
+    reveal.current = p;
+    clip.constant = layerY;
     onProgress(p, Math.round(p * INTRO_LAYERS));
 
     // nozzle rasters across the current layer; gantry rides up with it
-    const x = p === 0 ? -S / 2 : printing ? (S / 2 - 0.08) * Math.sin(t * 24) : (S / 2 - 0.08) * Math.sin((IN + PRINT) * 24);
+    const x = p === 0 ? -S / 2 : printing ? (S / 2 - 0.08) * Math.sin(t * 10) : (S / 2 - 0.08) * Math.sin((IN + PRINT) * 10);
     hotend.current.position.set(x + pout * 2.5, layerY + pout * 4, 0);
     rail.current.position.y = layerY + 0.62 + pout * 4;
     hotLine.current.position.y = layerY;
@@ -114,7 +113,7 @@ export function PrinterScene({
     look.set(0, THREE.MathUtils.lerp(CY + 0.1, endY, pout), 0);
     camera.lookAt(look);
 
-    if (!done.current && pout > 0.7) {
+    if (!done.current && pout > 0.85) {
       done.current = true;
       onDone();
     }
@@ -124,10 +123,14 @@ export function PrinterScene({
     <>
       <ViewRig position={[0, 0.6, startZ + 2.5]} fov={HERO_FOV} />
 
-      {/* the print, cut off at the current layer */}
-      <BrandMark clip={clipList} scale={k} position={[0, CY, 0]} />
+      {/* the print: logo face + black body, both cut off at the current layer */}
+      <LogoPlaque size={S} reveal={reveal} position={[0, CY, 0.002]} />
+      <mesh position={[0, CY, -0.05]}>
+        <boxGeometry args={[S, S, 0.1]} />
+        <meshStandardMaterial color="#0b0b0b" metalness={0.2} roughness={0.5} clippingPlanes={[clip]} />
+      </mesh>
       <mesh ref={hotLine} position={[0, BED, 0]}>
-        <boxGeometry args={[S, 0.028, 0.5 * k]} />
+        <boxGeometry args={[S, 0.028, 0.12]} />
         <meshBasicMaterial color={theme.amber} toneMapped={false} />
       </mesh>
 

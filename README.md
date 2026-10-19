@@ -41,7 +41,7 @@ The WhatsApp number must be in international format with digits only. For exampl
 
 ### Showing your products in real 3D
 
-Every product can be shown as its real 3D model, which customers can rotate and drag, and see in every colour, on the shop cards, the product page, the home page tiles and orbiting the logo on the cover. Products with a model also get a **"View in your room"** button: on a phone it places the model, at its real size and in the chosen colour, on the customer's table or floor using AR (an iPhone, or an Android phone with Google Play Services for AR). On a computer it shows a QR code that opens the same view on a phone. Use the files you print from:
+Every product can be shown as its real 3D model, which customers can rotate and drag, and see in every colour, on the shop cards, the product page and the home page tiles. Products with a model also get a **"View in your room"** button: on a phone it places the model, at its real size and in the chosen colour, on the customer's table or floor using AR (an iPhone, or an Android phone with Google Play Services for AR). On a computer it shows a QR code that opens the same view on a phone. Use the files you print from:
 
 1. Put the file in the `models/` folder, named after the product's slug: `models/vortex-vase.stl`, `models/name-keychain.3mf`. You can use `.stl`, `.3mf` (Bambu Studio, Orca and PrusaSlicer projects work), `.obj`, `.glb` or `.gltf`.
 2. Run `npm run models`. This also happens automatically on `npm run build`.
@@ -92,7 +92,7 @@ Customers can tap or hover over the colour swatches on shop cards and product pa
 
 ### Product options
 
-- **`tags`:** `"bestseller"`, `"gift"`, `"festive"`, `"birthday"`, `"desk"` or `"car"`. These power the "Shop by occasion" tiles and the Shop page filters. Up to four bestsellers orbit the logo on the cover page.
+- **`tags`:** `"bestseller"`, `"gift"`, `"festive"`, `"birthday"`, `"desk"` or `"car"`. These power the "Shop by occasion" tiles and the Shop page filters.
 - **`personalisation: "optional"`:** customers can add a name or message for `site.engravingPrice`.
 - **`personalisation: "included"`:** the product *is* the name (keychain, nameplate), so the text is required.
 - **`scalePhoto`:** a photo of the item in someone's hand or on a desk, shown in the "How big is it?" size guide. The size guide itself is drawn automatically from the cm figure in each size's `dims`.
@@ -100,8 +100,8 @@ Customers can tap or hover over the colour swatches on shop cards and product pa
 
 ## Features
 
-- **Cover page:** the RK monogram as a real 3D object in black and brushed gold, with your bestsellers orbiting it. Click one to open it.
-- **Opening animation** (`components/intro/`): a 3D printer prints the RK monogram in under 2 seconds, then lands exactly on the cover. It only plays on the home page, on someone's first visit. It can be skipped and never plays in Lite mode or for people who prefer reduced motion. To change its length, edit `IN`, `PRINT` and `OUT` in `PrinterScene.tsx`.
+- **Cover page:** your logo as a floating 3D plaque, with printed objects orbiting it.
+- **Opening animation** (`components/intro/`): a 3D printer prints your logo layer by layer, then lands exactly on the cover. It only plays on the home page, once per visit, and takes about 3 seconds. It can be skipped and never plays in Lite mode or for people who prefer reduced motion. To change its length, edit `IN`, `PRINT` and `OUT` in `PrinterScene.tsx`.
 - **Personalise** (`/personalise/`, and the second section of the home page): type a name and see it as a live 3D keychain or desk nameplate. Pick a lettering style (Bold, Script, Bubbly), an icon (heart, star, crown, paw, bolt) and a colour, and switch the preview to "On keys" or "On a desk" to judge the size. The choices go into the cart and the order message.
 - **Product page:** one main "Add to cart" button, with "buy now" and "Ask on WhatsApp" as quieter options; a PIN-code check that shows the delivery dates and shipping for the customer's area; a "How big is it?" size guide compared with everyday objects; and a short FAQ.
 - **Checkout and order page:** the PIN code shows delivery dates as the customer types (and is pre-filled if they checked it on a product page). After sending the order, customers land on `/order/`: next steps, a button to reopen WhatsApp, the UPI QR code, and a summary they can print or save as PDF.
@@ -139,7 +139,7 @@ The page has one transparent WebGL canvas fixed over it (`components/Providers.t
 
 The canvas only draws while something moves (`components/three/live.ts`): the cover while it's on screen, a shop card while it's hovered (or for one demo turn as it scrolls into view on touch screens), a colour change while it eases in, and the page while it scrolls. Every product comes to rest at the same turntable angle. When nothing moves, the GPU idles.
 
-The opening animation uses its own temporary canvas. Gold and metal finishes reflect a small light-box environment baked in memory (`components/three/Studio.tsx`). The RK monogram (`components/three/brandMark.tsx`) and the Bold lettering use the Saira font, converted to `lib/fonts/saira-extrabold.typeface.json`. The Script and Bubbly lettering use Pacifico and Titan One, which only download when someone picks them.
+The opening animation uses its own temporary canvas. Gold and metal finishes reflect a small light-box environment baked in memory (`components/three/Studio.tsx`). The logo is drawn by a small shader (`components/three/LogoPlaque.tsx`). The Bold lettering uses the Saira font, converted to `lib/fonts/saira-extrabold.typeface.json`. The Script and Bubbly lettering use Pacifico and Titan One, which only download when someone picks them.
 
 ## Third-party files
 

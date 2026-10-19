@@ -5,7 +5,6 @@ import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "motion/react";
 import { useCart, cartCount } from "@/lib/cart";
 import { site } from "@/lib/site";
-import { Monogram } from "./Monogram";
 
 const links = [
   { href: "/shop/", label: "Shop" },
@@ -21,9 +20,12 @@ export function Nav() {
   return (
     <header className="fixed inset-x-0 top-0 z-40 px-3 pt-3 sm:px-6 sm:pt-5">
       <nav aria-label="Main" className="mx-auto flex max-w-7xl items-center justify-between gap-3 rounded-full border border-fg/10 bg-page/50 py-2 pl-2 pr-2 backdrop-blur-xl">
-        <Link href="/" className="flex items-center gap-2.5 pl-2" aria-label={`${site.name} home`}>
-          <Monogram className="h-7 w-auto shrink-0 sm:h-8" />
-          <span className="hidden font-display text-base leading-none tracking-wide display-case sm:block">Creative Builds</span>
+        <Link href="/" className="flex items-center gap-3" aria-label={`${site.name} home`}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/brand/logo-160.jpg" alt="" width={40} height={40} className="h-10 w-10 shrink-0 rounded-full ring-1 ring-accent/40" />
+          <span className="hidden font-display text-base leading-none tracking-wide display-case sm:block">
+            <span className="holo-text">RK</span> Creative Builds
+          </span>
         </Link>
 
         <div className="flex items-center gap-1 sm:gap-2">
