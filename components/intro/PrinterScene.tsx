@@ -3,12 +3,15 @@
 import { useMemo, useRef } from "react";
 import * as THREE from "three";
 import { useFrame, useThree } from "@react-three/fiber";
-import { Sparkles } from "@react-three/drei";
+import { Sparkles, useTexture } from "@react-three/drei";
 import { INTRO_LAYERS } from "@/lib/intro";
 import { theme } from "@/lib/theme";
 import { ViewRig } from "../three/Studio";
-import { LOGO_FILL_H, LOGO_FILL_W, LOGO_SHIFT_Y, LogoPlaque } from "../three/LogoPlaque";
+import { LOGO_FILL_H, LOGO_FILL_W, LOGO_SHIFT_Y, LOGO_URL, LogoPlaque } from "../three/LogoPlaque";
 import { HERO_FOV } from "../three/LogoScene";
+
+// start downloading the logo as soon as the intro's code loads
+if (typeof window !== "undefined") useTexture.preload(LOGO_URL);
 
 const S = 3; // printed logo size
 const BED = -1.6; // bed surface height

@@ -168,7 +168,7 @@ A light beige theme. Each colour has one job, so the page stays easy to read (se
 - **Bronze** (`pop`): brand decoration: badges, labels, highlighted words. The gold gradient is kept for a few big moments only.
 - **Espresso and warm greys:** text. **Red** (`danger`) for errors, **green** (`ok`) for confirmations. **Deep amber** (`accent-2`) shows keyboard focus.
 - **Surfaces:** a beige page with lighter cards (`surface`), near-white inputs and drawers (`raised`), and soft tan borders (`line`). The "Type a name" band on the home page is the one dark section.
-- **The logo** keeps its black square: on the cover and in the intro it sits on the beige page as a printed black tile with a soft shadow.
+- **The logo:** on the home page cover it's cut out of its black square (`public/brand/logo-cut-*.webp`, made by `python3 scripts/cutout-logo.py`), so it sits straight on the beige with a soft shadow. The opening animation still prints it as a black tile; the nav icon and the About page keep the original.
 
 Every text colour passes WCAG AA contrast on the page, the cards and the alternate sections (the accessibility tests check this).
 

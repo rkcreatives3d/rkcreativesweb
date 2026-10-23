@@ -10,13 +10,16 @@ import { theme } from "@/lib/theme";
 import { ViewRig } from "./Studio";
 import { PrintModel } from "./PrintModel";
 import { step, useLive } from "./live";
-import { LOGO_FILL_H, LOGO_FILL_W, LOGO_SHIFT_Y, LogoPlaque } from "./LogoPlaque";
+import { LOGO_CUT_URL, LOGO_FILL_H, LOGO_FILL_W, LOGO_SHIFT_Y, LogoPlaque, useLogoTexture } from "./LogoPlaque";
 
 export const HERO_CAM_Z = 6.2;
 export const HERO_FOV = 35;
 
-/** Cover page: the logo as a floating printed tile with printed objects orbiting it. */
-export function LogoScene() {
+/**
+ * Cover page: the logo, cut out of its black square so it sits on the beige
+ * page, floating over its own soft shadow with printed objects orbiting it.
+ */
+export function LogoScene({ url = LOGO_CUT_URL }: { url?: string }) {
   const size = useThree((s) => s.size);
   const visH = 2 * HERO_CAM_Z * Math.tan(THREE.MathUtils.degToRad(HERO_FOV / 2));
   const visW = visH * (size.width / size.height);
@@ -50,7 +53,7 @@ export function LogoScene() {
       <group ref={rig}>
         <Float speed={1.2} rotationIntensity={0.08} floatIntensity={0.25}>
           <Suspense fallback={null}>
-            <LogoTile size={S} />
+            <LogoPlaque size={S} url={url} />
           </Suspense>
         </Float>
         {/* glowing filament orbit, partly hidden behind the logo */}
@@ -62,7 +65,9 @@ export function LogoScene() {
         <Orbiter shape="knot" finish="gold" radius={S * 0.66} speed={0.32} phase={2.1} size={S * 0.06} live={visible} />
         <Orbiter shape="gear" finish="onyx" radius={S * 0.66} speed={0.32} phase={4.2} size={S * 0.065} live={visible} />
       </group>
-      <TileShadow size={S} lift={lift} />
+      <Suspense fallback={null}>
+        <LogoShadow url={url} size={S} lift={lift} />
+      </Suspense>
       <Sparkles count={60} scale={[S * 2.2, S * 1.4, 3]} size={2.6} speed={0.3} color={theme.sparkles[0]} />
       <Sparkles count={35} scale={[S * 2.2, S * 1.4, 3]} size={1.8} speed={0.2} color={theme.sparkles[1]} />
     </>
@@ -102,19 +107,6 @@ function Orbiter({
   );
 }
 
-/** The logo face on a black printed body, like the tile the intro prints. */
-function LogoTile({ size }: { size: number }) {
-  return (
-    <group>
-      <LogoPlaque size={size} position-z={0.002} />
-      <mesh position-z={-0.05}>
-        <boxGeometry args={[size, size, 0.1]} />
-        <meshStandardMaterial color="#0b0b0b" metalness={0.35} roughness={0.35} />
-      </mesh>
-    </group>
-  );
-}
-
 const shadowVertex = /* glsl */ `
   varying vec2 vUv;
   void main() {
@@ -123,27 +115,29 @@ const shadowVertex = /* glsl */ `
   }
 `;
 const shadowFragment = /* glsl */ `
+  uniform sampler2D map;
   uniform float opacity;
   varying vec2 vUv;
   void main() {
-    // soft square: solid in the middle, fading out over the outer fifth
-    vec2 d = abs(vUv - 0.5) * 2.0;
-    float edge = max(d.x, d.y);
-    float a = 1.0 - smoothstep(0.62, 1.0, edge);
-    gl_FragColor = vec4(0.165, 0.13, 0.098, a * a * opacity);
+    // the logo's own outline, read from a small mip level: a soft blur for free
+    float a = texture2D(map, vUv, 4.5).a;
+    a = smoothstep(0.15, 0.9, a); // thin strokes (the script) cast next to nothing
+    gl_FragColor = vec4(0.165, 0.13, 0.098, a * opacity);
   }
 `;
 
-/** Soft shadow the floating tile casts on the beige backdrop. */
-function TileShadow({ size, lift }: { size: number; lift: number }) {
+/** Soft shadow in the logo's shape, cast on the beige backdrop behind it. */
+function LogoShadow({ url, size, lift }: { url: string; size: number; lift: number }) {
+  const map = useLogoTexture(url);
   const ref = useRef<THREE.Mesh>(null!);
-  const uniforms = useMemo(() => ({ opacity: { value: 0.32 } }), []);
+  const uniforms = useMemo(() => ({ map: { value: map }, opacity: { value: 0.22 } }), [map]);
+  const y = lift - size * 0.03;
   useFrame(() => {
     const scroll = Math.min(window.scrollY / window.innerHeight, 1.5);
-    ref.current.position.y = lift - size * 0.07 + scroll * 1.6;
+    ref.current.position.y = y + scroll * 1.6;
   });
   return (
-    <mesh ref={ref} position={[size * 0.02, lift - size * 0.07, -1.2]} scale={[size * 1.32, size * 1.32, 1]}>
+    <mesh ref={ref} position={[size * 0.012, y, -0.7]} scale={[size * 1.1, size * 1.1, 1]}>
       <planeGeometry args={[1, 1]} />
       <shaderMaterial vertexShader={shadowVertex} fragmentShader={shadowFragment} uniforms={uniforms} transparent depthWrite={false} />
     </mesh>

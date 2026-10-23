@@ -56,12 +56,9 @@ html {
   background: var(--color-page);
 }
 
-/* cover logo image: the logo's black square as a printed tile resting on the beige page */
-.logo-tile {
-  border-radius: 1.5%;
-  box-shadow:
-    0 2px 4px rgb(42 33 25 / 0.18),
-    0 28px 60px -18px rgb(42 33 25 / 0.45);
+/* cover logo image: cut out of its black square, with a soft shadow in its own shape */
+.logo-cut {
+  filter: drop-shadow(0 18px 22px rgb(42 33 25 / 0.24));
 }
 .logo-float {
   animation: logo-float 6s ease-in-out infinite;

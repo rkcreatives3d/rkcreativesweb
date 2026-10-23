@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef, useState } from "react";
 import { motion } from "motion/react";
 import { LogoScene, View3D } from "../three/lazy";
 import { ButtonLink } from "../ui";
@@ -8,12 +9,27 @@ import { site } from "@/lib/site";
 import { useIntro } from "@/lib/intro";
 import { useFull3D } from "@/lib/lite";
 
-const LOGO_SRCSET = "/brand/logo-480.webp 480w, /brand/logo-720.webp 720w, /brand/logo-1080.webp 1080w";
+// the logo cut out of its black square (the 1080 file doubles as the 3D texture)
+const LOGO_SRCSET = "/brand/logo-cut-480.webp 480w, /brand/logo-cut-720.webp 720w, /brand/logo-cut-1080.webp 1080w";
 
 /** Cover page: the brand logo in 3D, with the shop's way in underneath. */
 export function Hero() {
   const ready = useIntro((s) => s.done);
   const full3D = useFull3D();
+  // the 3D logo reuses whichever size the browser picked for the image: no second download,
+  // and no 3D work until the cover image has painted
+  const img = useRef<HTMLImageElement>(null);
+  const [logoSrc, setLogoSrc] = useState<string | null>(null);
+  useEffect(() => {
+    const el = img.current;
+    if (!el) return;
+    const done = () => setLogoSrc(el.currentSrc || el.src);
+    if (el.complete) done();
+    else {
+      el.addEventListener("load", done, { once: true });
+      el.addEventListener("error", done, { once: true });
+    }
+  }, []);
   const show = (delay: number) => ({
     initial: { opacity: 0, y: 24 },
     animate: ready ? { opacity: 1, y: 0 } : undefined,
@@ -26,23 +42,25 @@ export function Hero() {
         {site.name}: {site.slogan}. {site.tagline}.
       </h1>
       <div className="pointer-events-none absolute left-1/2 top-[46%] h-[60vmin] w-[60vmin] -translate-x-1/2 -translate-y-1/2 rounded-full bg-accent-fill/20 blur-[120px]" />
-      {/* plain logo tile: in the page HTML so it shows instantly; fades out under the identical 3D tile */}
-      <picture>
-        <source type="image/webp" srcSet={LOGO_SRCSET} sizes="min(70svh, 86vw)" />
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src="/brand/logo.jpg"
-          alt=""
-          aria-hidden
-          fetchPriority="high"
-          className={`logo-tile logo-float pointer-events-none absolute left-1/2 top-[46%] h-[min(70svh,86vw)] w-[min(70svh,86vw)] -translate-x-1/2 -translate-y-1/2 transition-opacity duration-700 ${
-            full3D ? "opacity-0" : "opacity-100"
-          }`}
-        />
-      </picture>
-      {full3D && (
+      {/* plain logo: in the page HTML so it shows instantly; fades out under the identical 3D logo */}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        ref={img}
+        // same request mode as the 3D texture loader, so the texture comes from the browser's cache
+        crossOrigin="anonymous"
+        src="/brand/logo-cut-1080.webp"
+        srcSet={LOGO_SRCSET}
+        sizes="min(70svh, 86vw)"
+        alt=""
+        aria-hidden
+        fetchPriority="high"
+        className={`logo-cut logo-float pointer-events-none absolute left-1/2 top-[46%] h-[min(70svh,86vw)] w-[min(70svh,86vw)] -translate-x-1/2 -translate-y-1/2 transition-opacity duration-700 ${
+          full3D ? "opacity-0" : "opacity-100"
+        }`}
+      />
+      {full3D && logoSrc && (
         <View3D className="absolute inset-0">
-          <LogoScene />
+          <LogoScene url={logoSrc} />
         </View3D>
       )}
 
