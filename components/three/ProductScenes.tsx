@@ -11,9 +11,10 @@ import { PrintModel } from "./PrintModel";
 import { step, useLive } from "./live";
 
 /**
- * Model inside a product card. Pops in when scrolled into view, then rests at
- * the shared turntable angle; spins only while `active` (hovered, or a short
- * demo turn on touch screens), so an idle grid costs no GPU time.
+ * Model inside a product card. Prints in, layer by layer, when the card
+ * scrolls into view. While hovered it lifts off the bed and turns to follow
+ * the cursor (`pointer`, -1..1 across the card); it settles back to the shared
+ * turntable angle on leave, so an idle grid costs no GPU time.
  */
 export function CardScene({
   shape,
@@ -21,37 +22,49 @@ export function CardScene({
   finish,
   active,
   inView,
+  delay = 0,
+  pointer,
 }: {
   shape: Shape;
   model?: string;
   finish: string;
   active: boolean;
   inView: boolean;
+  delay?: number;
+  pointer?: { current: { x: number; y: number } };
 }) {
   const g = useRef<THREE.Group>(null!);
   const invalidate = useThree((s) => s.invalidate);
-  useEffect(() => invalidate(), [inView, active, invalidate]);
+  useEffect(() => invalidate(), [active, invalidate]);
   useFrame((_, raw) => {
-    const target = inView ? (active ? 1.1 : 1) : 0.001;
-    const cur = g.current.scale.x;
-    if (Math.abs(target - cur) < 1e-3) {
-      g.current.scale.setScalar(target);
+    const k = 1 - Math.exp(-step(raw) * 6);
+    const p = active && pointer ? pointer.current : { x: 0, y: 0 };
+    const o = g.current;
+    const goal = [p.x * 0.6, p.y * 0.22, active ? 0.14 : 0, active ? 1.06 : 1];
+    const now = [o.rotation.y, o.rotation.x, o.position.y, o.scale.x];
+    if (now.every((v, i) => Math.abs(v - goal[i]) < 1e-3)) {
+      o.rotation.set(goal[1], goal[0], 0);
+      o.position.y = goal[2];
+      o.scale.setScalar(goal[3]);
       return;
     }
-    g.current.scale.setScalar(cur + (target - cur) * (1 - Math.exp(-step(raw) * (inView ? 5 : 20))));
+    o.rotation.y += (goal[0] - now[0]) * k;
+    o.rotation.x += (goal[1] - now[1]) * k;
+    o.position.y += (goal[2] - now[2]) * k;
+    o.scale.setScalar(now[3] + (goal[3] - now[3]) * k);
     invalidate();
   });
   return (
     <>
       <ViewRig position={[0, 0.25, 4.5]} fov={35} />
-      <group ref={g} scale={0.001}>
-        <PrintModel shape={shape} model={model} finish={finish} spin={active ? 2.4 : 0} />
+      <group ref={g}>
+        <PrintModel shape={shape} model={model} finish={finish} spin={0} printIn={inView} delay={delay} />
       </group>
     </>
   );
 }
 
-/** Big draggable model on the product page. */
+/** Big draggable model on the product page. Prints in when the page opens. */
 export function ViewerScene({
   shape,
   model,
@@ -78,11 +91,11 @@ export function ViewerScene({
         enablePan={false}
         enableDamping
         autoRotate={autoSpin}
-        autoRotateSpeed={2.2}
+        autoRotateSpeed={1.6}
         minPolarAngle={0.35}
         maxPolarAngle={Math.PI - 0.6}
       />
-      <PrintModel shape={shape} model={model} finish={finish} wireframe={wireframe} spin={0} scale={0.95} />
+      <PrintModel shape={shape} model={model} finish={finish} wireframe={wireframe} spin={0} printIn delay={0.2} scale={0.95} />
       <mesh rotation-x={-Math.PI / 2} position-y={-1.55}>
         <ringGeometry args={[1.25, 1.27, 128]} />
         <meshBasicMaterial color={rings[0]} toneMapped={false} transparent opacity={0.8} />

@@ -23,6 +23,12 @@ export function useLive(active = true) {
 /** Frame delta, capped so the first frame after an idle spell doesn't jump. */
 export const step = (dt: number) => Math.min(dt, 1 / 20);
 
+/** Visitor asked for less motion: effects jump straight to their end state. */
+export const calm = () => typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+/** Smooth start and finish, for 0..1 progress. */
+export const easeInOut = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+
 /**
  * Keeps frames coming for a moment after the page itself moves (scroll,
  * resize, clicks, keys), so every <View> stays glued to its element while

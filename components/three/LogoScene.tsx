@@ -15,7 +15,7 @@ import { LOGO_FILL_H, LOGO_FILL_W, LOGO_SHIFT_Y, LogoPlaque } from "./LogoPlaque
 export const HERO_CAM_Z = 6.2;
 export const HERO_FOV = 35;
 
-/** Cover page: the logo as a floating plaque with printed objects orbiting it. */
+/** Cover page: the logo as a floating printed tile with printed objects orbiting it. */
 export function LogoScene() {
   const size = useThree((s) => s.size);
   const visH = 2 * HERO_CAM_Z * Math.tan(THREE.MathUtils.degToRad(HERO_FOV / 2));
@@ -50,7 +50,7 @@ export function LogoScene() {
       <group ref={rig}>
         <Float speed={1.2} rotationIntensity={0.08} floatIntensity={0.25}>
           <Suspense fallback={null}>
-            <LogoPlaque size={S} feather={0.045} />
+            <LogoTile size={S} />
           </Suspense>
         </Float>
         {/* glowing filament orbit, partly hidden behind the logo */}
@@ -62,6 +62,7 @@ export function LogoScene() {
         <Orbiter shape="knot" finish="gold" radius={S * 0.66} speed={0.32} phase={2.1} size={S * 0.06} live={visible} />
         <Orbiter shape="gear" finish="onyx" radius={S * 0.66} speed={0.32} phase={4.2} size={S * 0.065} live={visible} />
       </group>
+      <TileShadow size={S} lift={lift} />
       <Sparkles count={60} scale={[S * 2.2, S * 1.4, 3]} size={2.6} speed={0.3} color={theme.sparkles[0]} />
       <Sparkles count={35} scale={[S * 2.2, S * 1.4, 3]} size={1.8} speed={0.2} color={theme.sparkles[1]} />
     </>
@@ -98,5 +99,53 @@ function Orbiter({
     <group ref={ref}>
       <PrintModel shape={shape} finish={finish} spin={live ? 0.8 : 0} scale={size} />
     </group>
+  );
+}
+
+/** The logo face on a black printed body, like the tile the intro prints. */
+function LogoTile({ size }: { size: number }) {
+  return (
+    <group>
+      <LogoPlaque size={size} position-z={0.002} />
+      <mesh position-z={-0.05}>
+        <boxGeometry args={[size, size, 0.1]} />
+        <meshStandardMaterial color="#0b0b0b" metalness={0.35} roughness={0.35} />
+      </mesh>
+    </group>
+  );
+}
+
+const shadowVertex = /* glsl */ `
+  varying vec2 vUv;
+  void main() {
+    vUv = uv;
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+  }
+`;
+const shadowFragment = /* glsl */ `
+  uniform float opacity;
+  varying vec2 vUv;
+  void main() {
+    // soft square: solid in the middle, fading out over the outer fifth
+    vec2 d = abs(vUv - 0.5) * 2.0;
+    float edge = max(d.x, d.y);
+    float a = 1.0 - smoothstep(0.62, 1.0, edge);
+    gl_FragColor = vec4(0.165, 0.13, 0.098, a * a * opacity);
+  }
+`;
+
+/** Soft shadow the floating tile casts on the beige backdrop. */
+function TileShadow({ size, lift }: { size: number; lift: number }) {
+  const ref = useRef<THREE.Mesh>(null!);
+  const uniforms = useMemo(() => ({ opacity: { value: 0.32 } }), []);
+  useFrame(() => {
+    const scroll = Math.min(window.scrollY / window.innerHeight, 1.5);
+    ref.current.position.y = lift - size * 0.07 + scroll * 1.6;
+  });
+  return (
+    <mesh ref={ref} position={[size * 0.02, lift - size * 0.07, -1.2]} scale={[size * 1.32, size * 1.32, 1]}>
+      <planeGeometry args={[1, 1]} />
+      <shaderMaterial vertexShader={shadowVertex} fragmentShader={shadowFragment} uniforms={uniforms} transparent depthWrite={false} />
+    </mesh>
   );
 }

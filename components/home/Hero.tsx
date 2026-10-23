@@ -25,8 +25,8 @@ export function Hero() {
       <h1 className="sr-only">
         {site.name}: {site.slogan}. {site.tagline}.
       </h1>
-      <div className="pointer-events-none absolute left-1/2 top-[46%] h-[60vmin] w-[60vmin] -translate-x-1/2 -translate-y-1/2 rounded-full bg-accent/10 blur-[120px]" />
-      {/* plain logo: in the page HTML so it shows instantly; fades out under the identical 3D plaque */}
+      <div className="pointer-events-none absolute left-1/2 top-[46%] h-[60vmin] w-[60vmin] -translate-x-1/2 -translate-y-1/2 rounded-full bg-accent-fill/20 blur-[120px]" />
+      {/* plain logo tile: in the page HTML so it shows instantly; fades out under the identical 3D tile */}
       <picture>
         <source type="image/webp" srcSet={LOGO_SRCSET} sizes="min(70svh, 86vw)" />
         {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -35,7 +35,7 @@ export function Hero() {
           alt=""
           aria-hidden
           fetchPriority="high"
-          className={`logo-feather logo-float pointer-events-none absolute left-1/2 top-[46%] h-[min(70svh,86vw)] w-[min(70svh,86vw)] -translate-x-1/2 -translate-y-1/2 transition-opacity duration-700 ${
+          className={`logo-tile logo-float pointer-events-none absolute left-1/2 top-[46%] h-[min(70svh,86vw)] w-[min(70svh,86vw)] -translate-x-1/2 -translate-y-1/2 transition-opacity duration-700 ${
             full3D ? "opacity-0" : "opacity-100"
           }`}
         />

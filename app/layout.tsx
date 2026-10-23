@@ -67,7 +67,7 @@ const storeJsonLd = {
   sameAs: [site.instagram],
 };
 
-export const viewport: Viewport = { themeColor: "#000000", viewportFit: "cover" };
+export const viewport: Viewport = { themeColor: "#efe6d8", viewportFit: "cover" };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (

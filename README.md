@@ -162,14 +162,27 @@ Security headers and long caching for static files come with the repo: `vercel.j
 
 ## Colours
 
-Each colour has one job, so the page stays easy to read (see the top of `app/globals.css`):
+A light beige theme. Each colour has one job, so the page stays easy to read (see the top of `app/globals.css`):
 
-- **Amber** (`accent`): things you can click: buttons, links, the cart count.
-- **Gold** (`pop`): brand decoration: badges, labels, highlighted words. The brushed-gold gradient is kept for a few big moments only.
-- **Cream and greys:** text. **Red** (`danger`) for errors, **green** (`ok`) for confirmations. **Light gold** shows keyboard focus.
-- **Surfaces:** a warm near-black page with slightly lighter cards (`surface`, `raised`, `line`). The cover and the intro stay on pure black, like the logo.
+- **Amber:** things you can click. Solid buttons use the logo's molten amber (`accent-fill`) with dark text; links and small actions use a deeper burnt amber (`accent`) so they stay readable on beige.
+- **Bronze** (`pop`): brand decoration: badges, labels, highlighted words. The gold gradient is kept for a few big moments only.
+- **Espresso and warm greys:** text. **Red** (`danger`) for errors, **green** (`ok`) for confirmations. **Deep amber** (`accent-2`) shows keyboard focus.
+- **Surfaces:** a beige page with lighter cards (`surface`), near-white inputs and drawers (`raised`), and soft tan borders (`line`). The "Type a name" band on the home page is the one dark section.
+- **The logo** keeps its black square: on the cover and in the intro it sits on the beige page as a printed black tile with a soft shadow.
 
-Products are shown on a neutral grey stage with white studio light, so a white print looks white and a black print reads as black. The warm amber light is used only for the cover and the intro.
+Every text colour passes WCAG AA contrast on the page, the cards and the alternate sections (the accessibility tests check this).
+
+Products are shown on a light, near-neutral stage with white studio light, so a white print looks white and a black print reads as black. The warm amber light is used only for the cover and the intro.
+
+## Product animations
+
+- **Print-in:** each product model prints itself in, layer by layer from the bed up, with a hot amber line where the nozzle would be, while the turntable swings round to its resting angle. Cards print as they scroll into view, one after another along each row. The product page prints its model when it opens.
+- **Filament swap:** picking another colour runs the new colour up the model from the bottom, as if the filament had been changed mid-print.
+- **Hover:** a product card's model lifts off the bed and turns to follow the cursor, then settles back when the mouse leaves.
+- **Lite mode:** the flat stand-in art prints in with CSS.
+- **Reduced motion:** visitors who ask for less motion see every model already printed, and colour changes simply fade.
+
+All of this is two shader hooks on the product material (`components/three/Studio.tsx`). The canvas only draws while something is moving.
 
 ## How the 3D works
 

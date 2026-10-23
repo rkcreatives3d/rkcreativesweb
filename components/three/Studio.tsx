@@ -6,7 +6,7 @@ import { useFrame, useThree } from "@react-three/fiber";
 import { Environment, PerspectiveCamera } from "@react-three/drei";
 import { getFinish } from "@/lib/products";
 import { theme } from "@/lib/theme";
-import { step } from "./live";
+import { calm, easeInOut, step } from "./live";
 
 // ── Studio environment ───────────────────────────────────────
 // A "light box" of coloured panels baked into a PMREM env map and shared by
@@ -94,23 +94,85 @@ export function ViewRig({
       <Environment map={env} />
       <ambientLight intensity={light.ambient} />
       <directionalLight position={[3, 5, 4]} intensity={light.key} />
-      {/* rim light from behind: keeps dark prints from melting into a dark page */}
-      {look === "neutral" && <directionalLight position={[-4, 3, -6]} intensity={1.6} />}
+      {/* soft rim light from behind: gives every print a clean outline against the light stage */}
+      {look === "neutral" && <directionalLight position={[-4, 3, -6]} intensity={0.9} />}
     </>
   );
 }
 
+// ── Print effects ────────────────────────────────────────────
+// Two shader hooks on every finish material, both heights in world space:
+//   cut   nothing above it is drawn yet, so the model prints in from the bottom
+//   swap  above it the previous colour still shows: a new filament colour rising up
+// A hot amber line marks either edge, like the layer under the nozzle.
+
+const OFF = 1e4;
+export type PrintFx = {
+  cut: { value: number };
+  swap: { value: number };
+  old: { value: THREE.Color };
+  hot: { value: THREE.Color };
+  glow: { value: number };
+};
+
+function addPrintFx(mat: THREE.MeshPhysicalMaterial): PrintFx {
+  const fx: PrintFx = {
+    cut: { value: OFF },
+    swap: { value: OFF },
+    old: { value: new THREE.Color() },
+    hot: { value: new THREE.Color(theme.hot) },
+    glow: { value: 0 },
+  };
+  mat.onBeforeCompile = (shader) => {
+    Object.assign(shader.uniforms, { uCut: fx.cut, uSwap: fx.swap, uOld: fx.old, uHot: fx.hot, uGlow: fx.glow });
+    shader.vertexShader = shader.vertexShader
+      .replace("#include <common>", "#include <common>\nvarying float vPrintY;")
+      .replace("#include <project_vertex>", "#include <project_vertex>\nvPrintY = (modelMatrix * vec4(transformed, 1.0)).y;");
+    shader.fragmentShader = shader.fragmentShader
+      .replace(
+        "#include <common>",
+        "#include <common>\nvarying float vPrintY;\nuniform float uCut;\nuniform float uSwap;\nuniform vec3 uOld;\nuniform vec3 uHot;\nuniform float uGlow;",
+      )
+      .replace("#include <clipping_planes_fragment>", "#include <clipping_planes_fragment>\nif (vPrintY > uCut) discard;")
+      .replace("#include <color_fragment>", "#include <color_fragment>\nif (vPrintY > uSwap) diffuseColor.rgb = uOld;")
+      .replace(
+        "#include <opaque_fragment>",
+        `#include <opaque_fragment>
+        // while printing, the open top reads as a solid layer, not a hollow shell
+        if (!gl_FrontFacing && uCut < 9999.0) gl_FragColor.rgb = diffuseColor.rgb * 0.45;
+        float hotLine = max(1.0 - smoothstep(0.0, 0.06, uCut - vPrintY), 1.0 - smoothstep(0.0, 0.035, abs(vPrintY - uSwap)));
+        gl_FragColor.rgb = mix(gl_FragColor.rgb, uHot * 2.2, hotLine * uGlow);`,
+      );
+  };
+  return fx;
+}
+
+/** World-space height range of an object, for the print effects. */
+export function heightRange(o: THREE.Object3D): [number, number] | null {
+  const box = new THREE.Box3().setFromObject(o);
+  return box.isEmpty() ? null : [box.min.y - 0.02, box.max.y + 0.02];
+}
+
+/** Drives `fx.cut`: 0 = nothing printed, 1 = done. */
+export function setCut(fx: PrintFx, range: [number, number], t: number) {
+  fx.cut.value = t >= 1 ? OFF : THREE.MathUtils.lerp(range[0], range[1], t);
+  fx.glow.value = t >= 1 ? (fx.swap.value < OFF ? 1 : 0) : 1;
+}
+
 // ── Finish material ──────────────────────────────────────────
-// One MeshPhysicalMaterial per model that eases toward the selected finish,
-// so switching colour swatches morphs instead of snapping.
+// One MeshPhysicalMaterial per model. Changing the finish runs the new
+// colour up the model (when `range` says where the model is) or eases
+// into it otherwise; shine and roughness always ease.
 
 const tmpColor = new THREE.Color();
+const SWAP_TIME = 0.7;
+export type FinishMaterial = THREE.MeshPhysicalMaterial & { userData: { fx: PrintFx } };
 
-export function useFinishMaterial(finishId: string, wireframe = false) {
+export function useFinishMaterial(finishId: string, wireframe = false, range?: () => [number, number] | null) {
   const { wire } = theme;
-  const mat = useMemo(() => {
+  const [mat, fx] = useMemo(() => {
     const f = getFinish(finishId);
-    return new THREE.MeshPhysicalMaterial({
+    const mat = new THREE.MeshPhysicalMaterial({
       side: THREE.DoubleSide,
       color: f.color,
       metalness: f.metalness,
@@ -124,6 +186,9 @@ export function useFinishMaterial(finishId: string, wireframe = false) {
       emissiveIntensity: f.emissiveIntensity,
       envMapIntensity: 1.25,
     });
+    const fx = addPrintFx(mat);
+    mat.userData.fx = fx;
+    return [mat as FinishMaterial, fx] as const;
     // initial finish only; later changes animate in useFrame
   }, []);
 
@@ -133,13 +198,38 @@ export function useFinishMaterial(finishId: string, wireframe = false) {
   const invalidate = useThree((s) => s.invalidate);
   const settle = useRef(0);
   const settled = useRef(false);
+  const shown = useRef(finishId);
+  const swap = useRef<{ range: [number, number]; t: number } | null>(null);
+  const rangeRef = useRef(range);
+  rangeRef.current = range;
   useEffect(() => {
     settle.current = performance.now() + 900;
     settled.current = false;
+    // new filament colour: snap the colour below the line, keep the old one above it
+    const r = shown.current !== finishId && !wireframe && !calm() ? rangeRef.current?.() : null;
+    if (r) {
+      fx.old.value.copy(mat.color);
+      mat.color.set(getFinish(finishId).color);
+      swap.current = { range: r, t: 0 };
+    }
+    shown.current = finishId;
     invalidate();
-  }, [finishId, wireframe, invalidate]);
+  }, [finishId, wireframe, invalidate, mat, fx]);
 
   useFrame((_, dt) => {
+    const s = swap.current;
+    if (s) {
+      s.t += step(dt) / SWAP_TIME;
+      if (s.t >= 1) {
+        swap.current = null;
+        fx.swap.value = OFF;
+        if (fx.cut.value >= OFF) fx.glow.value = 0;
+      } else {
+        fx.swap.value = THREE.MathUtils.lerp(s.range[0], s.range[1], easeInOut(s.t));
+        fx.glow.value = 1;
+      }
+      invalidate();
+    }
     if (settled.current) return;
     const done = performance.now() > settle.current;
     if (done) settled.current = true; // land exactly on the target

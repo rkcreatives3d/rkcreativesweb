@@ -28,7 +28,7 @@ export async function GET(_: Request, { params }: { params: Promise<{ file: stri
 
   return new ImageResponse(
     (
-      <div style={{ width: "100%", height: "100%", display: "flex", background: "#000", color: "#f4efe6", fontFamily: "sans-serif" }}>
+      <div style={{ width: "100%", height: "100%", display: "flex", background: "#efe6d8", color: "#2a2119", fontFamily: "sans-serif" }}>
         <div style={{ width: 630, height: 630, display: "flex", alignItems: "center", justifyContent: "center", position: "relative" }}>
           {cover ? (
             // eslint-disable-next-line @next/next/no-img-element
@@ -61,12 +61,12 @@ export async function GET(_: Request, { params }: { params: Promise<{ file: stri
           <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={logo} width={64} height={64} style={{ borderRadius: 999 }} alt="" />
-            <span style={{ fontSize: 24, letterSpacing: 4, color: "#d4973f", textTransform: "uppercase" }}>{site.name}</span>
+            <span style={{ fontSize: 24, letterSpacing: 4, color: "#765524", textTransform: "uppercase" }}>{site.name}</span>
           </div>
           <div style={{ fontSize: 84, fontFamily: "Saira", lineHeight: 1, marginTop: 36, textTransform: "uppercase" }}>{p.name}</div>
-          <div style={{ fontSize: 28, color: "#a39a8c", marginTop: 18 }}>{p.tagline}</div>
+          <div style={{ fontSize: 28, color: "#66574a", marginTop: 18 }}>{p.tagline}</div>
           <div style={{ display: "flex", marginTop: 40 }}>
-            <div style={{ fontSize: 40, fontFamily: "Geist", padding: "12px 28px", borderRadius: 999, background: "linear-gradient(90deg,#d4973f,#f5d287,#ff9a1a)", color: "#000" }}>
+            <div style={{ fontSize: 40, fontFamily: "Geist", padding: "12px 28px", borderRadius: 999, background: "#e8891a", color: "#2a2119" }}>
               {`from ${formatPrice(p.price)}`}
             </div>
           </div>

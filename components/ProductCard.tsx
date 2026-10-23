@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import Link from "next/link";
 import { motion, useInView } from "motion/react";
 import type { Product } from "@/lib/products";
@@ -24,29 +24,25 @@ export function ProductCard({ product: p, index = 0 }: { product: Product; index
   const [finish, setFinish] = useState(p.finishes[0]);
   const photos = photosFor(p, finish);
   const model = modelFor(p);
-  // touch screens can't hover: give each card one demo turn as it scrolls into view
-  const [demo, setDemo] = useState(false);
-  useEffect(() => {
-    if (!inView || !window.matchMedia("(hover: none)").matches) return;
-    setDemo(true);
-    const t = setTimeout(() => setDemo(false), 2600);
-    return () => clearTimeout(t);
-  }, [inView]);
-  const active = hovered || demo;
+  // cursor position across the card, -1..1: the hovered model turns to follow it
+  const pointer = useRef({ x: 0, y: 0 });
+  // cards in a row print one after another
+  const delay = 0.15 + (index % 3) * 0.18;
 
   return (
     <motion.article
       ref={ref}
       className="group relative flex flex-col overflow-hidden rounded-3xl border border-line bg-surface transition-colors hover:border-fg/30"
-      initial={{ opacity: 0, y: 50 }}
+      initial={{ opacity: 0, y: 28 }}
       animate={inView ? { opacity: 1, y: 0 } : undefined}
-      transition={{ duration: 0.8, delay: (index % 3) * 0.08, ease: [0.16, 1, 0.3, 1] }}
-      onPointerEnter={() => setHovered(true)}
+      transition={{ duration: 0.7, delay: (index % 3) * 0.08, ease: [0.16, 1, 0.3, 1] }}
+      onPointerEnter={(e) => e.pointerType === "mouse" && setHovered(true)}
       onPointerLeave={() => setHovered(false)}
       onPointerMove={(e) => {
         const r = e.currentTarget.getBoundingClientRect();
         e.currentTarget.style.setProperty("--sx", `${e.clientX - r.left}px`);
         e.currentTarget.style.setProperty("--sy", `${e.clientY - r.top}px`);
+        pointer.current = { x: ((e.clientX - r.left) / r.width) * 2 - 1, y: ((e.clientY - r.top) / r.height) * 2 - 1 };
       }}
     >
       {/* soft white spotlight that follows the cursor */}
@@ -56,21 +52,27 @@ export function ProductCard({ product: p, index = 0 }: { product: Product; index
         style={{ background: "radial-gradient(320px circle at var(--sx) var(--sy), color-mix(in oklab, var(--color-fg) 6%, transparent), transparent 65%)" }}
       />
       <Link href={`/shop/${p.slug}/`} className="block" aria-label={p.badge ? `${p.name}, ${p.badge}` : p.name}>
-        {/* neutral grey stage, so every colour (black included) shows true */}
+        {/* light neutral stage, so every colour (white included) shows true */}
         <div className="stage relative aspect-square">
           {/* real 3D model → photo (with tilt) → placeholder 3D → flat art in Lite mode */}
           {model && !lite ? (
-            <View3D className="absolute inset-0">
-              <CardScene shape={p.shape} model={model} finish={finish} active={active} inView={inView} />
-            </View3D>
+            <>
+              <span aria-hidden className="stage-shadow" />
+              <View3D className="absolute inset-0">
+                <CardScene shape={p.shape} model={model} finish={finish} active={hovered} inView={inView} delay={delay} pointer={pointer} />
+              </View3D>
+            </>
           ) : photos.list.length ? (
             <PhotoStack images={photos.list} finish={finish} preview={photos.recolor} alt={p.name} hovered={hovered} />
           ) : !lite ? (
-            <View3D className="absolute inset-0">
-              <CardScene shape={p.shape} finish={finish} active={active} inView={inView} />
-            </View3D>
+            <>
+              <span aria-hidden className="stage-shadow" />
+              <View3D className="absolute inset-0">
+                <CardScene shape={p.shape} finish={finish} active={hovered} inView={inView} delay={delay} pointer={pointer} />
+              </View3D>
+            </>
           ) : (
-            <ProductArt product={p} finish={finish} />
+            <ProductArt product={p} finish={finish} play={inView} />
           )}
           {p.badge && (
             <span className="absolute left-4 top-4 rounded-full bg-pop px-3 py-1 tabular-nums text-xs font-semibold uppercase tracking-widest text-on-pop">

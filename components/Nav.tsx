@@ -70,7 +70,7 @@ export function Nav() {
                 initial={{ y: -12, opacity: 0, scale: 0.6 }}
                 animate={{ y: 0, opacity: 1, scale: 1 }}
                 exit={{ y: 12, opacity: 0 }}
-                className={`h-5 min-w-5 place-items-center rounded-full px-1 tabular-nums text-xs ${count ? "grid bg-accent text-black" : "hidden bg-fg/10 text-muted min-[380px]:grid"}`}
+                className={`h-5 min-w-5 place-items-center rounded-full px-1 tabular-nums text-xs ${count ? "grid bg-accent-fill text-on-accent" : "hidden bg-fg/10 text-muted min-[380px]:grid"}`}
               >
                 {count}
               </motion.span>

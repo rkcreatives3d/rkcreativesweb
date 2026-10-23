@@ -5,31 +5,32 @@
   --font-sans: var(--font-manrope), ui-sans-serif, system-ui, sans-serif;
 }
 
-/* Brand palette, sampled from the RK Creative Builds logo.
+/* Beige palette: warm paper, espresso ink, the logo's amber and gold.
    Colour roles (keep to them):
-     amber   = actions only: buttons, links, the cart count
-     champagne = brand decoration: badges, labels, accent words
-     cream   = text; greys = secondary text
+     amber     = actions: solid buttons (accent-fill), links and the cart count (accent)
+     bronze    = brand decoration: badges, labels, accent words (pop)
+     espresso  = text; warm greys = secondary text
      danger / ok = errors and confirmations
-     light gold = keyboard focus only */
+     deep amber = keyboard focus only
+   Every text colour here passes WCAG AA (4.5:1) on page, page-2 and surface. */
 @theme {
-  --color-page: #0b0a09; /* warm near-black (the cover and intro sit on pure #000, like the logo) */
-  --color-surface: #151310; /* cards, panels */
-  --color-raised: #1e1b17; /* hover, inputs, drawers */
-  --color-line: #2b2621; /* borders */
-  --color-page-2: #151310;
-  --color-fg: #f4efe6;
-  --color-muted: #b5ab9c;
-  --color-accent: #ff9a1a; /* molten amber: actions */
-  --color-accent-2: #f5d287; /* light gold: focus rings */
+  --color-page: #efe6d8; /* beige paper */
+  --color-surface: #f7f1e7; /* cards, panels: a shade lighter than the page */
+  --color-raised: #fbf8f2; /* inputs, drawers */
+  --color-line: #dccfba; /* borders */
+  --color-page-2: #e9dfcf; /* alternate sections */
+  --color-fg: #2a2119; /* espresso */
+  --color-muted: #66574a;
+  --color-accent: #9c4a08; /* burnt amber: links, small actions */
+  --color-accent-fill: #e8891a; /* molten amber from the logo: solid buttons */
+  --color-on-accent: #2a2119;
+  --color-accent-2: #7a3f08; /* deep amber: focus rings */
   --color-accent-3: #a8681c; /* deep gold, gradient stop only */
-  --color-gold: #d4973f; /* brushed gold: soft background glows only */
-  /* decoration: pale champagne gold, deliberately lighter and softer than the
-     amber buttons so the two never read as "two oranges" */
-  --color-pop: #e6c78a;
-  --color-on-pop: #000000;
-  --color-danger: #ff6b5a;
-  --color-ok: #4cc38a;
+  --color-gold: #c08a3e; /* brushed gold: soft background glows only */
+  --color-pop: #765524; /* antique bronze: decoration */
+  --color-on-pop: #fbf6ee;
+  --color-danger: #a8231b;
+  --color-ok: #17683f;
   /* readable minimums: body copy 15px, small labels 13px */
   --text-xs: 0.8125rem;
   --text-xs--line-height: 1.4;
@@ -38,33 +39,29 @@
 }
 
 :root {
-  color-scheme: dark;
-  /* brushed-gold sheen used for highlighted words, buttons, marquee */
-  --grad: linear-gradient(100deg, #a8681c, #d4973f 20%, #f5d287 38%, #ff9a1a 58%, #d4973f 78%, #a8681c);
-  --on-grad: #000000;
+  color-scheme: light;
+  /* brushed-gold sheen for highlighted words, kept dark enough to read on beige */
+  --grad: linear-gradient(100deg, #6e3f0e, #9c5a14 20%, #b8741f 38%, #b5560a 58%, #9c5a14 78%, #6e3f0e);
+  --on-grad: #fbf6ee;
   --display-weight: 800;
   --display-case: uppercase;
   --display-stretch: normal; /* the font file is already semi-condensed */
   --holo-style: normal;
   --hue-anim: none;
-  --glow-a: 7%;
-  --glow-b: 4%;
+  --glow-a: 14%;
+  --glow-b: 9%;
 }
 
 html {
   background: var(--color-page);
 }
 
-/* cover logo image: soft edges melt into the black page, slow float */
-.logo-feather {
-  -webkit-mask-image:
-    linear-gradient(to right, transparent, #000 5%, #000 95%, transparent),
-    linear-gradient(to bottom, transparent, #000 5%, #000 95%, transparent);
-  -webkit-mask-composite: source-in;
-  mask-image:
-    linear-gradient(to right, transparent, #000 5%, #000 95%, transparent),
-    linear-gradient(to bottom, transparent, #000 5%, #000 95%, transparent);
-  mask-composite: intersect;
+/* cover logo image: the logo's black square as a printed tile resting on the beige page */
+.logo-tile {
+  border-radius: 1.5%;
+  box-shadow:
+    0 2px 4px rgb(42 33 25 / 0.18),
+    0 28px 60px -18px rgb(42 33 25 / 0.45);
 }
 .logo-float {
   animation: logo-float 6s ease-in-out infinite;
@@ -91,6 +88,50 @@ html {
 @media (prefers-reduced-motion: reduce) {
   .tilt-idle {
     animation: none;
+  }
+}
+
+/* Lite-mode stand-in art prints in from the bed up, like the 3D models */
+.print-in {
+  animation: print-in 1.4s cubic-bezier(0.3, 0.6, 0.45, 1) both;
+}
+.print-line {
+  position: absolute;
+  inset-inline: -6%;
+  height: 2px;
+  border-radius: 2px;
+  background: #ffcf7a;
+  box-shadow: 0 0 10px 2px rgb(232 137 26 / 0.7);
+  animation: print-line 1.4s cubic-bezier(0.3, 0.6, 0.45, 1) both;
+}
+@keyframes print-in {
+  from {
+    clip-path: inset(100% -20% -20% -20%);
+  }
+  to {
+    clip-path: inset(-20% -20% -20% -20%);
+  }
+}
+@keyframes print-line {
+  from {
+    top: 100%;
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  to {
+    top: 0%;
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .print-in,
+  .print-line {
+    animation: none;
+  }
+  .print-line {
+    display: none;
   }
 }
 
@@ -129,13 +170,13 @@ body::before {
     radial-gradient(ellipse 60% 45% at 105% 95%, color-mix(in oklab, var(--color-gold) var(--glow-b), transparent), transparent 60%);
 }
 
-/* the cover keeps the logo's pure black and its original glow, then fades into the page */
+/* the cover: warm beige with the logo's amber glow, fading into the page */
 .cover-bg {
   background:
     linear-gradient(to bottom, transparent 82%, var(--color-page)),
-    radial-gradient(ellipse 70% 55% at 75% -5%, color-mix(in oklab, #a8681c 14%, transparent), transparent 60%),
-    radial-gradient(ellipse 55% 45% at -5% 45%, color-mix(in oklab, #ff9a1a 9%, transparent), transparent 60%),
-    #000;
+    radial-gradient(ellipse 70% 55% at 75% -5%, color-mix(in oklab, #e8891a 16%, transparent), transparent 60%),
+    radial-gradient(ellipse 55% 45% at -5% 45%, color-mix(in oklab, #c08a3e 14%, transparent), transparent 60%),
+    #f3ebdf;
 }
 
 /* headings wrap into even lines, never leaving one word alone at the end */
@@ -158,8 +199,8 @@ h3 {
 }
 
 ::selection {
-  background: var(--color-accent);
-  color: var(--color-page);
+  background: var(--color-accent-fill);
+  color: var(--color-on-accent);
 }
 
 /* keyboard users: jump past the nav */
@@ -255,13 +296,14 @@ h3 {
   transform: scale(0.98);
 }
 .btn-primary {
-  background: var(--color-accent);
-  border-color: var(--color-accent);
-  color: #000;
+  background: var(--color-accent-fill);
+  border-color: var(--color-accent-fill);
+  color: var(--color-on-accent);
+  box-shadow: 0 6px 18px -8px rgb(156 74 8 / 0.55);
 }
 .btn-primary:hover {
-  background: #ffb04a;
-  border-color: #ffb04a;
+  background: #f09a32;
+  border-color: #f09a32;
 }
 .btn:disabled {
   opacity: 0.5;
@@ -313,17 +355,36 @@ h3 {
   border: 1px solid var(--color-line);
 }
 
-/* neutral grey "photo studio" behind products, so every colour (black included) reads true */
+/* light, near-neutral "photo studio" behind products: a soft warm white sweep,
+   so every colour (white included) reads true */
 .stage,
 .viewer-bg {
   background:
-    radial-gradient(ellipse 70% 60% at 50% 42%, #2c2c2f, #18181a 55%, #0f0f10 100%);
+    radial-gradient(ellipse 70% 60% at 50% 40%, #fdfbf7, #efe9df 58%, #e2d9cb 100%);
+}
+/* a soft floor shadow under the model; it tightens as the model lifts */
+.stage-shadow {
+  position: absolute;
+  left: 50%;
+  bottom: 13%;
+  width: 46%;
+  height: 7%;
+  translate: -50% 0;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgb(42 33 25 / 0.28), transparent);
+  transition:
+    scale 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 0.6s;
+}
+.group:hover .stage-shadow {
+  scale: 0.8;
+  opacity: 0.7;
 }
 
 .grid-bg {
   background-image:
-    linear-gradient(color-mix(in oklab, var(--color-fg) 4%, transparent) 1px, transparent 1px),
-    linear-gradient(90deg, color-mix(in oklab, var(--color-fg) 4%, transparent) 1px, transparent 1px);
+    linear-gradient(color-mix(in oklab, var(--color-fg) 6%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in oklab, var(--color-fg) 6%, transparent) 1px, transparent 1px);
   background-size: 40px 40px;
 }
 

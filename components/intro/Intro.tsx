@@ -12,7 +12,7 @@ const IntroCanvas = lazy(() => import("./IntroCanvas").catch(() => ({ default: (
 /**
  * Opening animation: a 3D printer prints the logo, then fades into the cover
  * page. Plays on the home page, once per visit (the boot script in <head> adds
- * `no-intro` otherwise, which hides the overlay before first paint). The black
+ * `no-intro` otherwise, which hides the overlay before first paint). The beige
  * overlay is part of the static HTML, so the site never flashes before it.
  * Skippable; never shown in Lite mode or to people who prefer reduced motion.
  */
@@ -87,7 +87,7 @@ export function Intro() {
       id="intro"
       role="dialog"
       aria-label={`${site.name} opening animation`}
-      className={`fixed inset-0 z-[90] bg-black transition-opacity duration-700 ease-out ${leaving ? "pointer-events-none opacity-0" : ""}`}
+      className={`cover-bg fixed inset-0 z-[90] transition-opacity duration-700 ease-out ${leaving ? "pointer-events-none opacity-0" : ""}`}
     >
       {mounted && (
         <Suspense fallback={null}>
@@ -106,7 +106,8 @@ export function Intro() {
       </div>
 
       <div className="pointer-events-none absolute inset-x-0 bottom-0 px-5 pb-8 sm:pb-10">
-        <div className="mx-auto max-w-md font-mono text-[10px] uppercase tracking-[0.3em] text-muted sm:text-[11px]">
+        {/* on a paper pill, so the readout stays legible over the printer's base */}
+        <div className="mx-auto max-w-md rounded-2xl bg-page/80 px-4 py-3 font-mono text-[10px] uppercase tracking-[0.3em] text-muted backdrop-blur sm:text-[11px]">
           <div className="flex justify-between gap-4">
             <span>
               Printing <span ref={pct} className="text-accent">000</span>%

@@ -56,7 +56,7 @@ export function OrderConfirmation() {
             <p className="flex items-center gap-3 font-semibold">
               <span
                 className={`grid h-7 w-7 shrink-0 place-items-center rounded-full text-sm tabular-nums ${
-                  i === 0 ? "bg-accent text-black" : "bg-fg/10 text-fg"
+                  i === 0 ? "bg-accent-fill text-on-accent" : "bg-fg/10 text-fg"
                 }`}
               >
                 {i + 1}

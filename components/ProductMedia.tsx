@@ -34,9 +34,10 @@ export function useFinishPhoto(src: string | undefined, finish: string, preview:
 
 /**
  * Flat stand-in artwork, used in Lite mode for products that don't have photos
- * yet: a glowing orb in the product's finish with its initials.
+ * yet: a glowing orb in the product's finish with its initials. It prints in
+ * from the bottom (CSS only) once `play` is true.
  */
-export function ProductArt({ product: p, finish, large = false }: { product: Product; finish?: string; large?: boolean }) {
+export function ProductArt({ product: p, finish, large = false, play = true }: { product: Product; finish?: string; large?: boolean; play?: boolean }) {
   const f = getFinish(finish ?? p.finishes[0]);
   const initials = p.name
     .split(" ")
@@ -46,11 +47,14 @@ export function ProductArt({ product: p, finish, large = false }: { product: Pro
   return (
     <div className="absolute inset-0 grid place-items-center" aria-hidden>
       <div className="absolute inset-0" style={{ background: `radial-gradient(circle at 50% 50%, ${f.color}30, transparent 62%)` }} />
-      <div
-        className={`relative grid place-items-center rounded-full shadow-[0_0_80px_-10px_var(--orb)] ${large ? "h-56 w-56" : "h-32 w-32"}`}
-        style={{ background: f.swatch, ["--orb" as string]: f.color }}
-      >
-        <span className={`font-display display-case text-black/55 mix-blend-multiply ${large ? "text-7xl" : "text-4xl"}`}>{initials}</span>
+      <div className={`relative ${play ? "print-in" : "opacity-0"}`}>
+        <div
+          className={`relative grid place-items-center rounded-full shadow-[0_18px_50px_-16px_var(--orb)] ${large ? "h-56 w-56" : "h-32 w-32"}`}
+          style={{ background: f.swatch, ["--orb" as string]: f.color }}
+        >
+          <span className={`font-display display-case text-black/55 mix-blend-multiply ${large ? "text-7xl" : "text-4xl"}`}>{initials}</span>
+        </div>
+        <span className="print-line" />
       </div>
     </div>
   );

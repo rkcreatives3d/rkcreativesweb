@@ -1,6 +1,6 @@
 import { Marquee } from "../ui";
 
-/** One calm ticker band between the cover and the shop: gold on dark, so it never outshouts the buttons. */
+/** One calm ticker band between the cover and the shop: bronze on paper, so it never outshouts the buttons. */
 export function MarqueeStrip() {
   return (
     <div className="relative z-20 border-y border-line bg-surface py-3 text-pop">
