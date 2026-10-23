@@ -1,6 +1,9 @@
-// Serves the built site (./out) locally, the way a static host would:
-// /shop/ → /shop/index.html, unknown paths → 404.html, text compressed with
-// brotli / gzip like a real host. No dependencies.
+// Serves the built site (./out) the way a static host would: /shop/ →
+// /shop/index.html, unknown paths → 404.html, text compressed with brotli /
+// gzip, and the same caching and security headers as vercel.json. Used for
+// local previews and tests, and good enough to run the site on a plain Node
+// host (e.g. a Render "Web Service": `npm start`, which listens on $PORT).
+// No dependencies.
 //   node scripts/serve.mjs [port]
 import http from "node:http";
 import fs from "node:fs";
@@ -26,6 +29,20 @@ const types = {
   ".mp4": "video/mp4",
 };
 
+const security = {
+  "X-Content-Type-Options": "nosniff",
+  "Referrer-Policy": "strict-origin-when-cross-origin",
+  "X-Frame-Options": "DENY",
+  "Permissions-Policy": "camera=(), microphone=(), geolocation=(), payment=(), xr-spatial-tracking=(self)",
+  "Cross-Origin-Opener-Policy": "same-origin-allow-popups",
+};
+const cacheFor = (url) =>
+  url.startsWith("/_next/static/")
+    ? "public, max-age=31536000, immutable"
+    : /^\/(brand|renders|vendor|models|og)\//.test(url)
+      ? "public, max-age=604800, stale-while-revalidate=86400"
+      : "no-cache";
+
 const packed = new Map();
 
 if (!fs.existsSync(root)) {
@@ -37,9 +54,9 @@ http
   .createServer((req, res) => {
     const url = decodeURIComponent((req.url || "/").split("?")[0]);
     let file = path.join(root, url);
-    if (!file.startsWith(root)) return res.writeHead(403).end();
+    if (!file.startsWith(root)) return res.writeHead(403, security).end();
     if (fs.existsSync(file) && fs.statSync(file).isDirectory()) {
-      if (!url.endsWith("/")) return res.writeHead(308, { Location: url + "/" }).end();
+      if (!url.endsWith("/")) return res.writeHead(308, { ...security, Location: url + "/" }).end();
       file = path.join(file, "index.html");
     }
     let status = 200;
@@ -48,11 +65,11 @@ http
       file = path.join(root, "404.html");
     }
     const type = types[path.extname(file)] || "application/octet-stream";
-    const cache = url.startsWith("/_next/static/") ? "public, max-age=31536000, immutable" : "no-cache";
+    const cache = cacheFor(url);
     const accept = String(req.headers["accept-encoding"] || "");
     const text = /^(text\/|application\/(json|xml)|image\/svg)/.test(type);
     const enc = text ? (/\bbr\b/.test(accept) ? "br" : /\bgzip\b/.test(accept) ? "gzip" : "") : "";
-    res.writeHead(status, { "Content-Type": type, "Cache-Control": cache, Vary: "Accept-Encoding", ...(enc ? { "Content-Encoding": enc } : {}) });
+    res.writeHead(status, { ...security, "Content-Type": type, "Cache-Control": cache, Vary: "Accept-Encoding", ...(enc ? { "Content-Encoding": enc } : {}) });
     if (!enc) return fs.createReadStream(file).pipe(res);
     // compress each file once and keep it, like a CDN would
     const key = `${enc}:${file}:${fs.statSync(file).mtimeMs}`;
@@ -64,4 +81,4 @@ http
     }
     res.end(out);
   })
-  .listen(port, () => console.log(`Serving ./out on http://localhost:${port}`));
+  .listen(port, () => console.log(`Serving ./out on port ${port}`));

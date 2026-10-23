@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "node scripts/serve.mjs 3000",
+    "start": "node scripts/serve.mjs",
     "lint": "tsc --noEmit",
     "models": "node scripts/prepare-models.mjs",
     "renders": "node scripts/render-products.mjs",
