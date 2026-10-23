@@ -71,13 +71,13 @@ html {
 }
 
 /* Cover text fade-in. Pure CSS, so on a slow phone the headline never waits
-   for JavaScript. When the intro plays it waits for the intro to finish
-   (Intro adds .intro-done), with a late fallback in case scripts never run. */
+   for JavaScript. When the opening animation plays, it starts as that lifts
+   away (or straight after Skip: Intro adds .intro-done). */
 .hero-in {
   animation: hero-in 0.9s cubic-bezier(0.16, 1, 0.3, 1) var(--d, 0s) both;
 }
 html:not(.no-intro) .hero-in {
-  animation-delay: calc(var(--d, 0s) + 7.2s);
+  animation-delay: calc(var(--d, 0s) + 2.6s); /* as the opening animation lifts away */
 }
 html.intro-done .hero-in {
   animation-name: hero-in-again;
@@ -134,12 +134,21 @@ html.intro-done .hero-in {
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
 }
-/* Scroll-in animations start hidden until JavaScript has loaded, which on a
-   budget phone can take seconds: in Lite mode everything is simply there. */
+/* Scroll-in fades start hidden until JavaScript has loaded, which on a phone
+   can take a second or two: on phones (and in Lite mode) content is simply
+   there from the first paint. Computers keep the fades; the 3D print-in
+   animations play everywhere. */
 .lite [data-reveal] {
   opacity: 1 !important;
   transform: none !important;
   will-change: auto !important;
+}
+@media (pointer: coarse) {
+  [data-reveal] {
+    opacity: 1 !important;
+    transform: none !important;
+    will-change: auto !important;
+  }
 }
 /* without the blur, the glass nav needs a near-solid fill to stay readable */
 .lite .nav-glass {
@@ -190,19 +199,260 @@ html.intro-done .hero-in {
   }
 }
 
-/* set by the boot script before first paint */
+/* ── opening animation ─────────────────────────────────
+   The logo's emblem prints itself on a bed, layer by layer, then the page
+   lifts away (components/intro/Intro.tsx). Pure CSS on markup that's in the
+   static HTML: it starts with the first paint and never waits for JavaScript.
+   It animates transforms and opacity, plus one small image revealed in steps,
+   so it stays smooth on budget phones.
+   Timeline: bed 0.1–0.6 s · print 0.45–2.05 s · fuse + sheen 2.05–2.6 s ·
+   lift 2.45–3.15 s. The cover's text starts at 2.6 s (.hero-in, above). */
+
+/* set by the boot script before first paint: not the home page, seen this visit, or reduced motion */
 .no-intro #intro {
   display: none !important;
 }
-/* failsafe: if the scripts never load (bad network), the intro still gets out of the way */
-#intro {
-  animation: intro-failsafe 0.6s 7s forwards;
+@property --layer {
+  syntax: "<integer>";
+  inherits: false;
+  initial-value: 0;
 }
-@keyframes intro-failsafe {
+#intro {
+  --w: min(58vw, 38vh); /* print size */
+  --h: calc(var(--w) * 0.8495); /* the emblem is 930 × 790 */
+  --print-at: 0.45s;
+  --print: 1.6s;
+  --layers: 40;
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  touch-action: none;
+  animation: intro-lift 0.7s cubic-bezier(0.76, 0, 0.24, 1) 2.45s forwards;
+}
+html.intro-skipped #intro {
+  animation: intro-lift-now 0.5s cubic-bezier(0.76, 0, 0.24, 1) forwards;
+}
+@keyframes intro-lift {
+  to {
+    transform: translateY(-100%);
+    visibility: hidden;
+  }
+}
+@keyframes intro-lift-now {
+  to {
+    transform: translateY(-100%);
+    visibility: hidden;
+  }
+}
+.intro-stage {
+  position: relative;
+  width: var(--w);
+  height: var(--h);
+}
+/* the print, revealed from the bed up one layer at a time: the window starts
+   below the bed and rises while the picture inside moves down by the same
+   amount, so the picture stays put and only its printed part shows. Both are
+   transforms, which the browser runs off the main thread. */
+.intro-clip {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+.intro-window,
+.intro-print {
+  position: absolute;
+  inset: 0;
+  animation: var(--print) steps(var(--layers), end) var(--print-at) forwards;
+}
+.intro-window {
+  overflow: hidden; /* the window does the clipping */
+  transform: translateY(100%);
+  animation-name: intro-window;
+}
+.intro-print {
+  transform: translateY(-100%);
+  animation-name: intro-counter;
+}
+.intro-print img {
+  width: 100%;
+  height: 100%;
+}
+@keyframes intro-window {
+  to {
+    transform: none;
+  }
+}
+@keyframes intro-counter {
+  to {
+    transform: none;
+  }
+}
+/* layer lines on the printed shape only (masked by the emblem itself); they fuse away at the end */
+.intro-lines,
+.intro-shine {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  -webkit-mask: url(/brand/emblem-480.webp) center / 100% 100% no-repeat;
+  mask: url(/brand/emblem-480.webp) center / 100% 100% no-repeat;
+}
+.intro-lines {
+  background: repeating-linear-gradient(to top, rgb(255 238 205 / 0.5) 0 1px, transparent 1px calc(var(--h) / var(--layers)));
+  animation: intro-fade 0.45s ease 2.05s forwards;
+}
+.intro-shine::before {
+  content: "";
+  position: absolute;
+  top: -20%;
+  bottom: -20%;
+  left: -60%;
+  width: 45%;
+  background: linear-gradient(100deg, transparent, rgb(255 248 230 / 0.8), transparent);
+  transform: skewX(-15deg);
+  animation: intro-shine 0.65s ease-in-out 2.1s forwards;
+}
+@keyframes intro-shine {
+  to {
+    transform: translateX(420%) skewX(-15deg);
+  }
+}
+/* the nozzle: rides up one layer at a time and sweeps each one */
+.intro-head {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 0;
+  opacity: 0;
+  animation:
+    intro-appear 0.2s ease 0.35s forwards,
+    intro-rise var(--print) steps(var(--layers), end) var(--print-at) forwards,
+    intro-fade 0.3s ease 2.05s forwards;
+}
+.intro-head::before {
+  /* the hot layer under the nozzle */
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -1px;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #ffb347 20%, #ffb347 80%, transparent);
+}
+.intro-nozzle {
+  position: absolute;
+  top: -5px;
+  left: -5px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #fff1c7;
+  box-shadow:
+    0 0 0 2px rgb(232 137 26 / 0.55),
+    0 0 14px 4px rgb(232 137 26 / 0.7);
+  animation: intro-sweep 0.2s linear infinite alternate;
+}
+@keyframes intro-rise {
+  to {
+    translate: 0 calc(-1 * var(--h));
+  }
+}
+@keyframes intro-sweep {
+  to {
+    transform: translateX(var(--w));
+  }
+}
+/* the print bed draws in first */
+.intro-bed {
+  position: absolute;
+  left: -12%;
+  right: -12%;
+  bottom: -3px;
+  height: 3px;
+  border-radius: 3px;
+  background: var(--color-fg);
+  transform: scaleX(0);
+  animation: intro-bed 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.1s forwards;
+}
+.intro-bed::after {
+  content: "";
+  position: absolute;
+  left: 8%;
+  right: 8%;
+  top: 4px;
+  height: 16px;
+  background: radial-gradient(closest-side, rgb(42 33 25 / 0.18), transparent);
+}
+@keyframes intro-bed {
+  to {
+    transform: scaleX(1);
+  }
+}
+.intro-readout {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  width: min(92vw, max(calc(var(--w) * 1.24), 19rem));
+  margin-top: 1.4rem;
+  white-space: nowrap;
+  font: 600 10px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+  font-variant-numeric: tabular-nums;
+  opacity: 0;
+  animation: intro-appear 0.4s ease 0.3s forwards;
+}
+.intro-count {
+  display: inline-block;
+  min-width: 3ch;
+  text-align: right;
+  color: var(--color-accent);
+  counter-reset: layer var(--layer);
+  animation: intro-count var(--print) steps(120, end) var(--print-at) forwards;
+}
+.intro-count::after {
+  content: counter(layer);
+}
+@keyframes intro-count {
+  to {
+    --layer: 120;
+  }
+}
+.intro-skip-btn {
+  position: absolute;
+  top: max(1.25rem, env(safe-area-inset-top));
+  right: max(1.25rem, env(safe-area-inset-right));
+  padding: 0.55rem 1.1rem;
+  border-radius: 999px;
+  border: 1px solid color-mix(in oklab, var(--color-fg) 18%, transparent);
+  font: 600 11px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+  opacity: 0;
+  animation: intro-appear 0.4s ease 0.6s forwards;
+}
+.intro-skip-btn:hover {
+  color: var(--color-fg);
+  border-color: var(--color-fg);
+}
+@keyframes intro-appear {
+  to {
+    opacity: 1;
+  }
+}
+@keyframes intro-fade {
   to {
     opacity: 0;
-    visibility: hidden;
-    pointer-events: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  #intro {
+    display: none;
   }
 }
 

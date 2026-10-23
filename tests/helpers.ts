@@ -26,7 +26,7 @@ export async function prepare(page: Page, { intro = false, lite = false } = {}) 
     ({ intro, lite }) => {
       try {
         if (!intro) sessionStorage.setItem("rk-intro", "1");
-        localStorage.setItem("rk-lite", lite ? "1" : "0");
+        localStorage.setItem("rk-lite-v2", lite ? "1" : "0");
       } catch {}
       const w = window as unknown as { __opened: string[]; __draws: number };
       w.__opened = [];

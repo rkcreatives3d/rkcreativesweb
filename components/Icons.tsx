@@ -20,3 +20,14 @@ export function MailIcon({ size = 16, className = "" }: P) {
     </svg>
   );
 }
+
+/** "turn it round": a 360° view */
+export function SpinIcon({ size = 16 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <ellipse cx="12" cy="12" rx="9.5" ry="4" />
+      <path d="M12 2.5v4M12 17.5v4" opacity=".5" />
+      <path d="m17 14.6 2.6 1.1-1 2.6" />
+    </svg>
+  );
+}

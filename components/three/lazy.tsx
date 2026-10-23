@@ -26,7 +26,18 @@ export function View3D({ className, children }: { className?: string; children: 
   );
 }
 
-const scenes = () => import("./scenes");
+let scenesLoaded = false;
+const scenes = () =>
+  import("./scenes").then((m) => {
+    scenesLoaded = true;
+    return m;
+  });
+/**
+ * True once the 3D scenes have downloaded (e.g. after moving between pages).
+ * Before that, product spots show their studio picture as a stand-in, so
+ * nothing sits empty while the 3D engine loads.
+ */
+export const is3DLoaded = () => scenesLoaded;
 export const LogoScene = safeLazy(() => scenes().then((m) => m.LogoScene));
 export const CardScene = safeLazy(() => scenes().then((m) => m.CardScene));
 export const ViewerScene = safeLazy(() => scenes().then((m) => m.ViewerScene));

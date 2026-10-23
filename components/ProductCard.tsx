@@ -11,7 +11,8 @@ import { useCart } from "@/lib/cart";
 import { formatPrice } from "@/lib/site";
 import { flyToCart } from "@/lib/fly";
 import { useLiteMode } from "@/lib/lite";
-import { CardScene, View3D } from "./three/lazy";
+import { CardScene, View3D, is3DLoaded } from "./three/lazy";
+import { SpinIcon } from "./Icons";
 import { PhotoStack, ProductArt, StudioImage } from "./ProductMedia";
 import { Swatch } from "./ui";
 
@@ -25,6 +26,11 @@ export function ProductCard({ product: p, index = 0 }: { product: Product; index
   const [finish, setFinish] = useState(p.finishes[0]);
   const photos = photosFor(p, finish);
   const model = modelFor(p);
+  // live 3D (a real model, or the placeholder shape when there are no photos), unless Lite
+  const show3D = !lite && (!!model || !photos.list.length);
+  // on a fresh page load the 3D engine is still downloading: the studio picture stands in until the model is up
+  const [standIn] = useState(() => !is3DLoaded());
+  const [shown3D, setShown3D] = useState(false);
   // cursor position across the card, -1..1: the hovered model turns to follow it
   const pointer = useRef({ x: 0, y: 0 });
   // cards in a row print one after another
@@ -57,22 +63,26 @@ export function ProductCard({ product: p, index = 0 }: { product: Product; index
         {/* light neutral stage, so every colour (white included) shows true */}
         <div className="stage relative aspect-square">
           {/* real 3D model → photo (with tilt) → placeholder 3D → in Lite mode: studio render, else flat art */}
-          {model && !lite ? (
+          {show3D ? (
             <>
               <span aria-hidden className="stage-shadow" />
+              {standIn && !shown3D && <StudioImage product={p} finish={finish} still alt={p.name} />}
               <View3D className="absolute inset-0">
-                <CardScene shape={p.shape} model={model} finish={finish} active={hovered} inView={inView} delay={delay} pointer={pointer} />
+                <CardScene
+                  shape={p.shape}
+                  model={model}
+                  finish={finish}
+                  active={hovered}
+                  inView={inView}
+                  delay={delay}
+                  pointer={pointer}
+                  standIn={standIn}
+                  onShown={() => setShown3D(true)}
+                />
               </View3D>
             </>
           ) : photos.list.length ? (
             <PhotoStack images={photos.list} finish={finish} preview={photos.recolor} alt={p.name} hovered={hovered} />
-          ) : !lite ? (
-            <>
-              <span aria-hidden className="stage-shadow" />
-              <View3D className="absolute inset-0">
-                <CardScene shape={p.shape} finish={finish} active={hovered} inView={inView} delay={delay} pointer={pointer} />
-              </View3D>
-            </>
           ) : (
             <>
               {renderFor(p, finish) ? (
@@ -87,6 +97,10 @@ export function ProductCard({ product: p, index = 0 }: { product: Product; index
               {p.badge}
             </span>
           )}
+          {/* every product can be turned all the way round on its page */}
+          <span className="absolute bottom-3 right-3 flex items-center gap-1.5 rounded-full bg-page/80 px-2.5 py-1 text-xs font-semibold text-fg">
+            <SpinIcon size={14} /> 360°
+          </span>
         </div>
       </Link>
 

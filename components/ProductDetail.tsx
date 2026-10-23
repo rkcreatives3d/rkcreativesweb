@@ -7,12 +7,12 @@ import { AnimatePresence, motion } from "motion/react";
 import { getFinish, photosFor, products, type Product } from "@/lib/products";
 import { itemPrice, useCart } from "@/lib/cart";
 import { flyToCart } from "@/lib/fly";
-import { useLiteMode } from "@/lib/lite";
+import { useLite, useLiteMode } from "@/lib/lite";
 import { modelFor } from "@/lib/models";
 import { track } from "@/lib/track";
 import { dispatchLabel, formatPrice, site, whatsappUrl } from "@/lib/site";
 import { MAX_NAME } from "@/lib/personalise";
-import { View3D, ViewerScene } from "./three/lazy";
+import { View3D, ViewerScene, is3DLoaded } from "./three/lazy";
 import { Stepper } from "./CartDrawer";
 import { ProductCard } from "./ProductCard";
 import { Gallery, ProductArt, StudioImage } from "./ProductMedia";
@@ -22,6 +22,7 @@ import { ProductFaq, SizeGuide, sizeCm } from "./ProductInfo";
 import { ArView } from "./ArView";
 import { TrustBadges } from "./TrustBadges";
 import { WhatsAppIcon } from "./CheckoutForm";
+import { SpinIcon } from "./Icons";
 import { Button, KineticText, Swatch } from "./ui";
 
 export function ProductDetail({ product: p }: { product: Product }) {
@@ -64,10 +65,17 @@ export function ProductDetail({ product: p }: { product: Product }) {
   // media: the real 3D model first, photos second; placeholder 3D only when there's neither
   const photos = photosFor(p, finish);
   const model = modelFor(p);
-  const has3D = !!model && !lite;
+  // Lite mode shows the studio picture, with a button to load the 360° view for this product anyway
+  const demand = useLite((s) => s.demand);
+  const want3D = useLite((s) => s.want3D);
+  const live3D = !lite || demand;
+  const has3D = !!model && live3D;
   const [media, setMedia] = useState<"3d" | "photos">("3d");
   const showPhotos = photos.list.length > 0 && (media === "photos" || !has3D);
-  const showViewer = !showPhotos && !lite;
+  const showViewer = !showPhotos && live3D;
+  // on a fresh page load the 3D engine is still downloading: the studio picture stands in until the model is up
+  const [standIn] = useState(() => !is3DLoaded());
+  const [shown3D, setShown3D] = useState(false);
 
   return (
     <>
@@ -102,28 +110,51 @@ export function ProductDetail({ product: p }: { product: Product }) {
               >
                 <div className="grid-bg absolute inset-0" />
                 {showViewer ? (
-                  // OrbitControls listen on this wrapper; events bubble up from the View div
-                  <div ref={setViewEl} className="absolute inset-0 cursor-grab active:cursor-grabbing">
-                    <View3D className="absolute inset-0">
-                      {viewEl && (
-                        <ViewerScene
-                          shape={p.shape}
-                          model={model}
-                          finish={finish}
-                          wireframe={slicer}
-                          autoSpin={autoSpin}
-                          domElement={viewEl}
-                        />
-                      )}
-                    </View3D>
-                  </div>
-                ) : renderFor(p, finish) ? (
-                  // Lite mode: the studio render instead of live 3D
-                  <StudioImage product={p} finish={finish} alt={p.name} priority />
+                  <>
+                    {/* OrbitControls listen on this wrapper; events bubble up from the View div */}
+                    <div ref={setViewEl} className="absolute inset-0 cursor-grab active:cursor-grabbing">
+                      <View3D className="absolute inset-0">
+                        {viewEl && (
+                          <ViewerScene
+                            shape={p.shape}
+                            model={model}
+                            finish={finish}
+                            wireframe={slicer}
+                            autoSpin={autoSpin}
+                            domElement={viewEl}
+                            standIn={standIn}
+                            onShown={() => setShown3D(true)}
+                          />
+                        )}
+                      </View3D>
+                    </div>
+                    {standIn && (
+                      <div className={`pointer-events-none absolute inset-0 transition-opacity duration-500 ${shown3D ? "opacity-0" : ""}`}>
+                        <StudioImage product={p} finish={finish} alt={p.name} still priority />
+                      </div>
+                    )}
+                    <span className="pointer-events-none absolute left-5 top-5 flex items-center gap-2 rounded-full bg-page/70 px-3 py-1.5 text-xs font-semibold text-fg">
+                      <SpinIcon />
+                      <span>
+                        360° · <span className="[@media(pointer:coarse)]:hidden">drag</span>
+                        <span className="hidden [@media(pointer:coarse)]:inline">swipe</span>
+                        {" to spin"}
+                      </span>
+                    </span>
+                  </>
                 ) : (
-                  <ProductArt product={p} finish={finish} large />
+                  <>
+                    {renderFor(p, finish) ? (
+                      // Lite mode: the studio render instead of live 3D
+                      <StudioImage product={p} finish={finish} alt={p.name} priority />
+                    ) : (
+                      <ProductArt product={p} finish={finish} large />
+                    )}
+                    <button onClick={want3D} className="btn absolute bottom-4 left-1/2 -translate-x-1/2 bg-page/90">
+                      <SpinIcon /> View in 3D · 360°
+                    </button>
+                  </>
                 )}
-                {showViewer && <span className="pointer-events-none absolute left-5 top-5 text-xs text-muted">Drag to rotate</span>}
               </div>
               {showViewer && (
                 <div className="mt-3 flex flex-wrap gap-2">

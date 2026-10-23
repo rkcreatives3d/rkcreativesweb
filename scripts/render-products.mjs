@@ -20,7 +20,7 @@ const ctx = await browser.newContext({ viewport: { width: 1440, height: 1000 }, 
 await ctx.addInitScript(() => {
   try {
     sessionStorage.setItem("rk-intro", "1");
-    localStorage.setItem("rk-lite", "0");
+    localStorage.setItem("rk-lite-v2", "0");
   } catch {}
 });
 const page = await ctx.newPage();
@@ -60,6 +60,8 @@ for (let i = 0; i < count; i++) {
   await stage.scrollIntoViewIfNeeded();
   await page.mouse.move(5, 5); // keep the cursor off the card (hover lifts the model)
   await page.waitForTimeout(2500); // 3D loads, model prints in
+  // never photograph the stand-in picture (an older render) instead of the live model
+  await card.locator(".stage img").waitFor({ state: "detached", timeout: 30_000 }).catch(() => {});
 
   const swatches = card.getByRole("radio");
   const n = await swatches.count();

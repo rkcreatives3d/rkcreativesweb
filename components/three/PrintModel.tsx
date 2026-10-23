@@ -26,6 +26,10 @@ type Props = ThreeElements["group"] & {
   printIn?: boolean;
   /** seconds to wait before printing starts (staggers a grid) */
   delay?: number;
+  /** called once the model is on screen (for a real model file: once it has downloaded) */
+  onReady?: () => void;
+  /** show the turning wireframe while a model file downloads (off when a picture stands in) */
+  loadingIndicator?: boolean;
 };
 
 /** Every model comes to rest at this angle, so a grid of products reads like one turntable. */
@@ -35,7 +39,18 @@ const PRINT_TIME = 1.5;
 const PRINT_SWING = 1.3; // radians the turntable turns while printing
 const LED = 6;
 
-export function PrintModel({ shape, model, finish, spin = 0.35, wireframe = false, printIn, delay = 0, ...group }: Props) {
+export function PrintModel({
+  shape,
+  model,
+  finish,
+  spin = 0.35,
+  wireframe = false,
+  printIn,
+  delay = 0,
+  onReady,
+  loadingIndicator = true,
+  ...group
+}: Props) {
   const root = useRef<THREE.Group>(null!);
   const mat = useFinishMaterial(finish, wireframe, () => heightRange(root.current));
   const inner = useRef<THREE.Mesh>(null!);
@@ -51,6 +66,15 @@ export function PrintModel({ shape, model, finish, spin = 0.35, wireframe = fals
 
   // print-in progress: -delay..0 waiting, 0..1 printing, 1 = done
   const [ready, setReady] = useState(!model);
+  const readyCb = useRef(onReady);
+  readyCb.current = onReady;
+  useEffect(() => {
+    if (!ready) return;
+    invalidate();
+    // two frames: the model has been drawn at least once
+    let id = requestAnimationFrame(() => (id = requestAnimationFrame(() => readyCb.current?.())));
+    return () => cancelAnimationFrame(id);
+  }, [ready, invalidate]);
   const progress = useRef(printIn === undefined ? 1 : -delay / PRINT_TIME);
   const range = useRef<[number, number] | null>(null);
   useLayoutEffect(() => {
@@ -113,7 +137,7 @@ export function PrintModel({ shape, model, finish, spin = 0.35, wireframe = fals
     <group {...group}>
       <group ref={root} rotation-y={REST_ANGLE}>
         {model ? (
-          <Suspense fallback={<Loading />}>
+          <Suspense fallback={loadingIndicator ? <Loading /> : null}>
             <RealModel url={model} material={mat} onReady={() => setReady(true)} />
           </Suspense>
         ) : shape === "serpent" ? (

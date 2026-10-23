@@ -89,12 +89,15 @@ export function StudioImage({
   product: p,
   finish,
   play = true,
+  still = false,
   alt,
   priority = false,
 }: {
   product: Product;
   finish: string;
   play?: boolean;
+  /** no print-in: just the picture (standing in while the 3D loads) */
+  still?: boolean;
   alt: string;
   /** the main picture of the page: load it first, not lazily */
   priority?: boolean;
@@ -102,7 +105,7 @@ export function StudioImage({
   const src = renderFor(p, finish);
   if (!src) return null;
   return (
-    <div className={`absolute inset-0 ${play ? "print-in" : "opacity-0"}`}>
+    <div className={`absolute inset-0 ${still ? "" : play ? "print-in" : "opacity-0"}`}>
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src={src}
@@ -114,7 +117,7 @@ export function StudioImage({
         decoding="async"
         className="h-full w-full object-cover"
       />
-      <span className="print-line" />
+      {!still && <span className="print-line" />}
     </div>
   );
 }

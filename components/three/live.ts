@@ -62,8 +62,9 @@ export function FrameDriver() {
 /**
  * Watches real frame times while the 3D is animating. If the device can't
  * keep up (under ~24 fps), it first drops to 1× resolution, then switches
- * the site to Lite mode and says so. Never overrides someone who switched
- * 3D back on themselves.
+ * the site to Lite mode for the rest of the visit and says so (the next visit
+ * tries 3D again). Never overrides someone who chose 3D, or asked for it on
+ * a product.
  */
 export function FpsGuard() {
   const setDpr = useThree((s) => s.setDpr);
@@ -76,14 +77,14 @@ export function FpsGuard() {
     const now = performance.now();
     const gap = now - last.current;
     last.current = now;
-    // skip the first seconds (shader compiles) and the gaps between on-demand bursts
-    if (now - born.current < 3000 || gap > 1000) return;
+    // skip the first seconds (downloads, shader compiles) and the gaps between on-demand bursts
+    if (now - born.current < 5000 || gap > 1000) return;
     samples.current.push(gap);
     if (samples.current.length < 60) return;
     const sorted = samples.current.sort((a, b) => a - b);
     const median = sorted[sorted.length >> 1];
     samples.current = [];
-    if (median < 1000 / 24 || choseFull3D()) return;
+    if (median < 1000 / 24 || choseFull3D() || useLite.getState().demand) return;
     strikes.current++;
     if (strikes.current === 1) setDpr(1);
     else useLite.getState().fallBack();

@@ -5,17 +5,8 @@ import * as THREE from "three";
 import { useFrame, type ThreeElements } from "@react-three/fiber";
 import { useTexture } from "@react-three/drei";
 
-/** The logo on its black square: what the intro prints. */
-export const LOGO_URL = "/brand/logo-1080.webp";
 /** The logo cut out of its square, for the beige cover (made by scripts/cutout-logo.py). */
 export const LOGO_CUT_URL = "/brand/logo-cut-1080.webp";
-
-// Cover framing, shared by the hero and the end of the intro so the hand-off
-// between them lines up: the logo fills 70% of the view height (or 86% of the
-// width on narrow screens) and sits 4% of the view height above centre.
-export const LOGO_FILL_H = 0.7;
-export const LOGO_FILL_W = 0.86;
-export const LOGO_SHIFT_Y = 0.04;
 
 const vertexShader = /* glsl */ `
   varying vec2 vUv;
@@ -57,7 +48,6 @@ const fragmentShader = /* glsl */ `
 
 type Props = ThreeElements["mesh"] & {
   size: number;
-  /** LOGO_URL (on its black square) or LOGO_CUT_URL (cut out) */
   url?: string;
   feather?: number;
   /** 0..1, read every frame; omit for a fully printed logo */
@@ -66,7 +56,7 @@ type Props = ThreeElements["mesh"] & {
 };
 
 /** The brand logo as a flat 3D plaque. */
-export function LogoPlaque({ size, url = LOGO_URL, feather = 0, reveal, shineEvery = 5, ...mesh }: Props) {
+export function LogoPlaque({ size, url = LOGO_CUT_URL, feather = 0, reveal, shineEvery = 5, ...mesh }: Props) {
   const texture = useLogoTexture(url);
 
   const material = useRef<THREE.ShaderMaterial>(null!);

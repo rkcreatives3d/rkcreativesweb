@@ -5,10 +5,18 @@ test("intro plays once per visit, and finishes on its own", async ({ page }) => 
   await prepare(page, { intro: true });
   await page.goto("/", { waitUntil: "commit" });
   await expect(page.locator("#intro")).toBeVisible();
-  // ends by itself: when the print finishes, or after 7 s at most on a very slow machine
+  // ends by itself after about 3 s (generous timeout for a busy test machine)
   await expect(page.locator("#intro")).toHaveCount(0, { timeout: 20_000 });
   await page.reload();
   await expect(page.locator("#intro")).toBeHidden();
+});
+
+test("intro can be skipped", async ({ page }) => {
+  await prepare(page, { intro: true });
+  await page.goto("/", { waitUntil: "load" });
+  await page.getByRole("button", { name: "Skip" }).click();
+  await expect(page.locator("#intro")).toHaveCount(0, { timeout: 2000 });
+  await expect(page.getByRole("link", { name: /shop the collection/i })).toBeVisible();
 });
 
 test("intro never plays off the home page", async ({ page }) => {

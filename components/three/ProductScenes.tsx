@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import { useFrame, useThree } from "@react-three/fiber";
 import { Float, OrbitControls } from "@react-three/drei";
@@ -24,6 +24,8 @@ export function CardScene({
   inView,
   delay = 0,
   pointer,
+  standIn = false,
+  onShown,
 }: {
   shape: Shape;
   model?: string;
@@ -32,7 +34,13 @@ export function CardScene({
   inView: boolean;
   delay?: number;
   pointer?: { current: { x: number; y: number } };
+  /** a studio picture is standing in until this model is ready */
+  standIn?: boolean;
+  /** the model is on screen: the stand-in can go */
+  onShown?: () => void;
 }) {
+  // the visitor is already looking at the stand-in picture: swap to 3D in place, no print-in
+  const [instant] = useState(() => standIn && inView);
   const g = useRef<THREE.Group>(null!);
   const invalidate = useThree((s) => s.invalidate);
   useEffect(() => invalidate(), [active, invalidate]);
@@ -58,13 +66,26 @@ export function CardScene({
     <>
       <ViewRig position={[0, 0.25, 4.5]} fov={35} />
       <group ref={g}>
-        <PrintModel shape={shape} model={model} finish={finish} spin={0} printIn={inView} delay={delay} />
+        <PrintModel
+          shape={shape}
+          model={model}
+          finish={finish}
+          spin={0}
+          printIn={instant ? undefined : inView}
+          delay={delay}
+          onReady={onShown}
+          loadingIndicator={!standIn}
+        />
       </group>
     </>
   );
 }
 
-/** Big draggable model on the product page. Prints in when the page opens. */
+/**
+ * The big 360° model on the product page: turns by itself, and drag (or swipe
+ * sideways on a phone) to spin it all the way round. Prints in when the page
+ * opens, or appears straight away when a studio picture was standing in.
+ */
 export function ViewerScene({
   shape,
   model,
@@ -72,6 +93,8 @@ export function ViewerScene({
   wireframe,
   autoSpin,
   domElement,
+  standIn = false,
+  onShown,
 }: {
   shape: Shape;
   model?: string;
@@ -79,9 +102,17 @@ export function ViewerScene({
   wireframe: boolean;
   autoSpin: boolean;
   domElement: HTMLElement;
+  standIn?: boolean;
+  onShown?: () => void;
 }) {
   const { rings } = theme;
   useLive(autoSpin); // otherwise frames only come while it's dragged or settling
+  // phones: a sideways swipe spins the model, an up/down swipe still scrolls the page
+  // (OrbitControls blocks all touch scrolling on its element by default)
+  useEffect(() => {
+    const id = requestAnimationFrame(() => (domElement.style.touchAction = "pan-y"));
+    return () => cancelAnimationFrame(id);
+  }, [domElement]);
   return (
     <>
       <ViewRig position={[0, 0.5, 5.4]} fov={35} />
@@ -95,7 +126,18 @@ export function ViewerScene({
         minPolarAngle={0.35}
         maxPolarAngle={Math.PI - 0.6}
       />
-      <PrintModel shape={shape} model={model} finish={finish} wireframe={wireframe} spin={0} printIn delay={0.2} scale={0.95} />
+      <PrintModel
+        shape={shape}
+        model={model}
+        finish={finish}
+        wireframe={wireframe}
+        spin={0}
+        printIn={standIn ? undefined : true}
+        delay={0.2}
+        scale={0.95}
+        onReady={onShown}
+        loadingIndicator={!standIn}
+      />
       <mesh rotation-x={-Math.PI / 2} position-y={-1.55}>
         <ringGeometry args={[1.25, 1.27, 128]} />
         <meshBasicMaterial color={rings[0]} toneMapped={false} transparent opacity={0.8} />

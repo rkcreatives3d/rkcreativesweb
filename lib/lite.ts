@@ -1,10 +1,14 @@
 import { create } from "zustand";
 
-// Lite mode: photos and flat artwork instead of live 3D, for budget phones and
-// data-saver users. Decided before first paint by `bootScript` (sets the
-// `lite` class on <html>), and switchable from the footer.
+// Lite mode: studio pictures instead of live 3D, for phones with 2 GB of
+// memory or less and data-saver users. Decided before first paint by
+// `bootScript` (sets the `lite` class on <html>), and switchable from the
+// footer. Everything else, 4 GB phones included, gets the 3D site.
 
-export const LITE_KEY = "rk-lite";
+/** the visitor's own choice ("1" Lite, "0" 3D). v2: choices from before 3D got lighter are forgotten */
+export const LITE_KEY = "rk-lite-v2";
+/** this visit only: 3D ran too slowly, so the site switched itself to Lite (tried again next visit) */
+export const AUTO_LITE_KEY = "rk-lite-auto";
 export const INTRO_KEY = "rk-intro";
 export const GPU_KEY = "rk-gpu";
 
@@ -13,10 +17,12 @@ export const bootScript = `(function () {
   var d = document.documentElement;
   var saved = null;
   try { saved = localStorage.getItem("${LITE_KEY}"); } catch (e) {}
-  // budget phones: little memory, few cores, data saver or a 2G connection.
-  // (deviceMemory is Chrome-only and capped at 8; iPhones report neither and get 3D.)
-  var n = navigator, mem = n.deviceMemory || 8, cores = n.hardwareConcurrency || 8, c = n.connection || {};
-  var slow = mem <= 2 || (mem <= 4 && cores <= 4) || c.saveData || /2g/.test(c.effectiveType || "");
+  // budget phones: 2 GB of memory or less (3 GB phones report 2), data saver or a 2G connection.
+  // 4 GB phones get the 3D site. (deviceMemory is Chrome-only; iPhones don't report it and get 3D.)
+  var n = navigator, mem = n.deviceMemory || 8, c = n.connection || {};
+  var auto = null;
+  try { auto = sessionStorage.getItem("${AUTO_LITE_KEY}"); } catch (e) {}
+  var slow = mem <= 2 || c.saveData || /2g/.test(c.effectiveType || "") || auto === "1";
   // no WebGL, or WebGL drawn in software (no usable graphics chip): 3D would crawl.
   // Checked once per device and remembered, so later visits skip the test.
   var gpu = null;
@@ -38,16 +44,29 @@ export const bootScript = `(function () {
   }
   if (saved === "1" || (saved === null && (slow || gpu === "weak"))) d.classList.add("lite");
 
-  // the printing intro: home page only, once per visit, never in Lite mode
+  // the opening animation: home page only, once per visit, not for reduced motion.
+  // It's plain CSS, so budget phones (Lite mode) get it too.
   var seen = null;
   try { seen = sessionStorage.getItem("${INTRO_KEY}"); } catch (e) {}
   var calm = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
-  if (location.pathname !== "/" || seen || calm || d.classList.contains("lite")) d.classList.add("no-intro");
+  if (location.pathname !== "/" || seen || calm) d.classList.add("no-intro");
+  else {
+    try { sessionStorage.setItem("${INTRO_KEY}", "1"); } catch (e) {}
+    // skip on a tap or Esc, working from the very first paint, before the page's JavaScript loads
+    var skip = function () { d.classList.add("intro-skipped", "intro-done"); };
+    document.addEventListener("click", function (e) { if (e.target && e.target.closest && e.target.closest("#intro")) skip(); }, true);
+    document.addEventListener("keydown", function (e) { if (e.key === "Escape") skip(); });
+    // scrolling means "let me in" (touch scrolling is blocked on the overlay itself)
+    addEventListener("wheel", skip, { passive: true, once: true });
+  }
 })();`;
 
 type LiteState = {
   ready: boolean;
   lite: boolean;
+  /** Lite mode, but the visitor asked to see this product in 3D anyway */
+  demand: boolean;
+  want3D: () => void;
   /** Lite mode was switched on automatically because 3D ran too slowly */
   auto: boolean;
   set: (lite: boolean) => void;
@@ -58,6 +77,8 @@ type LiteState = {
 export const useLite = create<LiteState>((set) => ({
   ready: false, // false until <Providers> has read the boot decision on the client
   lite: false,
+  demand: false,
+  want3D: () => set({ demand: true }),
   auto: false,
   set: (lite) => {
     document.documentElement.classList.toggle("lite", lite);
@@ -69,9 +90,9 @@ export const useLite = create<LiteState>((set) => ({
   fallBack: () => {
     document.documentElement.classList.add("lite");
     try {
-      localStorage.setItem(LITE_KEY, "1");
+      sessionStorage.setItem(AUTO_LITE_KEY, "1");
     } catch {}
-    set({ lite: true, auto: true });
+    set({ lite: true, auto: true, demand: false });
   },
 }));
 
@@ -87,5 +108,5 @@ export function choseFull3D() {
 /** Lite mode is on (photos / flat art instead of 3D). False until decided on the client. */
 export const useLiteMode = () => useLite((s) => s.lite);
 
-/** True once we know the device should get the full 3D experience. */
-export const useFull3D = () => useLite((s) => s.ready && !s.lite);
+/** True once we know this device should draw 3D: the full site, or Lite with 3D asked for on a product. */
+export const useFull3D = () => useLite((s) => s.ready && (!s.lite || s.demand));

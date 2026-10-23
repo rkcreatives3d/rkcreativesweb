@@ -4,6 +4,8 @@
   a black disc, for the nav; mark-128.png for share cards
 - app/icon.png: just the RK letters on a black disc, so it reads at favicon size
 - app/apple-icon.png: the emblem on a black square (iOS rounds the corners)
+- public/brand/emblem-{360,480,720}.webp: the emblem, transparent, for
+  the opening animation
 
   python3 scripts/make-icons.py
 """
@@ -38,5 +40,11 @@ for s in (80, 160):
     mark(EMBLEM, s, 0.95).save(f"public/brand/mark-{s}.webp", "WEBP", quality=86, method=6)
 mark(EMBLEM, 128, 0.95).save("public/brand/mark-128.png", optimize=True)  # share cards (PNG for the image renderer)
 mark(LETTERS, 64, 0.92).save("app/icon.png", optimize=True)
+# the emblem on its own, transparent: what the opening animation prints
+emblem = cut.crop(EMBLEM)
+for w in (360, 480, 720):
+    emblem.resize((w, round(w * emblem.height / emblem.width)), Image.LANCZOS).save(
+        f"public/brand/emblem-{w}.webp", "WEBP", quality=68, method=6, alpha_quality=70
+    )
 mark(EMBLEM, 180, 0.9, circle=False).convert("RGB").save("app/apple-icon.png", optimize=True)
 print("wrote nav marks, app/icon.png, app/apple-icon.png")
