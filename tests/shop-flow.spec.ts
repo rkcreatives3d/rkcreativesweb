@@ -12,11 +12,13 @@ test("intro plays once per visit, and finishes on its own", async ({ page }) => 
 });
 
 test("intro can be skipped", async ({ page }) => {
-  await prepare(page, { intro: true });
-  await page.goto("/", { waitUntil: "load" });
+  // Lite mode: the test machine draws 3D in software, which can hold up the page long enough to blur the timing
+  await prepare(page, { intro: true, lite: true });
+  // click as soon as the button is there: the intro only lasts about 3 seconds
+  await page.goto("/", { waitUntil: "commit" });
   await page.getByRole("button", { name: "Skip" }).click();
-  // gone from view within about half a second (it's removed from the page once its script has loaded)
-  await expect(page.locator("#intro")).toBeHidden({ timeout: 3000 });
+  // out of view within about half a second, even before the page's JavaScript has loaded
+  await expect(page.locator("#intro")).toBeHidden({ timeout: 1500 });
   await expect(page.getByRole("link", { name: /shop the collection/i })).toBeVisible();
 });
 
