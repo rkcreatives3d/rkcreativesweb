@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { getFinish, type Product } from "@/lib/products";
+import { getFinish, photosFor, type Product } from "@/lib/products";
 import { recolor } from "@/lib/recolor";
+import { renderFor } from "@/lib/renders";
 
 /**
  * A product photo in a given finish. With `preview`, the photo is recoloured
@@ -56,6 +57,64 @@ export function ProductArt({ product: p, finish, large = false, play = true }: {
         </div>
         <span className="print-line" />
       </div>
+    </div>
+  );
+}
+
+/**
+ * Small square picture of a product in a colour, for lists (cart, checkout):
+ * its own photo in that colour, else its studio render, else a colour tile
+ * with its initial.
+ */
+export function ProductThumb({ product: p, finish, className = "h-16 w-16" }: { product: Product; finish: string; className?: string }) {
+  const photos = photosFor(p, finish);
+  const src = (!photos.recolor && photos.list[0]) || renderFor(p, finish, "sm");
+  const f = getFinish(finish);
+  if (!src)
+    return (
+      <div aria-hidden className={`grid shrink-0 place-items-center rounded-xl ${className}`} style={{ background: f.swatch }}>
+        <span className="font-display text-xl font-extrabold text-page/70 mix-blend-hard-light">{p.name[0]}</span>
+      </div>
+    );
+  // eslint-disable-next-line @next/next/no-img-element
+  return <img src={src} alt="" loading="lazy" decoding="async" className={`stage shrink-0 rounded-xl object-cover ${className}`} />;
+}
+
+/**
+ * The product's studio render in a colour, filling its box: what Lite mode
+ * shows instead of live 3D. Prints in from the bed up (CSS) once `play` is true.
+ * Returns null when there's no render, so callers can fall back.
+ */
+export function StudioImage({
+  product: p,
+  finish,
+  play = true,
+  alt,
+  priority = false,
+}: {
+  product: Product;
+  finish: string;
+  play?: boolean;
+  alt: string;
+  /** the main picture of the page: load it first, not lazily */
+  priority?: boolean;
+}) {
+  const src = renderFor(p, finish);
+  if (!src) return null;
+  return (
+    <div className={`absolute inset-0 ${play ? "print-in" : "opacity-0"}`}>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={src}
+        srcSet={`${renderFor(p, finish, "sm")} 200w, ${src} 720w`}
+        sizes="(min-width: 1024px) 40vw, (min-width: 640px) 50vw, 100vw"
+        alt={`${alt}, ${getFinish(finish).name}`}
+        loading={priority ? "eager" : "lazy"}
+        fetchPriority={priority ? "high" : undefined}
+        decoding="async"
+        className="h-full w-full object-cover"
+      />
+      <span className="print-line" />
     </div>
   );
 }

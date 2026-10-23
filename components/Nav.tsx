@@ -19,13 +19,18 @@ export function Nav() {
 
   return (
     <header className="fixed inset-x-0 top-0 z-40 px-[max(0.75rem,env(safe-area-inset-left))] pt-[max(0.75rem,env(safe-area-inset-top))] sm:px-6 sm:pt-5">
-      <nav aria-label="Main" className="mx-auto flex max-w-7xl items-center justify-between gap-1 rounded-full border border-line bg-page/50 px-1.5 py-2 backdrop-blur-xl min-[380px]:gap-3 min-[380px]:px-2">
+      <nav aria-label="Main" className="mx-auto flex max-w-7xl items-center justify-between gap-1 nav-glass rounded-full border border-line bg-page/50 px-1.5 py-2 backdrop-blur-xl min-[380px]:gap-3 min-[380px]:px-2">
         <Link href="/" className="flex shrink-0 items-center gap-3" aria-label={`${site.name} home`}>
-          <picture className="shrink-0">
-            <source type="image/webp" srcSet="/brand/logo-96.webp" />
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/brand/logo-160.jpg" alt="" width={40} height={40} className="h-9 w-9 rounded-full ring-1 ring-accent/40 min-[380px]:h-10 min-[380px]:w-10" />
-          </picture>
+          {/* the logo's emblem (printer, RK, spool): the full logo is unreadable this small */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/brand/mark-80.webp"
+            srcSet="/brand/mark-80.webp 1x, /brand/mark-160.webp 2x"
+            alt=""
+            width={40}
+            height={40}
+            className="h-9 w-9 shrink-0 rounded-full ring-1 ring-accent/40 min-[380px]:h-10 min-[380px]:w-10"
+          />
           <span className="hidden font-display text-base leading-none tracking-wide display-case sm:block">
             <span className="holo-text">RK</span> Creative Builds
           </span>

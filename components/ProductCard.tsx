@@ -6,12 +6,13 @@ import { motion, useInView } from "motion/react";
 import type { Product } from "@/lib/products";
 import { getFinish, photosFor } from "@/lib/products";
 import { modelFor } from "@/lib/models";
+import { renderFor } from "@/lib/renders";
 import { useCart } from "@/lib/cart";
 import { formatPrice } from "@/lib/site";
 import { flyToCart } from "@/lib/fly";
 import { useLiteMode } from "@/lib/lite";
 import { CardScene, View3D } from "./three/lazy";
-import { PhotoStack, ProductArt } from "./ProductMedia";
+import { PhotoStack, ProductArt, StudioImage } from "./ProductMedia";
 import { Swatch } from "./ui";
 
 export function ProductCard({ product: p, index = 0 }: { product: Product; index?: number }) {
@@ -32,6 +33,7 @@ export function ProductCard({ product: p, index = 0 }: { product: Product; index
   return (
     <motion.article
       ref={ref}
+      data-reveal
       className="group relative flex flex-col overflow-hidden rounded-3xl border border-line bg-surface transition-colors hover:border-fg/30"
       initial={{ opacity: 0, y: 28 }}
       animate={inView ? { opacity: 1, y: 0 } : undefined}
@@ -54,7 +56,7 @@ export function ProductCard({ product: p, index = 0 }: { product: Product; index
       <Link href={`/shop/${p.slug}/`} className="block" aria-label={p.badge ? `${p.name}, ${p.badge}` : p.name}>
         {/* light neutral stage, so every colour (white included) shows true */}
         <div className="stage relative aspect-square">
-          {/* real 3D model → photo (with tilt) → placeholder 3D → flat art in Lite mode */}
+          {/* real 3D model → photo (with tilt) → placeholder 3D → in Lite mode: studio render, else flat art */}
           {model && !lite ? (
             <>
               <span aria-hidden className="stage-shadow" />
@@ -72,7 +74,13 @@ export function ProductCard({ product: p, index = 0 }: { product: Product; index
               </View3D>
             </>
           ) : (
-            <ProductArt product={p} finish={finish} play={inView} />
+            <>
+              {renderFor(p, finish) ? (
+                <StudioImage product={p} finish={finish} play={inView} alt={p.name} />
+              ) : (
+                <ProductArt product={p} finish={finish} play={inView} />
+              )}
+            </>
           )}
           {p.badge && (
             <span className="absolute left-4 top-4 rounded-full bg-pop px-3 py-1 tabular-nums text-xs font-semibold uppercase tracking-widest text-on-pop">
@@ -104,6 +112,7 @@ export function ProductCard({ product: p, index = 0 }: { product: Product; index
                 aria-checked={finish === f}
                 aria-label={getFinish(f).name}
                 title={getFinish(f).name}
+                data-finish={f}
                 onPointerEnter={(e) => e.pointerType === "mouse" && setFinish(f)}
                 onClick={() => setFinish(f)}
                 className={`rounded-full p-[3px] transition-transform hover:scale-125 ${finish === f ? "ring-2 ring-fg" : ""}`}

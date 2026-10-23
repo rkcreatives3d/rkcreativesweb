@@ -1,0 +1,74 @@
+{
+  "vortex-vase": [
+    "amber",
+    "gold",
+    "frost",
+    "onyx",
+    "copper"
+  ],
+  "infinity-knot": [
+    "gold",
+    "silver",
+    "copper",
+    "onyx"
+  ],
+  "geodesic-orb-lamp": [
+    "frost",
+    "onyx",
+    "gold"
+  ],
+  "gear-spinner": [
+    "silver",
+    "onyx",
+    "amber",
+    "graphite"
+  ],
+  "hex-planter": [
+    "graphite",
+    "frost",
+    "onyx",
+    "amber"
+  ],
+  "mobius-loop": [
+    "copper",
+    "gold",
+    "silver",
+    "onyx"
+  ],
+  "flexi-serpent": [
+    "onyx",
+    "amber",
+    "silver",
+    "graphite"
+  ],
+  "crystal-cluster": [
+    "frost",
+    "silver",
+    "gold",
+    "copper"
+  ],
+  "saturn-lamp": [
+    "gold",
+    "frost",
+    "amber"
+  ],
+  "wedge-phone-stand": [
+    "onyx",
+    "graphite",
+    "frost",
+    "silver"
+  ],
+  "name-keychain": [
+    "gold",
+    "silver",
+    "amber",
+    "onyx",
+    "frost"
+  ],
+  "desk-nameplate": [
+    "gold",
+    "silver",
+    "copper",
+    "frost"
+  ]
+}

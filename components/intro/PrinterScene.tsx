@@ -37,10 +37,21 @@ export function PrinterScene({
   const { camera, size } = useThree();
   const tan = Math.tan(THREE.MathUtils.degToRad(HERO_FOV / 2));
   const aspect = size.width / size.height;
-  // start: whole printer in shot; end: logo framed like the hero (see LogoPlaque)
+  // start: whole printer in shot; end: the printed logo lands exactly on the cover's logo image
   const startZ = Math.max(9.5, 5.8 / aspect / (2 * tan));
-  const endZ = Math.max(S / (LOGO_FILL_H * 2 * tan), S / (LOGO_FILL_W * 2 * tan * aspect));
-  const endY = CY - LOGO_SHIFT_Y * 2 * endZ * tan;
+  const { endX, endY, endZ } = useMemo(() => {
+    const r = document.getElementById("cover-logo")?.getBoundingClientRect();
+    if (!r || !r.width) {
+      // no cover image (shouldn't happen): centre it like the old full-screen cover
+      const z = Math.max(S / (LOGO_FILL_H * 2 * tan), S / (LOGO_FILL_W * 2 * tan * aspect));
+      return { endX: 0, endY: CY - LOGO_SHIFT_Y * 2 * z * tan, endZ: z };
+    }
+    const visHAt = (z: number) => 2 * z * tan;
+    const z = S / (visHAt(1) * (r.height / size.height));
+    const fx = (r.left + r.width / 2) / size.width;
+    const fy = (r.top + r.height / 2) / size.height;
+    return { endX: -(fx - 0.5) * visHAt(z) * aspect, endY: CY - (0.5 - fy) * visHAt(z), endZ: z };
+  }, [size, tan, aspect]);
 
   const reveal = useRef(0);
   const clip = useMemo(() => new THREE.Plane(new THREE.Vector3(0, -1, 0), BED), []);
@@ -109,11 +120,11 @@ export function PrinterScene({
     if (t < IN) camera.position.set(drift, 0.6, startZ + 2.5 * (1 - pin));
     else
       camera.position.set(
-        drift,
+        drift + endX * pout,
         THREE.MathUtils.lerp(0.6, endY, pout),
         THREE.MathUtils.lerp(startZ - 0.6 * p, endZ, pout),
       );
-    look.set(0, THREE.MathUtils.lerp(CY + 0.1, endY, pout), 0);
+    look.set(endX * pout, THREE.MathUtils.lerp(CY + 0.1, endY, pout), 0);
     camera.lookAt(look);
 
     if (!done.current && pout > 0.85) {

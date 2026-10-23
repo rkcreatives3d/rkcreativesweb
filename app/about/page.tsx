@@ -4,6 +4,8 @@ import { InstagramGrid, PhotoGrid, Reviews } from "@/components/Proof";
 import { StudioClip } from "@/components/StudioClip";
 import { about, customerPhotos, instagramPosts, packingPhotos, reviews } from "@/lib/content";
 import { site, whatsappUrl } from "@/lib/site";
+import { getFinish, getProduct, type Product } from "@/lib/products";
+import { renderFor } from "@/lib/renders";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/about/" },
@@ -24,6 +26,15 @@ const promises = [
   ["Custom welcome", "Names, colours, sizes or a completely new idea."],
   ["Real support", "Questions go straight to the maker on WhatsApp."],
 ];
+
+// four different pieces in four different colours, for the photo spot until there's a workshop photo
+const showcase = (["vortex-vase", "infinity-knot", "geodesic-orb-lamp", "name-keychain"] as const)
+  .map((slug, i) => {
+    const p = getProduct(slug);
+    const f = p?.finishes[Math.min(i, p.finishes.length - 1)];
+    return p && f && renderFor(p, f) ? { p, f } : null;
+  })
+  .filter((x): x is { p: Product; f: string } => !!x);
 
 export default function AboutPage() {
   return (
@@ -49,18 +60,25 @@ export default function AboutPage() {
             // eslint-disable-next-line @next/next/no-img-element
             <img src={about.photos[0].src} alt={about.photos[0].caption ?? ""} className="aspect-square w-full rounded-3xl border border-line object-cover" />
           ) : (
-            <picture>
-              <source type="image/webp" srcSet="/brand/logo-480.webp 480w, /brand/logo-720.webp 720w, /brand/logo-1080.webp 1080w" sizes="(min-width: 1024px) 45vw, 90vw" />
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src="/brand/logo.jpg"
-                alt={`${site.name} logo`}
-                width={1254}
-                height={1254}
-                fetchPriority="high"
-                className="h-auto w-full rounded-3xl border border-line bg-black"
-              />
-            </picture>
+            // until there's a workshop photo (lib/content.ts about.photos): a few of the designs
+            <figure>
+              <ul className="grid grid-cols-2 gap-3">
+                {showcase.map(({ p, f }, i) => (
+                  <li key={p.slug} className={`stage overflow-hidden rounded-3xl border border-line ${i % 2 ? "translate-y-6" : ""}`}>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={renderFor(p, f)}
+                      alt={`${p.name}, ${getFinish(f).name}`}
+                      width={720}
+                      height={720}
+                      fetchPriority={i === 0 ? "high" : undefined}
+                      className="aspect-square h-auto w-full object-cover"
+                    />
+                  </li>
+                ))}
+              </ul>
+              <figcaption className="mt-10 text-xs text-muted">A few of our designs, each printed to order.</figcaption>
+            </figure>
           )}
         </div>
       </section>

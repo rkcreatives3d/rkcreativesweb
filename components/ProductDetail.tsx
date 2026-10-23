@@ -15,7 +15,8 @@ import { MAX_NAME } from "@/lib/personalise";
 import { View3D, ViewerScene } from "./three/lazy";
 import { Stepper } from "./CartDrawer";
 import { ProductCard } from "./ProductCard";
-import { Gallery, ProductArt } from "./ProductMedia";
+import { Gallery, ProductArt, StudioImage } from "./ProductMedia";
+import { renderFor } from "@/lib/renders";
 import { PinCheck } from "./Delivery";
 import { ProductFaq, SizeGuide, sizeCm } from "./ProductInfo";
 import { ArView } from "./ArView";
@@ -96,7 +97,9 @@ export function ProductDetail({ product: p }: { product: Product }) {
             <Gallery images={photos.list} finish={finish} preview={photos.recolor} alt={p.name} />
           ) : (
             <>
-              <div className="relative aspect-square overflow-hidden rounded-3xl border border-fg/10 viewer-bg lg:aspect-auto lg:h-[calc(100svh-8rem)]">
+              <div
+                className={`relative aspect-square overflow-hidden rounded-3xl border border-fg/10 viewer-bg ${showViewer ? "lg:aspect-auto lg:h-[calc(100svh-8rem)]" : ""}`}
+              >
                 <div className="grid-bg absolute inset-0" />
                 {showViewer ? (
                   // OrbitControls listen on this wrapper; events bubble up from the View div
@@ -114,6 +117,9 @@ export function ProductDetail({ product: p }: { product: Product }) {
                       )}
                     </View3D>
                   </div>
+                ) : renderFor(p, finish) ? (
+                  // Lite mode: the studio render instead of live 3D
+                  <StudioImage product={p} finish={finish} alt={p.name} priority />
                 ) : (
                   <ProductArt product={p} finish={finish} large />
                 )}

@@ -54,6 +54,7 @@ export function KineticText({
             return (
               <motion.span
                 key={idx}
+                data-reveal
                 className={`inline-block will-change-transform ${holo ? "holo-letter" : ""}`}
                 style={
                   holo
@@ -94,6 +95,7 @@ export function Reveal({
   const Tag = as === "li" ? motion.li : motion.div;
   return (
     <Tag
+      data-reveal
       className={className}
       initial={{ opacity: 0, y }}
       whileInView={{ opacity: 1, y: 0 }}

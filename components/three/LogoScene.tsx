@@ -10,21 +10,26 @@ import { theme } from "@/lib/theme";
 import { ViewRig } from "./Studio";
 import { PrintModel } from "./PrintModel";
 import { step, useLive } from "./live";
-import { LOGO_CUT_URL, LOGO_FILL_H, LOGO_FILL_W, LOGO_SHIFT_Y, LogoPlaque, useLogoTexture } from "./LogoPlaque";
+import { LOGO_CUT_URL, LogoPlaque, useLogoTexture } from "./LogoPlaque";
 
 export const HERO_CAM_Z = 6.2;
 export const HERO_FOV = 35;
+
+/** Where the cover's logo image sits: centre (x, y) and size, as fractions of the cover (size of its height). */
+export type CoverFrame = { x: number; y: number; size: number };
 
 /**
  * Cover page: the logo, cut out of its black square so it sits on the beige
  * page, floating over its own soft shadow with printed objects orbiting it.
  */
-export function LogoScene({ url = LOGO_CUT_URL }: { url?: string }) {
+export function LogoScene({ url = LOGO_CUT_URL, frame, onShown }: { url?: string; frame: CoverFrame; onShown?: () => void }) {
   const size = useThree((s) => s.size);
   const visH = 2 * HERO_CAM_Z * Math.tan(THREE.MathUtils.degToRad(HERO_FOV / 2));
   const visW = visH * (size.width / size.height);
-  const S = Math.min(visH * LOGO_FILL_H, visW * LOGO_FILL_W);
-  const lift = visH * LOGO_SHIFT_Y;
+  // laid exactly over the page's logo image
+  const S = frame.size * visH;
+  const cx = (frame.x - 0.5) * visW;
+  const lift = (0.5 - frame.y) * visH;
 
   // animate only while the cover is on screen; the canvas idles once it's scrolled away
   const [visible, setVisible] = useState(true);
@@ -43,7 +48,7 @@ export function LogoScene({ url = LOGO_CUT_URL }: { url?: string }) {
     const r = rig.current;
     r.rotation.y += (pointer.x * 0.22 - r.rotation.y) * k;
     r.rotation.x += (-pointer.y * 0.14 - r.rotation.x) * k;
-    r.position.y = lift + scroll * 1.6;
+    r.position.set(cx, lift + scroll * 1.6, 0);
     r.scale.setScalar(1 + scroll * 0.25);
   });
 
@@ -54,6 +59,7 @@ export function LogoScene({ url = LOGO_CUT_URL }: { url?: string }) {
         <Float speed={1.2} rotationIntensity={0.08} floatIntensity={0.25}>
           <Suspense fallback={null}>
             <LogoPlaque size={S} url={url} />
+            {onShown && <Shown onShown={onShown} />}
           </Suspense>
         </Float>
         {/* glowing filament orbit, partly hidden behind the logo */}
@@ -66,12 +72,25 @@ export function LogoScene({ url = LOGO_CUT_URL }: { url?: string }) {
         <Orbiter shape="gear" finish="onyx" radius={S * 0.66} speed={0.32} phase={4.2} size={S * 0.065} live={visible} />
       </group>
       <Suspense fallback={null}>
-        <LogoShadow url={url} size={S} lift={lift} />
+        <LogoShadow url={url} size={S} x={cx} lift={lift} />
       </Suspense>
-      <Sparkles count={60} scale={[S * 2.2, S * 1.4, 3]} size={2.6} speed={0.3} color={theme.sparkles[0]} />
-      <Sparkles count={35} scale={[S * 2.2, S * 1.4, 3]} size={1.8} speed={0.2} color={theme.sparkles[1]} />
+      <group position={[cx, lift, 0]}>
+        <Sparkles count={60} scale={[S * 2.2, S * 1.4, 3]} size={2.6} speed={0.3} color={theme.sparkles[0]} />
+        <Sparkles count={35} scale={[S * 2.2, S * 1.4, 3]} size={1.8} speed={0.2} color={theme.sparkles[1]} />
+      </group>
     </>
   );
+}
+
+/** Calls back once the logo has actually been drawn, so the page's plain image can fade out under it. */
+function Shown({ onShown }: { onShown: () => void }) {
+  const done = useRef(false);
+  useFrame(() => {
+    if (done.current) return;
+    done.current = true;
+    requestAnimationFrame(onShown);
+  });
+  return null;
 }
 
 /** A printed object travelling the same tilted ellipse as the filament ring. */
@@ -127,7 +146,7 @@ const shadowFragment = /* glsl */ `
 `;
 
 /** Soft shadow in the logo's shape, cast on the beige backdrop behind it. */
-function LogoShadow({ url, size, lift }: { url: string; size: number; lift: number }) {
+function LogoShadow({ url, size, x, lift }: { url: string; size: number; x: number; lift: number }) {
   const map = useLogoTexture(url);
   const ref = useRef<THREE.Mesh>(null!);
   const uniforms = useMemo(() => ({ map: { value: map }, opacity: { value: 0.22 } }), [map]);
@@ -137,7 +156,7 @@ function LogoShadow({ url, size, lift }: { url: string; size: number; lift: numb
     ref.current.position.y = y + scroll * 1.6;
   });
   return (
-    <mesh ref={ref} position={[size * 0.012, y, -0.7]} scale={[size * 1.1, size * 1.1, 1]}>
+    <mesh ref={ref} position={[x + size * 0.012, y, -0.7]} scale={[size * 1.1, size * 1.1, 1]}>
       <planeGeometry args={[1, 1]} />
       <shaderMaterial vertexShader={shadowVertex} fragmentShader={shadowFragment} uniforms={uniforms} transparent depthWrite={false} />
     </mesh>

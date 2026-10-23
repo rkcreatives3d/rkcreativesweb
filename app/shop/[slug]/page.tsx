@@ -4,6 +4,7 @@ import { ProductDetail } from "@/components/ProductDetail";
 import { getProduct, products } from "@/lib/products";
 import { site } from "@/lib/site";
 import { faqFor } from "@/lib/faq";
+import { renderFor } from "@/lib/renders";
 
 export const dynamicParams = false;
 
@@ -44,7 +45,9 @@ export default async function ProductPage({ params }: Props) {
     sku: p.slug,
     category: p.category,
     material: p.material,
-    image: p.images?.length ? p.images.map((src) => `${site.url}${src}`) : [`${site.url}/brand/logo.jpg`],
+    image: p.images?.length
+      ? p.images.map((src) => `${site.url}${src}`)
+      : p.finishes.map((f) => renderFor(p, f)).filter(Boolean).map((src) => `${site.url}${src}`).concat(`${site.url}/brand/logo.jpg`).slice(0, 4),
     brand: { "@type": "Brand", name: site.name },
     offers: {
       "@type": "AggregateOffer",

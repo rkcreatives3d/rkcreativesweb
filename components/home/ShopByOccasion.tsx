@@ -1,21 +1,17 @@
-"use client";
-
-import { useRef, useState } from "react";
 import Link from "next/link";
-import { useInView } from "motion/react";
 import { occasions } from "@/lib/occasions";
 import { products } from "@/lib/products";
-import { modelFor } from "@/lib/models";
-import { useLiteMode } from "@/lib/lite";
-import { CardScene, View3D } from "../three/lazy";
-import { ProductArt } from "../ProductMedia";
-import { Heading, Reveal } from "../ui";
+import { renderFor } from "@/lib/renders";
+import { Heading } from "../ui";
 
-/** Occasion tiles: the quickest way into the shop. Each shows one of its products in 3D. */
+/**
+ * Ways into the shop: a compact row of occasions, each with a small picture of
+ * one of its pieces. Plain links and images, so it costs nothing to show.
+ */
 export function ShopByOccasion() {
-  // each tile shows a different product where it can, so the grid never repeats itself
+  // each link shows a different product where it can, so the row never repeats itself
   const used = new Set<string>();
-  const tiles = occasions
+  const items = occasions
     .map((o) => ({ ...o, items: products.filter(o.test) }))
     .filter((o) => o.items.length > 0)
     .map((o) => {
@@ -25,50 +21,39 @@ export function ShopByOccasion() {
     });
 
   return (
-    <section className="mx-auto max-w-7xl px-5 py-20 sm:px-8 sm:py-24">
-      <Heading className="text-4xl leading-none sm:text-5xl">
-        What&apos;s it for?
+    <section className="mx-auto max-w-7xl px-5 pb-4 pt-16 sm:px-8 sm:pt-20" aria-labelledby="occasions">
+      <Heading className="text-3xl leading-none sm:text-4xl">
+        <span id="occasions">What&apos;s it for?</span>
       </Heading>
-      <div className="mt-10 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3">
-        {tiles.map((t, i) => (
-          <Reveal key={t.id} delay={(i % 3) * 0.06}>
-            <Tile id={t.id} label={t.label} blurb={t.blurb} count={t.items.length} product={t.cover} />
-          </Reveal>
-        ))}
-      </div>
+      <ul className="mt-6 grid grid-cols-2 gap-2.5 sm:grid-cols-3 sm:gap-3 lg:grid-cols-6">
+        {items.map((o) => {
+          const pic = renderFor(o.cover, o.cover.finishes[0], "sm");
+          return (
+            <li key={o.id}>
+              <Link
+                href={`/shop/?for=${o.id}`}
+                className="group flex h-full items-center gap-3 rounded-2xl border border-line bg-surface p-2.5 pr-3 transition-colors hover:border-fg/30"
+              >
+                <span className="stage relative grid h-14 w-14 shrink-0 place-items-center overflow-hidden rounded-xl">
+                  {pic && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={pic} alt="" width={56} height={56} loading="lazy" decoding="async" className="h-full w-full object-cover" />
+                  )}
+                </span>
+                <span className="min-w-0">
+                  <span className="block font-display text-base display-case leading-tight">{o.label}</span>
+                  <span className="mt-0.5 block text-xs text-muted">
+                    {o.items.length} {o.items.length === 1 ? "piece" : "pieces"}{" "}
+                    <span aria-hidden className="inline-block text-accent transition-transform group-hover:translate-x-1">
+                      →
+                    </span>
+                  </span>
+                </span>
+              </Link>
+            </li>
+          );
+        })}
+      </ul>
     </section>
-  );
-}
-
-function Tile({ id, label, blurb, count, product }: { id: string; label: string; blurb: string; count: number; product: (typeof products)[number] }) {
-  const ref = useRef<HTMLAnchorElement>(null);
-  const inView = useInView(ref, { once: true, margin: "-10% 0px" });
-  const [hovered, setHovered] = useState(false);
-  const lite = useLiteMode();
-  return (
-    <Link
-      ref={ref}
-      href={`/shop/?for=${id}`}
-      onPointerEnter={() => setHovered(true)}
-      onPointerLeave={() => setHovered(false)}
-      className="group relative flex aspect-[4/5] flex-col justify-end overflow-hidden rounded-3xl border border-line bg-surface p-5 transition-colors hover:border-fg/30 sm:aspect-[5/4] sm:p-6"
-    >
-      <div className="stage absolute inset-x-0 top-0 h-[50%] [mask-image:linear-gradient(to_bottom,#000_65%,transparent)] sm:h-[72%]">
-        {lite ? (
-          <ProductArt product={product} />
-        ) : (
-          <View3D className="absolute inset-0">
-            <CardScene shape={product.shape} model={modelFor(product)} finish={product.finishes[0]} active={hovered} inView={inView} />
-          </View3D>
-        )}
-      </div>
-      <div className="relative">
-        <p className="font-display text-2xl display-case leading-tight sm:text-3xl">{label}</p>
-        <p className="mt-1 hidden text-sm text-muted sm:block">{blurb}</p>
-        <p className="mt-2 text-sm font-semibold text-fg">
-          {count} {count === 1 ? "piece" : "pieces"} <span className="inline-block text-accent transition-transform group-hover:translate-x-1">→</span>
-        </p>
-      </div>
-    </Link>
   );
 }

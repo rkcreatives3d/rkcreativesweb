@@ -8,6 +8,7 @@
     "start": "node scripts/serve.mjs 3000",
     "lint": "tsc --noEmit",
     "models": "node scripts/prepare-models.mjs",
+    "renders": "node scripts/render-products.mjs",
     "prebuild": "node scripts/prepare-models.mjs && node scripts/launch-check.mjs",
     "test": "playwright test",
     "check": "tsc --noEmit && npm run build && playwright test"

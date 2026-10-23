@@ -31,6 +31,7 @@ export function Intro() {
     if (left.current) return;
     left.current = true;
     finish();
+    document.documentElement.classList.add("intro-done"); // starts the cover's text fade-in (globals.css)
     setLeaving(true);
     setTimeout(() => setGone(true), 800);
   }, [finish]);
@@ -45,8 +46,23 @@ export function Intro() {
     try {
       sessionStorage.setItem(INTRO_KEY, "1");
     } catch {}
-    import("./IntroCanvas").catch(() => {}); // warm the chunk while React finishes hydrating
-    setMounted(true);
+    // Let the browser draw the cover underneath first (its logo is the page's
+    // main image): starting the 3D engine is heavy work that would hold that
+    // frame back. Waits at most 600 ms.
+    let cancelled = false;
+    const start = () => {
+      if (cancelled) return;
+      cancelled = true;
+      import("./IntroCanvas").catch(() => {});
+      setMounted(true);
+    };
+    const logo = document.getElementById("cover-logo") as HTMLImageElement | null;
+    (logo?.decode() ?? Promise.resolve()).catch(() => {}).then(() => requestAnimationFrame(() => setTimeout(start, 0)));
+    const cap = setTimeout(start, 600);
+    return () => {
+      cancelled = true;
+      clearTimeout(cap);
+    };
   }, [finish]);
 
   // safety net: whatever happens (slow phone, no WebGL, chunk failed), the site opens within 7 s

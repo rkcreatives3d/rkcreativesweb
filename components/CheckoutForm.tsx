@@ -20,7 +20,8 @@ import {
 import { deliveryQuote, shippingTo, validPin } from "@/lib/delivery";
 import { dispatchLabel, formatPrice, mailtoUrl, site, whatsappUrl } from "@/lib/site";
 import { track } from "@/lib/track";
-import { ButtonLink, Swatch } from "./ui";
+import { ButtonLink } from "./ui";
+import { ProductThumb } from "./ProductMedia";
 import { DeliveryEstimate, usePin } from "./Delivery";
 import { TrustBadges } from "./TrustBadges";
 import { MailIcon, TruckIcon } from "./Icons";
@@ -213,7 +214,7 @@ export function CheckoutForm() {
             const f = getFinish(i.finish);
             return (
               <li key={i.key} className="flex items-center gap-3">
-                <Swatch css={f.swatch} size={36} />
+                <ProductThumb product={p} finish={i.finish} className="h-12 w-12" />
                 <div className="min-w-0 flex-1">
                   <p className="truncate font-semibold">
                     {p.name} <span className="tabular-nums text-xs text-muted">×{i.qty}</span>

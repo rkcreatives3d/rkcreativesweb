@@ -49,7 +49,7 @@ The WhatsApp number must be in international format with digits only. For exampl
 
 ### Showing your products in real 3D
 
-Every product can be shown as its real 3D model, which customers can rotate and drag, and see in every colour, on the shop cards, the product page and the home page tiles. Products with a model also get a **"View in your room"** button: on a phone it places the model, at its real size and in the chosen colour, on the customer's table or floor using AR (an iPhone, or an Android phone with Google Play Services for AR). On a computer it shows a QR code that opens the same view on a phone. Use the files you print from:
+Every product can be shown as its real 3D model, which customers can rotate and drag, and see in every colour, on the shop cards (including the home page's "Fresh off the bed") and the product page. Products with a model also get a **"View in your room"** button: on a phone it places the model, at its real size and in the chosen colour, on the customer's table or floor using AR (an iPhone, or an Android phone with Google Play Services for AR). On a computer it shows a QR code that opens the same view on a phone. Use the files you print from:
 
 1. Put the file in the `models/` folder, named after the product's slug: `models/vortex-vase.stl`, `models/name-keychain.3mf`. You can use `.stl`, `.3mf` (Bambu Studio, Orca and PrusaSlicer projects work), `.obj`, `.glb` or `.gltf`.
 2. Run `npm run models`. This also happens automatically on `npm run build`.
@@ -64,6 +64,17 @@ What each product shows:
 - **Neither:** the placeholder 3D shape.
 
 On the product page, items that have both a model and photos get a "3D view / Photos" switch.
+
+### Product pictures (renders)
+
+Every product also has a studio picture of its 3D model in each of its colours, in `public/renders/`. They're used wherever live 3D is too heavy or too small: in Lite mode (cards and product pages), the cart and checkout, the "What's it for?" links, the About page, share images and Google results. Real photos always take their place once a product has them.
+
+They're made from the site itself. Run this whenever you add or change a product, a colour or a 3D model, with the site running:
+
+```bash
+npm run dev          # in one terminal
+npm run renders      # in another; takes about 2 minutes
+```
 
 ### Adding product photos
 
@@ -108,7 +119,7 @@ Customers can tap or hover over the colour swatches on shop cards and product pa
 
 ## Features
 
-- **Cover page:** your logo as a floating 3D plaque, with printed objects orbiting it.
+- **Cover page:** what you sell, at a glance: a headline, the starting price, dispatch time and "Pay by UPI", and the two main buttons, beside your logo in 3D with printed objects orbiting it (stacked on phones, sized so the buttons are on the first screen even on a small phone). The headline fades in with plain CSS, so it never waits for JavaScript on a slow phone.
 - **Opening animation** (`components/intro/`): a 3D printer prints your logo layer by layer, then lands exactly on the cover. It only plays on the home page, once per visit, and takes about 3 seconds. It can be skipped and never plays in Lite mode or for people who prefer reduced motion. To change its length, edit `IN`, `PRINT` and `OUT` in `PrinterScene.tsx`.
 - **Personalise** (`/personalise/`, and the second section of the home page): type a name and see it as a live 3D keychain or desk nameplate. Pick a lettering style (Bold, Script, Bubbly), an icon (heart, star, crown, paw, bolt) and a colour, and switch the preview to "On keys" or "On a desk" to judge the size. The choices go into the cart and the order message.
 - **Product page:** one main "Add to cart" button, with "buy now" and "Ask on WhatsApp" as quieter options; a PIN-code check that shows the delivery dates and shipping for the customer's area; a "How big is it?" size guide compared with everyday objects; and a short FAQ.
@@ -133,9 +144,10 @@ Customers can tap or hover over the colour swatches on shop cards and product pa
   - each product gets its own share image (`/og/<slug>.png`, built at export)
   - Google gets product, price, breadcrumb, FAQ and shop details (structured data)
   - `sitemap.xml` and `robots.txt` are generated automatically
-- **Speed:** the 3D engine (about 400 KB) never loads before the page is on screen. Pages show their content in well under a second, and the first download is about 250 KB. Lighthouse on a simulated mid-range phone: 95–100 for performance, 100 for accessibility and best practices on every page, and 100 for SEO once the launch details are set.
+- **Speed:** the 3D engine (about 400 KB) never loads before the page is on screen. Pages show their content in well under a second, and the first download is about 250 KB of code. Lighthouse on a simulated mid-range phone: about 90 for the home page on a first visit (the opening animation's 3D work counts against it) and 95 for the shop and product pages; 100 on desktop; 100 for accessibility and best practices on every page, and 100 for SEO once the launch details are set.
 - **Works everywhere:** tested from 320 px phones to wide desktops. Nothing scrolls sideways, every button is at least 24 × 24 px, and the layout respects notches and home bars. If a 3D file fails to download, that spot simply stays flat, and the opening animation always ends within 7 seconds.
-- **Lite mode:** the site uses photos and flat artwork instead of live 3D on phones with 2 GB of memory or less (or 4 GB with 4 cores or fewer), on data saver or 2G connections, and on devices without a usable GPU. If 3D still runs below about 24 frames a second, the site first lowers the resolution, then switches to Lite mode itself and says so, with a "Use 3D" button. Visitors can switch it on or off in the footer, and their choice is remembered.
+- **Lite mode (budget phones):** the site shows studio pictures of each product (see "Product pictures" below) instead of live 3D on phones with 2 GB of memory or less (or 4 GB with 4 cores or fewer), on data saver or 2G connections, and on devices without a usable GPU. The 3D engine is then never downloaded, and the site also drops the effects that cost most on a weak phone: background blur, endlessly repainting animations, smooth-scroll easing, and scroll-in fades (everything is simply there, even before JavaScript has loaded). On a simulated 1 GB phone with a 6× slower processor on slow 4G, pages show their content in under a second and use about 10 MB of memory. If 3D still runs below about 24 frames a second on a phone that got it, the site first lowers the resolution, then switches to Lite mode itself and says so, with a "Use 3D" button. Visitors can switch it on or off in the footer, and their choice is remembered. Smooth scrolling is only ever used with a mouse, so phones always scroll natively.
+- **Browsers:** Chrome, Edge and Firefox 111+ and Safari 16.4+, which covers any Android 7 or newer phone with an up-to-date Chrome, Android Go phones included.
 
 ## Link rules
 
@@ -148,6 +160,7 @@ Every page can be opened directly from a link except **checkout**, which needs a
 - the full order flow, from Personalise and a product page to checkout and the order page, checking the WhatsApp message line by line
 - the intro, the checkout link guard, the Track page
 - 3D: the cover animates, the shop grid stops drawing when idle, and Lite mode loads no 3D at all
+- a budget phone (1 GB, slow processor): Lite mode switches on by itself, the 3D engine is never downloaded, the cover and its buttons show straight away, and products show as studio pictures in the chosen colour
 - no page logs an error
 - layout at 320, 360, 390, 768 and 1440 px: no sideways scrolling, the nav fits, tap targets are big enough
 - an automated accessibility audit (axe, WCAG 2.2 AA) and search basics (one h1, title, description, canonical) on every page
@@ -168,7 +181,7 @@ A light beige theme. Each colour has one job, so the page stays easy to read (se
 - **Bronze** (`pop`): brand decoration: badges, labels, highlighted words. The gold gradient is kept for a few big moments only.
 - **Espresso and warm greys:** text. **Red** (`danger`) for errors, **green** (`ok`) for confirmations. **Deep amber** (`accent-2`) shows keyboard focus.
 - **Surfaces:** a beige page with lighter cards (`surface`), near-white inputs and drawers (`raised`), and soft tan borders (`line`). The "Type a name" band on the home page is the one dark section.
-- **The logo:** on the home page cover it's cut out of its black square (`public/brand/logo-cut-*.webp`, made by `python3 scripts/cutout-logo.py`), so it sits straight on the beige with a soft shadow. The opening animation still prints it as a black tile; the nav icon and the About page keep the original.
+- **The logo:** on the home page cover it's cut out of its black square (`public/brand/logo-cut-*.webp`, made by `python3 scripts/cutout-logo.py`), so it sits straight on the beige with a soft shadow. The opening animation still prints it as a black tile. The nav icon, the browser-tab icon and the home-screen icon are cut from it too (`python3 scripts/make-icons.py`): the emblem (printer, RK and spool) for the nav and home screen, just the RK letters for the tiny tab icon.
 
 Every text colour passes WCAG AA contrast on the page, the cards and the alternate sections (the accessibility tests check this).
 

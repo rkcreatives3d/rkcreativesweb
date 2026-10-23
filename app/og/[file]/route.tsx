@@ -3,6 +3,7 @@ import { join } from "node:path";
 import { ImageResponse } from "next/og";
 import { getFinish, getProduct, products } from "@/lib/products";
 import { formatPrice, site } from "@/lib/site";
+import { renderCoverFor } from "@/lib/renders";
 
 // Share card for each product (WhatsApp, Instagram, Google): photo or finish
 // orb, logo, name, price. Built at export time as /og/<slug>.png — a real .png
@@ -17,10 +18,10 @@ export function generateStaticParams() {
 export async function GET(_: Request, { params }: { params: Promise<{ file: string }> }) {
   const p = getProduct((await params).file.replace(/\.png$/, ""));
   if (!p) return new Response("Not found", { status: 404 });
-  const logo = `data:image/jpeg;base64,${(await readFile(join(process.cwd(), "public/brand/logo-160.jpg"))).toString("base64")}`;
-  const cover = p.images?.[0]
-    ? `data:image/jpeg;base64,${(await readFile(join(process.cwd(), "public", p.images[0]))).toString("base64")}`
-    : null;
+  const logo = `data:image/png;base64,${(await readFile(join(process.cwd(), "public/brand/mark-128.png"))).toString("base64")}`;
+  // its photo, else its studio render (npm run renders), else a colour orb
+  const coverFile = p.images?.[0] ?? renderCoverFor(p);
+  const cover = coverFile ? `data:image/jpeg;base64,${(await readFile(join(process.cwd(), "public", coverFile))).toString("base64")}` : null;
   const f = getFinish(p.finishes[0]);
   const saira = await readFile(join(process.cwd(), "lib/fonts/SairaSemiCondensed-ExtraBold.ttf"));
   // Saira has no ₹ glyph; Geist (bundled with next/og) does

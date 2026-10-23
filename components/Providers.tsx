@@ -17,12 +17,17 @@ import { LiteNotice } from "./LiteNotice";
 export function Providers({ children }: { children: React.ReactNode }) {
   const root = useRef<HTMLDivElement>(null!);
   const full3D = useFull3D();
-  // no smooth-scroll easing for people who've asked for less motion
-  const [calm] = useState(() => typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+  // Smooth wheel scrolling only where it helps: a mouse, the full site, and no
+  // request for less motion. Everywhere else (every phone, Lite mode) scrolling
+  // stays native and Lenis runs no per-frame loop at all. Decided after mount,
+  // so the server and the first client render match.
+  const [smooth, setSmooth] = useState(false);
 
   useEffect(() => {
     useCart.persist.rehydrate();
-    useLite.setState({ lite: document.documentElement.classList.contains("lite") });
+    const lite = document.documentElement.classList.contains("lite");
+    useLite.setState({ lite });
+    setSmooth(!lite && matchMedia("(pointer: fine)").matches && !matchMedia("(prefers-reduced-motion: reduce)").matches);
     const start = () => useLite.setState({ ready: true });
     if ("requestIdleCallback" in window) {
       const id = requestIdleCallback(start, { timeout: 1200 });
@@ -33,7 +38,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
   }, []);
 
   return (
-    <ReactLenis root options={{ lerp: 0.1, wheelMultiplier: 1, smoothWheel: !calm }}>
+    <ReactLenis root options={{ lerp: 0.1, wheelMultiplier: 1, smoothWheel: smooth, autoRaf: smooth }}>
       <MotionConfig reducedMotion="user">
         <div ref={root} className="relative">
           {children}
