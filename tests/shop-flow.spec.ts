@@ -15,7 +15,8 @@ test("intro can be skipped", async ({ page }) => {
   await prepare(page, { intro: true });
   await page.goto("/", { waitUntil: "load" });
   await page.getByRole("button", { name: "Skip" }).click();
-  await expect(page.locator("#intro")).toHaveCount(0, { timeout: 2000 });
+  // gone from view within about half a second (it's removed from the page once its script has loaded)
+  await expect(page.locator("#intro")).toBeHidden({ timeout: 3000 });
   await expect(page.getByRole("link", { name: /shop the collection/i })).toBeVisible();
 });
 

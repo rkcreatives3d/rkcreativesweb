@@ -199,7 +199,7 @@ export function useFinishMaterial(finishId: string, wireframe = false, range?: (
   const settle = useRef(0);
   const settled = useRef(false);
   const shown = useRef(finishId);
-  const swap = useRef<{ range: [number, number]; t: number } | null>(null);
+  const swap = useRef<{ range: [number, number]; start: number } | null>(null);
   const rangeRef = useRef(range);
   rangeRef.current = range;
   useEffect(() => {
@@ -210,7 +210,7 @@ export function useFinishMaterial(finishId: string, wireframe = false, range?: (
     if (r) {
       fx.old.value.copy(mat.color);
       mat.color.set(getFinish(finishId).color);
-      swap.current = { range: r, t: 0 };
+      swap.current = { range: r, start: performance.now() };
     }
     shown.current = finishId;
     invalidate();
@@ -219,13 +219,14 @@ export function useFinishMaterial(finishId: string, wireframe = false, range?: (
   useFrame((_, dt) => {
     const s = swap.current;
     if (s) {
-      s.t += step(dt) / SWAP_TIME;
-      if (s.t >= 1) {
+      // timed by the clock, so it finishes on time even at a low frame rate
+      const t = (performance.now() - s.start) / 1000 / SWAP_TIME;
+      if (t >= 1) {
         swap.current = null;
         fx.swap.value = OFF;
         if (fx.cut.value >= OFF) fx.glow.value = 0;
       } else {
-        fx.swap.value = THREE.MathUtils.lerp(s.range[0], s.range[1], easeInOut(s.t));
+        fx.swap.value = THREE.MathUtils.lerp(s.range[0], s.range[1], easeInOut(t));
         fx.glow.value = 1;
       }
       invalidate();

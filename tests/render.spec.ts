@@ -48,12 +48,14 @@ test.describe("3D", () => {
 });
 
 test("no page logs an error", async ({ page }) => {
+  test.setTimeout(180_000); // 13 pages, some with 3D, on a slow shared test machine
   const errors: string[] = [];
   page.on("pageerror", (e) => errors.push(e.message));
   page.on("console", (m) => m.type() === "error" && errors.push(m.text()));
   await prepare(page);
   for (const p of pages) {
-    await page.goto(p);
+    await page.goto(p, { waitUntil: "domcontentloaded" });
+    await page.waitForLoadState("load");
     await page.waitForTimeout(800);
   }
   expect(errors).toEqual([]);

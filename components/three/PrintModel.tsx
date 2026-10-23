@@ -76,6 +76,8 @@ export function PrintModel({
     return () => cancelAnimationFrame(id);
   }, [ready, invalidate]);
   const progress = useRef(printIn === undefined ? 1 : -delay / PRINT_TIME);
+  // timed by the clock, not by frames, so a slow device finishes on time (in fewer, bigger steps)
+  const startedAt = useRef<number | null>(null);
   const range = useRef<[number, number] | null>(null);
   useLayoutEffect(() => {
     const fx = mat.userData.fx;
@@ -94,7 +96,9 @@ export function PrintModel({
     const dt = step(raw);
     const r = root.current;
     if (printIn && ready && progress.current < 1) {
-      progress.current = Math.min(1, progress.current + dt / PRINT_TIME);
+      const now = performance.now() / 1000;
+      startedAt.current ??= now;
+      progress.current = Math.min(1, (now - startedAt.current - delay) / PRINT_TIME);
       const t = progress.current;
       if (t > 0) {
         range.current ??= heightRange(r);
