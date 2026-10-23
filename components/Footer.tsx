@@ -6,9 +6,10 @@ import { LiteToggle } from "./LiteToggle";
 export function Footer() {
   const b = site.business;
   return (
-    <footer className="relative overflow-hidden border-t border-line px-5 pb-[max(2rem,env(safe-area-inset-bottom))] pt-20 sm:px-10">
-      <div className="mx-auto grid max-w-7xl gap-12 sm:grid-cols-2 md:grid-cols-[1.6fr_1fr_1fr_1fr_1fr]">
-        <div>
+    <footer className="relative overflow-hidden border-t border-line px-5 pb-[max(2rem,env(safe-area-inset-bottom))] pt-14 sm:px-10 sm:pt-20">
+      {/* phones: two columns of links under the tagline */}
+      <div className="mx-auto grid max-w-7xl grid-cols-2 gap-x-6 gap-y-10 md:grid-cols-[1.6fr_1fr_1fr_1fr_1fr] md:gap-12">
+        <div className="col-span-2 md:col-span-1">
           <p className="max-w-sm text-lg text-muted">{site.tagline}</p>
           <p className="mt-4 tabular-nums text-xs uppercase tracking-[0.12em] text-muted">
             Printed to order in {site.city.split(",")[0]} · Dispatch in {dispatchLabel} days
@@ -52,7 +53,7 @@ export function Footer() {
 
       <p
         aria-hidden
-        className="footer-giant mx-auto mt-16 max-w-7xl select-none whitespace-nowrap text-center font-display leading-[0.9] display-case"
+        className="footer-giant mx-auto mt-12 max-w-7xl select-none whitespace-nowrap text-center font-display leading-[0.9] display-case sm:mt-16"
       >
         {site.name}
       </p>

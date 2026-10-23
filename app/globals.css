@@ -54,6 +54,8 @@
 
 html {
   background: var(--color-page);
+  /* in-page links (#request) land below the fixed nav */
+  scroll-padding-top: 6rem;
 }
 
 /* cover logo image: cut out of its black square, with a soft shadow in its own shape */

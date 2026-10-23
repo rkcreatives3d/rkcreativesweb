@@ -8,6 +8,8 @@ import { useFull3D, useLite } from "@/lib/lite";
 import "@/lib/pointer";
 import { CanvasRoot } from "./three/lazy";
 import { LiteNotice } from "./LiteNotice";
+import { ToastHost } from "./Toast";
+import { useShelf } from "@/lib/shelf";
 
 // One fixed, transparent WebGL canvas sits over the page (three/CanvasRoot.tsx).
 // Every 3D spot in the DOM is a window into it, so all scenes share one GL
@@ -25,6 +27,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     useCart.persist.rehydrate();
+    useShelf.persist.rehydrate();
     const lite = document.documentElement.classList.contains("lite");
     useLite.setState({ lite });
     setSmooth(!lite && matchMedia("(pointer: fine)").matches && !matchMedia("(prefers-reduced-motion: reduce)").matches);
@@ -43,6 +46,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
         <div ref={root} className="relative">
           {children}
           <LiteNotice />
+          <ToastHost />
           {full3D && (
             <Suspense fallback={null}>
               <CanvasRoot eventSource={root} />

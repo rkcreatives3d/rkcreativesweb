@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { optionsLabel } from "@/lib/personalise";
-import { useCart, cartSubtotal, lineTotal } from "@/lib/cart";
+import { useCart, cartCount, cartSubtotal, lineTotal } from "@/lib/cart";
 import { getFinish, getProduct } from "@/lib/products";
 import {
   buildOrderMessage,
@@ -113,8 +113,52 @@ export function CheckoutForm() {
     router.push("/order/");
   };
 
+  const total = subtotal + shipping + codFee;
   return (
-    <div className="grid gap-10 lg:grid-cols-[1.3fr_1fr]">
+    <div className="grid gap-5 lg:grid-cols-[1.3fr_1fr] lg:gap-10">
+      {/* phones: what they're paying for, before the form (the full summary is further down) */}
+      <details className="group rounded-2xl border border-line bg-surface lg:hidden">
+        <summary className="flex cursor-pointer list-none items-center justify-between gap-3 p-4 [&::-webkit-details-marker]:hidden">
+          <span className="text-sm">
+            <span className="font-semibold">Order summary</span>{" "}
+            <span className="text-muted">
+              · {cartCount(items)} {cartCount(items) === 1 ? "item" : "items"}
+            </span>
+          </span>
+          <span className="flex items-center gap-2 font-display text-xl font-bold tabular-nums">
+            {formatPrice(total)}
+            <span aria-hidden className="text-sm text-muted transition-transform group-open:rotate-180">
+              ▾
+            </span>
+          </span>
+        </summary>
+        <ul className="space-y-3 border-t border-line p-4">
+          {items.map((i) => {
+            const p = getProduct(i.slug);
+            if (!p) return null;
+            const f = getFinish(i.finish);
+            return (
+              <li key={i.key} className="flex items-center gap-3 text-sm">
+                <ProductThumb product={p} finish={i.finish} className="h-11 w-11" />
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate font-semibold">
+                    {p.name} <span className="tabular-nums text-xs text-muted">×{i.qty}</span>
+                  </span>
+                  <span className="block truncate text-xs text-muted">
+                    {f.name} · {p.sizes.find((s) => s.id === i.size)?.label}
+                    {i.engraving ? ` · “${i.engraving}”` : ""}
+                  </span>
+                </span>
+                <span className="tabular-nums">{formatPrice(lineTotal(i))}</span>
+              </li>
+            );
+          })}
+          <li className="flex justify-between border-t border-line pt-3 text-xs text-muted">
+            <span>Shipping</span>
+            <span className="tabular-nums text-fg">{shipping === 0 ? "Free" : formatPrice(shipping)}</span>
+          </li>
+        </ul>
+      </details>
       <form onSubmit={submit} className="space-y-5">
         <Fieldset title="01 · Contact">
           <Field label="Full name" required value={c.name} onChange={set("name")} autoComplete="name" />
@@ -246,7 +290,7 @@ export function CheckoutForm() {
             </p>
           )}
           <p className="flex justify-between pt-2 font-display text-2xl font-bold text-fg">
-            Total <span>{formatPrice(subtotal + shipping + codFee)}</span>
+            Total <span>{formatPrice(total)}</span>
           </p>
         </div>
         <p className="mt-4 text-xs text-muted">

@@ -26,8 +26,11 @@ test.describe("3D", () => {
       )
       .toBe(0);
 
-    await page.locator("article").first().hover();
-    await expect.poll(() => draws(page), { timeout: 5000 }).toBeGreaterThan(idle + 10);
+    // hovering lifts the model and it turns to follow the cursor: frames come again
+    const card = page.locator("article").first();
+    await card.hover();
+    await card.hover({ position: { x: 30, y: 40 } });
+    await expect.poll(() => draws(page), { timeout: 15_000 }).toBeGreaterThan(idle + 10);
   });
 
   test("Lite mode loads no 3D at all", async ({ page }) => {

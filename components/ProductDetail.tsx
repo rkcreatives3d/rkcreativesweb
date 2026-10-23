@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "motion/react";
@@ -22,7 +22,10 @@ import { ProductFaq, SizeGuide, sizeCm } from "./ProductInfo";
 import { ArView } from "./ArView";
 import { TrustBadges } from "./TrustBadges";
 import { WhatsAppIcon } from "./CheckoutForm";
-import { SpinIcon } from "./Icons";
+import { ShareIcon, SpinIcon } from "./Icons";
+import { SaveButton } from "./SaveButton";
+import { RecentlyViewed } from "./ProductStrip";
+import { useShelf } from "@/lib/shelf";
 import { Button, KineticText, Swatch } from "./ui";
 
 export function ProductDetail({ product: p }: { product: Product }) {
@@ -41,6 +44,25 @@ export function ProductDetail({ product: p }: { product: Product }) {
   const [wantsText, setWantsText] = useState(included);
   const [text, setText] = useState("");
   const [nudge, setNudge] = useState(false);
+  const textInput = useRef<HTMLInputElement>(null);
+
+  // remember it for "Recently viewed" (once this browser's saved lists have loaded)
+  useEffect(() => {
+    const mark = () => useShelf.getState().viewed(p.slug);
+    if (useShelf.persist.hasHydrated()) mark();
+    else return useShelf.persist.onFinishHydration(mark);
+  }, [p.slug]);
+
+  // phones: a buy bar fixed at the bottom while the main "Add to cart" is off screen
+  const buyRow = useRef<HTMLDivElement>(null);
+  const [barOn, setBarOn] = useState(false);
+  useEffect(() => {
+    const el = buyRow.current;
+    if (!el) return;
+    const io = new IntersectionObserver(([e]) => setBarOn(!e.isIntersecting), { rootMargin: "0px 0px -40px 0px" });
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
   const engraving = wantsText ? text.trim() : "";
   const maxLen = included ? MAX_NAME : 24;
 
@@ -57,9 +79,31 @@ export function ProductDetail({ product: p }: { product: Product }) {
   const ready = () => {
     if (included && !engraving) {
       setNudge(true);
+      // from the buy bar the box may be off screen: take them to it
+      textInput.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+      textInput.current?.focus({ preventScroll: true });
       return false;
     }
     return true;
+  };
+  const addToCart = (from: Element) => {
+    if (!ready()) return;
+    add(item, qty);
+    track("add_to_cart", { product: p.slug, finish, size, value: price * qty });
+    flyToCart(from, getFinish(finish).swatch).then(() => useCart.getState().setOpen(true));
+  };
+  const share = async () => {
+    const url = `${location.origin}/shop/${p.slug}/`;
+    const text = `${p.name} from ${site.name}: ${p.tagline}`;
+    track("share", { product: p.slug });
+    // phones: the share sheet (WhatsApp, Instagram, …); elsewhere: straight to WhatsApp
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: p.name, text, url });
+      } catch {}
+      return;
+    }
+    window.open(`https://wa.me/?text=${encodeURIComponent(`${text} ${url}`)}`, "_blank", "noopener");
   };
   const item = { slug: p.slug, finish, size, engraving: engraving || undefined };
   // media: the real 3D model first, photos second; placeholder 3D only when there's neither
@@ -176,12 +220,23 @@ export function ProductDetail({ product: p }: { product: Product }) {
 
         {/* details */}
         <div className="min-w-0">
-          <nav className="tabular-nums text-xs uppercase tracking-[0.12em] text-muted">
-            <Link href="/shop/" className="inline-block py-2 hover:text-fg">
-              Shop
-            </Link>{" "}
-            / {p.category}
-          </nav>
+          <div className="flex items-center justify-between gap-3">
+            <nav className="tabular-nums text-xs uppercase tracking-[0.12em] text-muted">
+              <Link href="/shop/" className="inline-block py-2 hover:text-fg">
+                Shop
+              </Link>{" "}
+              / {p.category}
+            </nav>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={share}
+                className="flex h-9 items-center gap-1.5 rounded-full border border-fg/15 px-3.5 text-xs font-semibold transition-colors hover:border-fg/40"
+              >
+                <ShareIcon size={16} /> Share
+              </button>
+              <SaveButton slug={p.slug} name={p.name} className="border border-fg/15 bg-transparent" />
+            </div>
+          </div>
           {p.badge && (
             <span className="mt-5 inline-block rounded-full bg-pop px-3 py-1 tabular-nums text-xs font-semibold uppercase tracking-widest text-on-pop">
               {p.badge}
@@ -278,6 +333,7 @@ export function ProductDetail({ product: p }: { product: Product }) {
               {wantsText && (
                 <>
                   <input
+                    ref={textInput}
                     value={text}
                     onChange={(e) => {
                       setText(e.target.value.slice(0, maxLen));
@@ -302,18 +358,9 @@ export function ProductDetail({ product: p }: { product: Product }) {
           )}
 
           {/* buy: one main action; buy-now and WhatsApp are quieter ways in */}
-          <div className="mt-8 flex flex-wrap items-center gap-3">
+          <div ref={buyRow} className="mt-8 flex flex-wrap items-center gap-3">
             <Stepper value={qty} onChange={setQty} />
-            <Button
-              primary
-              className="flex-1"
-              onClick={(e) => {
-                if (!ready()) return;
-                add(item, qty);
-                track("add_to_cart", { product: p.slug, finish, size, value: price * qty });
-                flyToCart(e.currentTarget, getFinish(finish).swatch).then(() => useCart.getState().setOpen(true));
-              }}
-            >
+            <Button primary className="flex-1" onClick={(e) => addToCart(e.currentTarget)}>
               Add to cart · {formatPrice(price * qty)}
             </Button>
           </div>
@@ -384,12 +431,44 @@ export function ProductDetail({ product: p }: { product: Product }) {
         <h2 className="font-display text-4xl font-extrabold display-case leading-none tracking-tight sm:text-5xl">
           You might also like
         </h2>
-        <div className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-8 grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-3">
           {related.map((r, i) => (
             <ProductCard key={r.slug} product={r} index={i} />
           ))}
         </div>
+        <RecentlyViewed exclude={p.slug} className="mt-16" />
       </section>
+
+      {/* phones: price and "Add to cart" always one tap away (hidden while the main button is in view) */}
+      <div
+        className={`fixed inset-x-0 bottom-0 z-40 border-t border-line bg-page/95 px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 shadow-[0_-10px_30px_-18px_rgba(42,33,25,0.5)] transition-transform duration-300 lg:hidden ${
+          barOn ? "translate-y-0" : "pointer-events-none translate-y-full"
+        }`}
+        aria-hidden={!barOn}
+        inert={!barOn}
+      >
+        <div className="mx-auto flex max-w-xl items-center gap-3">
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-sm font-semibold">{p.name}</p>
+            <p className="tabular-nums text-sm text-muted">
+              {formatPrice(price * qty)}
+              <span className="text-xs"> · {getFinish(finish).name}</span>
+            </p>
+          </div>
+          <a
+            href={ask}
+            target="_blank"
+            rel="noreferrer"
+            aria-label="Ask on WhatsApp"
+            className="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-fg/15 text-[#25D366]"
+          >
+            <WhatsAppIcon />
+          </a>
+          <Button primary className="shrink-0 px-5" onClick={(e) => addToCart(e.currentTarget)}>
+            {included && !engraving ? "Add your name" : "Add to cart"}
+          </Button>
+        </div>
+      </div>
     </>
   );
 }

@@ -5,6 +5,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { categories, products, type Category, type Product } from "@/lib/products";
 import { getOccasion, occasions } from "@/lib/occasions";
 import { ProductCard } from "./ProductCard";
+import { RecentlyViewed } from "./ProductStrip";
 
 const sorts = {
   featured: { label: "Featured", fn: () => 0 },
@@ -14,9 +15,12 @@ const sorts = {
 } as const;
 
 const chip = (on: boolean) =>
-  `rounded-full border px-4 py-2 text-sm font-medium transition-all ${
+  `shrink-0 whitespace-nowrap rounded-full border px-4 py-2 text-sm font-medium transition-all ${
     on ? "border-fg bg-fg text-page" : "border-fg/15 text-fg/75 hover:border-fg/40 hover:text-fg"
   }`;
+// phones: one sideways-scrolling row (edge to edge); wider screens: wrapped
+const chipRow =
+  "-mx-5 flex gap-2 overflow-x-auto px-5 pb-1 [scrollbar-width:none] sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0 sm:pb-0 [&::-webkit-scrollbar]:hidden";
 
 export function ShopGrid() {
   const [cat, setCat] = useState<Category | "All">("All");
@@ -45,8 +49,8 @@ export function ShopGrid() {
 
   return (
     <>
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-        <label className="relative flex-1">
+      <div className="flex items-center gap-2 sm:gap-3">
+        <label className="relative min-w-0 flex-1">
           <span className="sr-only">Search products</span>
           <svg className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
             <circle cx="11" cy="11" r="7" />
@@ -55,16 +59,17 @@ export function ShopGrid() {
           <input
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            placeholder="Search vases, lamps, gifts…"
+            placeholder="Search prints…"
             className="w-full rounded-full border border-fg/15 bg-page/60 py-3 pl-11 pr-4 text-fg outline-none transition-colors placeholder:text-fg/50 focus:border-accent-2 focus:ring-2 focus:ring-accent-2/20"
           />
         </label>
-        <label className="flex items-center gap-2 text-sm text-muted">
-          Sort
+        <label className="flex shrink-0 items-center gap-2 text-sm text-muted">
+          <span className="sr-only sm:not-sr-only">Sort</span>
           <select
             value={sort}
             onChange={(e) => setSort(e.target.value as keyof typeof sorts)}
-            className="rounded-full border border-fg/15 bg-page px-4 py-3 text-fg outline-none focus:border-accent-2"
+            aria-label="Sort"
+            className="w-[7.5rem] rounded-full border border-fg/15 bg-page px-3 py-3 text-fg outline-none focus:border-accent-2 sm:w-auto sm:px-4"
           >
             {Object.entries(sorts).map(([id, s]) => (
               <option key={id} value={id}>
@@ -75,14 +80,14 @@ export function ShopGrid() {
         </label>
       </div>
 
-      <div className="mt-4 flex flex-wrap gap-2" aria-label="Shop by occasion">
+      <div className={`mt-4 ${chipRow}`} role="group" aria-label="Shop by occasion">
         {occasions.map((f) => (
           <button key={f.id} aria-pressed={filter === f.id} onClick={() => setFilter(filter === f.id ? null : f.id)} className={chip(filter === f.id)}>
             {f.label}
           </button>
         ))}
       </div>
-      <div className="mt-2 flex flex-wrap gap-2" role="tablist" aria-label="Filter by category">
+      <div className={`mt-2 ${chipRow}`} role="tablist" aria-label="Filter by category">
         {(["All", ...categories] as const).map((c) => {
           const n = c === "All" ? products.length : products.filter((p) => p.category === c).length;
           return (
@@ -93,12 +98,12 @@ export function ShopGrid() {
         })}
       </div>
 
-      <p className="mt-6 tabular-nums text-xs uppercase tracking-[0.12em] text-muted" aria-live="polite">
+      <p className="mt-5 tabular-nums text-xs uppercase tracking-[0.12em] text-muted sm:mt-6" aria-live="polite">
         {list.length} {list.length === 1 ? "object" : "objects"}
       </p>
 
       {list.length ? (
-        <div className="mt-4 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-4 grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-3">
           {list.map((p, i) => (
             <ProductCard key={p.slug} product={p} index={i} />
           ))}
@@ -121,6 +126,7 @@ export function ShopGrid() {
           </motion.div>
         </AnimatePresence>
       )}
+      <RecentlyViewed className="mt-20" />
     </>
   );
 }

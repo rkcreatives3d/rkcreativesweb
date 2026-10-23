@@ -120,7 +120,9 @@ export function Hero() {
             height={1080}
             alt={`${site.name} logo`}
             fetchPriority="high"
-            className={`logo-cut logo-float relative h-full w-full transition-opacity duration-700 ${full3D && shown3D ? "opacity-0" : "opacity-100"}`}
+            // the CSS float only without 3D (the 3D logo floats itself): the image stays put, so the
+            // 3D logo lands exactly on it and the quick cross-fade shows no double image
+            className={`logo-cut relative h-full w-full transition-opacity duration-300 ${full3D ? "" : "logo-float"} ${full3D && shown3D ? "opacity-0" : "opacity-100"}`}
           />
         </div>
       </div>

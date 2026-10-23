@@ -10,7 +10,9 @@ export type TrackEvent =
   | "whatsapp_click"
   | "custom_request"
   | "ar_view"
-  | "pin_check";
+  | "pin_check"
+  | "save"
+  | "share";
 
 type Props = Record<string, string | number | boolean | undefined>;
 

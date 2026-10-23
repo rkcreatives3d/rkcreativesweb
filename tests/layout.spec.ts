@@ -4,7 +4,7 @@ import { pages, prepare } from "./helpers";
 // Every page, at phone to desktop widths: nothing pokes out sideways, the nav
 // fits, and every tap target is at least 24 × 24 px (WCAG 2.2), apart from
 // links inside sentences.
-for (const width of [320, 360, 390, 768, 1440]) {
+for (const width of [320, 360, 390, 640, 768, 1440]) {
   test(`layout holds at ${width}px`, async ({ browser }) => {
     const page = await browser.newPage({ viewport: { width, height: 800 }, isMobile: width < 768, hasTouch: width < 768 });
     await prepare(page, { lite: true });

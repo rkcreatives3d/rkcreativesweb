@@ -10,6 +10,7 @@ export const pages = [
   "/about/",
   "/contact/",
   "/track/",
+  "/saved/",
   "/guides/",
   "/guides/pla-vs-petg/",
   "/policies/shipping/",

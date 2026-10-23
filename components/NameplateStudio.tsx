@@ -64,10 +64,10 @@ export function NameplateStudio() {
 
   return (
     <div className="grid gap-8 lg:grid-cols-[1.25fr_1fr] lg:gap-14">
-      {/* preview */}
+      {/* preview: stays in view while you type and pick options (phones: a shorter strip under the nav) */}
       <div
         ref={box}
-        className="relative aspect-[4/3] overflow-hidden rounded-3xl border border-fg/10 viewer-bg lg:sticky lg:top-24 lg:aspect-auto lg:h-[min(640px,calc(100svh-8rem))]"
+        className="sticky top-[4.5rem] z-10 aspect-[16/10] overflow-hidden rounded-3xl border border-fg/10 viewer-bg shadow-[0_14px_30px_-20px_rgba(42,33,25,0.6)] sm:top-24 sm:aspect-[4/3] lg:aspect-auto lg:h-[min(640px,calc(100svh-8rem))] lg:shadow-none"
       >
         <div className="grid-bg absolute inset-0" />
         {lite ? (

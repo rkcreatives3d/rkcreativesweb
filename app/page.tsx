@@ -31,7 +31,7 @@ export default function Home() {
           </div>
           <ButtonLink href="/shop/">View all {products.length} →</ButtonLink>
         </div>
-        <div className="mt-12 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-6 grid grid-cols-2 gap-3 sm:mt-12 sm:gap-5 lg:grid-cols-3">
           {fresh.map((p, i) => (
             <ProductCard key={p.slug} product={p} index={i} />
           ))}

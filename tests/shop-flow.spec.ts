@@ -43,7 +43,7 @@ test("personalise → product → checkout → order page, with the full order i
   await expect(page.getByPlaceholder("Type here…")).toHaveValue("Ravi");
   await page.getByRole("button", { name: /^Script/ }).click();
   await page.getByRole("button", { name: "Heart" }).click();
-  await page.getByRole("button", { name: /^Add to cart/ }).click();
+  await page.getByRole("button", { name: /^Add to cart ·/ }).click();
   const drawer = page.getByRole("dialog", { name: "Cart" });
   await expect(drawer).toBeVisible({ timeout: 15_000 }); // opens after the fly-to-cart animation
   await expect(drawer).toContainText("Script letters, heart icon");
@@ -56,7 +56,7 @@ test("personalise → product → checkout → order page, with the full order i
   await page.locator("#pin-check").fill("500032");
   await page.getByRole("button", { name: "Check", exact: true }).click();
   await expect(page.locator("#pin-result")).toContainText("Same city");
-  await page.getByRole("button", { name: /^Add to cart/ }).click();
+  await page.getByRole("button", { name: /^Add to cart ·/ }).click();
   await expect(drawer).toContainText("Happy Birthday Ria", { timeout: 15_000 });
   await drawer.getByRole("link", { name: /Checkout/ }).click();
 

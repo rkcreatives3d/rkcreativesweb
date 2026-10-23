@@ -1,21 +1,59 @@
 "use client";
 
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "motion/react";
 import { useCart, cartCount } from "@/lib/cart";
-import { site } from "@/lib/site";
+import { useShelf } from "@/lib/shelf";
+import { site, whatsappUrl } from "@/lib/site";
+import { HeartIcon, MenuIcon } from "./Icons";
 
 const links = [
   { href: "/shop/", label: "Shop" },
   { href: "/personalise/", label: "Personalise", short: "Name it" },
-  { href: "/custom/", label: "Custom" },
+  // on the narrowest phones "Custom" moves into the menu, so the bar still fits
+  { href: "/custom/", label: "Custom", wide: true },
+];
+
+/** Everything else, behind "Menu". */
+const more = [
+  { href: "/custom/", label: "Custom prints" },
+  { href: "/about/", label: "About us" },
+  { href: "/guides/", label: "Guides" },
+  { href: "/track/", label: "Track an order" },
+  { href: "/contact/", label: "Contact us" },
 ];
 
 export function Nav() {
   const pathname = usePathname();
   const count = useCart((s) => cartCount(s.items));
   const setOpen = useCart((s) => s.setOpen);
+  const saved = useShelf((s) => s.saved.length);
+  const [menu, setMenu] = useState(false);
+  const menuBtn = useRef<HTMLButtonElement>(null);
+  const panel = useRef<HTMLDivElement>(null);
+
+  // the menu closes on navigation, Esc, or a tap anywhere else
+  useEffect(() => setMenu(false), [pathname]);
+  useEffect(() => {
+    if (!menu) return;
+    const key = (e: KeyboardEvent) => {
+      if (e.key !== "Escape") return;
+      setMenu(false);
+      menuBtn.current?.focus();
+    };
+    const away = (e: PointerEvent) => {
+      const t = e.target as Node;
+      if (!panel.current?.contains(t) && !menuBtn.current?.contains(t)) setMenu(false);
+    };
+    window.addEventListener("keydown", key);
+    window.addEventListener("pointerdown", away);
+    return () => {
+      window.removeEventListener("keydown", key);
+      window.removeEventListener("pointerdown", away);
+    };
+  }, [menu]);
 
   return (
     <header className="fixed inset-x-0 top-0 z-40 px-[max(0.75rem,env(safe-area-inset-left))] pt-[max(0.75rem,env(safe-area-inset-top))] sm:px-6 sm:pt-5">
@@ -31,7 +69,8 @@ export function Nav() {
             height={40}
             className="h-9 w-9 shrink-0 rounded-full ring-1 ring-accent/40 min-[380px]:h-10 min-[380px]:w-10"
           />
-          <span className="hidden font-display text-base leading-none tracking-wide display-case sm:block">
+          {/* the name fits beside the links from tablet width up */}
+          <span className="hidden font-display text-base leading-none tracking-wide display-case md:block">
             <span className="holo-text">RK</span> Creative Builds
           </span>
         </Link>
@@ -44,9 +83,9 @@ export function Nav() {
                 key={l.href}
                 href={l.href}
                 aria-current={active ? "page" : undefined}
-                className={`whitespace-nowrap rounded-full px-1.5 py-2 text-sm font-medium transition-colors min-[380px]:px-2.5 sm:px-4 ${
+                className={`whitespace-nowrap rounded-full px-1.5 py-2 text-sm font-medium transition-colors min-[380px]:px-2.5 md:px-4 ${
                   active ? "bg-fg text-page" : "text-fg/75 hover:text-fg"
-                }`}
+                } ${l.wide ? "hidden min-[430px]:inline-block" : ""}`}
               >
                 {l.short ? (
                   <>
@@ -82,8 +121,65 @@ export function Nav() {
             </AnimatePresence>
             <span className="sr-only">{count === 1 ? "item" : "items"}</span>
           </button>
+          <button
+            ref={menuBtn}
+            onClick={() => setMenu((v) => !v)}
+            aria-expanded={menu}
+            aria-controls="more-menu"
+            className="relative grid h-9 w-9 shrink-0 place-items-center rounded-full border border-fg/20 text-fg transition-colors hover:border-fg/40 min-[380px]:h-10 min-[380px]:w-10"
+          >
+            <MenuIcon open={menu} />
+            <span className="sr-only">Menu</span>
+            {saved > 0 && !menu && <span aria-hidden className="absolute right-1 top-1 h-2 w-2 rounded-full bg-danger" />}
+          </button>
         </div>
       </nav>
+
+      <AnimatePresence>
+        {menu && (
+          <motion.div
+            ref={panel}
+            id="more-menu"
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.18 }}
+            className="mx-auto mt-2 max-w-7xl"
+          >
+            <nav aria-label="More" className="ml-auto w-full rounded-3xl border border-line bg-raised p-2 shadow-[0_20px_50px_-20px_rgba(42,33,25,0.5)] sm:w-72">
+              <Link href="/saved/" className="flex items-center justify-between rounded-2xl px-4 py-3 font-semibold hover:bg-fg/5">
+                <span className="flex items-center gap-2.5">
+                  <span className="text-danger">
+                    <HeartIcon size={16} filled={saved > 0} />
+                  </span>
+                  Saved
+                </span>
+                <span className="tabular-nums text-sm text-muted">{saved}</span>
+              </Link>
+              <div className="my-1 h-px bg-line" />
+              {more.map((l) => (
+                <Link
+                  key={l.href}
+                  href={l.href}
+                  aria-current={pathname.startsWith(l.href.replace(/\/$/, "")) ? "page" : undefined}
+                  className={`block rounded-2xl px-4 py-3 hover:bg-fg/5 aria-[current=page]:font-semibold ${l.href === "/custom/" ? "min-[430px]:hidden" : ""}`}
+                >
+                  {l.label}
+                </Link>
+              ))}
+              <div className="my-1 h-px bg-line" />
+              <a
+                href={whatsappUrl(`Hi ${site.name}! I have a question.`)}
+                target="_blank"
+                rel="noreferrer"
+                className="block rounded-2xl px-4 py-3 font-semibold text-ok hover:bg-fg/5"
+              >
+                Chat on WhatsApp
+              </a>
+            </nav>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </header>
   );
 }
