@@ -154,11 +154,34 @@ test("password sign-in: wrong tries count down; the right password opens the man
   await expect(page.getByText("Signed in as owner")).toBeVisible();
 });
 
-test("without the sign-in server, the page says so and offers the GitHub key", async ({ page }) => {
+test("without a sign-in server (a static-only host), the page offers the GitHub key", async ({ page }) => {
   await prepare(page, { lite: true });
+  await page.route("**/api/owner/**", (r) => r.fulfill({ status: 404, body: "" }));
   await page.goto("/owner/");
   await expect(page.getByText("Password sign-in isn't switched on yet")).toBeVisible();
   await expect(page.getByLabel("GitHub key")).toBeVisible();
+});
+
+test("the built-in password signs in through the real sign-in server", async ({ page }) => {
+  await prepare(page, { lite: true });
+  // the shop's files: served by the pretend GitHub, so the test doesn't need the internet
+  const gh = await mockGitHub(page, { password: "unused" });
+  await page.unroute("**/api/owner/**");
+  await page.route("**/api/owner/github/**", (route) => {
+    const path = new URL(route.request().url()).pathname.replace(/^.*\/api\/owner\/github\//, "").replace(/\/$/, "");
+    return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ content: fs.readFileSync(path.replace(/^contents\//, "")).toString("base64"), sha: "x" }) });
+  });
+  await page.goto("/owner/");
+  await page.getByLabel("Password").fill("wrong");
+  await page.getByRole("button", { name: "Sign in", exact: true }).click();
+  await expect(page.getByRole("alert").filter({ hasText: "Wrong password" })).toBeVisible();
+  await page.getByLabel("Password").fill("rkcreatives3d");
+  await page.getByRole("button", { name: "Sign in", exact: true }).click();
+  await expect(page.getByText("Signed in as owner")).toBeVisible();
+  await expect(page.getByText("Vortex Vase").first()).toBeVisible();
+  // no GitHub key on this server: editing yes, publishing explains
+  await expect(page.getByText("You can edit, but Publish is off")).toBeVisible();
+  expect(gh.rec.refUpdated).toBe(false);
 });
 
 test("a big 3D file is sent in pieces under 4.5 MB each (the most a Vercel function takes)", async ({ page }) => {
@@ -188,6 +211,7 @@ test("a password typed into the GitHub key box gets a clear hint, and isn't sent
   let sent = false;
   await page.route("https://api.github.com/**", (r) => ((sent = true), r.abort()));
   await page.goto("/owner/");
+  await page.getByRole("button", { name: "Sign in with a GitHub key instead" }).click();
   await page.getByLabel("GitHub key").fill("mypassword123");
   await page.getByRole("button", { name: "Sign in with key" }).click();
   await expect(page.getByRole("alert").filter({ hasText: "not a GitHub key" })).toBeVisible();

@@ -51,12 +51,12 @@ if (!fs.existsSync(root)) {
   process.exit(1);
 }
 
-// owner page password sign-in at /api/owner, once OWNER_PASSWORD is set (see owner-api.mjs)
-const ownerApi = process.env.OWNER_PASSWORD ? toNodeHandler(createOwnerApi()) : null;
+// owner page password sign-in at /api/owner (see owner-api.mjs)
+const ownerApi = toNodeHandler(createOwnerApi());
 
 http
   .createServer(async (req, res) => {
-    if (ownerApi && (await ownerApi(req, res))) return;
+    if (await ownerApi(req, res)) return;
     const url = decodeURIComponent((req.url || "/").split("?")[0]);
     let file = path.join(root, url);
     if (!file.startsWith(root)) return res.writeHead(403, security).end();

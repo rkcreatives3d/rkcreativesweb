@@ -55,11 +55,20 @@ async function start(extra: Record<string, string>) {
 
 const env = { OWNER_PASSWORD: "correct horse", GITHUB_TOKEN: "ghp_secret", GITHUB_REPO: "shop/site" };
 
-test("says when it isn't set up, and which settings are missing (names only)", async () => {
+test("with no settings: the built-in password signs in; GitHub key reported missing (by name only)", async () => {
   const s = await start({});
   const res = await s.call("/");
-  expect(res.status).toBe(503);
-  expect(await res.json()).toEqual({ error: "not-set-up", missing: ["OWNER_PASSWORD", "GITHUB_TOKEN"] });
+  expect(res.status).toBe(200);
+  expect(await res.json()).toEqual({ ok: true, canPublish: false, missing: ["GITHUB_TOKEN"] });
+  expect((await s.login("wrong")).status).toBe(401);
+  expect((await s.login("rkcreatives3d")).status).toBe(200);
+  s.close();
+});
+
+test("OWNER_PASSWORD replaces the built-in password", async () => {
+  const s = await start({ OWNER_PASSWORD: "my own" });
+  expect((await s.login("rkcreatives3d")).status).toBe(401);
+  expect((await s.login("my own")).status).toBe(200);
   s.close();
 });
 

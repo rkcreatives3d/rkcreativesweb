@@ -9,7 +9,7 @@
 //  Wrong passwords are rate-limited. No dependencies.
 //
 //  Environment (set them in your host's dashboard, never in code):
-//    OWNER_PASSWORD   the owner page password (enough to sign in and edit)
+//    OWNER_PASSWORD   optional: replaces the built-in owner password
 //    GITHUB_TOKEN     fine-grained token: this repo only, Contents read & write
 //                     (needed to publish; without it the shop is read from the public repo)
 //    GITHUB_REPO      optional, default "rkcreatives3d/rkcreativesweb"
@@ -45,6 +45,12 @@ const ALLOWED = [
 ];
 
 const sha256 = (s) => crypto.createHash("sha256").update(s).digest();
+
+// The owner's chosen password, built in (stored as a hash, not as text), so
+// sign-in works with no host settings. OWNER_PASSWORD, when set, replaces it.
+// Note: anyone can try passwords; publishing also needs GITHUB_TOKEN.
+const DEFAULT_PASSWORD_HASH = "749ea368354dc1ea8c10bddb2c9025128f9b8563e3edbcbed9217db2779a798e";
+const passwordHash = (p) => sha256(`rk-owner:${p}`);
 const b64url = (buf) => Buffer.from(buf).toString("base64url");
 
 /**
@@ -61,14 +67,16 @@ export function createOwnerApi({
   githubRaw = env.GITHUB_RAW || "https://raw.githubusercontent.com",
 } = {}) {
   const password = env.OWNER_PASSWORD || "";
+  const wanted = password ? passwordHash(password) : Buffer.from(DEFAULT_PASSWORD_HASH, "hex");
   const token = env.GITHUB_TOKEN || "";
   const repo = env.GITHUB_REPO || "rkcreatives3d/rkcreativesweb";
-  // the password alone signs the owner in (and reads the shop from the public repo);
+  // the password signs the owner in (and reads the shop from the public repo);
   // publishing also needs the GitHub key
-  const ready = !!password;
-  const missing = [...(password ? [] : ["OWNER_PASSWORD"]), ...(token ? [] : ["GITHUB_TOKEN"])];
-  // signing key for sessions: changing the password (or the GitHub key) signs everyone out
-  const key = sha256(`rk-owner-session\0${password}\0${token}`);
+  const ready = true;
+  const missing = token ? [] : ["GITHUB_TOKEN"];
+  // signing key for sessions: changing the password (or the GitHub key) signs everyone out.
+  // Without a GitHub key a session can only read what's public anyway.
+  const key = sha256(`rk-owner-session\0${wanted.toString("hex")}\0${token}`);
   const fails = new Map(); // ip -> [times]
   let allFails = [];
 
@@ -125,7 +133,7 @@ export function createOwnerApi({
         body = JSON.parse((await request.text()) || "{}");
       } catch {}
       // compare hashes: same length, constant time
-      const ok = crypto.timingSafeEqual(sha256(String(body.password ?? "")), sha256(password));
+      const ok = crypto.timingSafeEqual(passwordHash(String(body.password ?? "")), wanted);
       if (!ok) {
         mine.push(now);
         fails.set(ip, mine);

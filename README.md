@@ -35,6 +35,8 @@ Tap the **logo on the home page 5 times** (within 3 seconds) to open the shop ma
 
 **Signing in.** The secret tap only finds the page; the **password** is what protects it. The website runs in the visitor's browser and its code is public, so it can't check a password or keep a GitHub key itself. A tiny **owner sign-in server** (`scripts/owner-api.mjs`, no dependencies) does both: it checks the password, holds the GitHub key in secret, and passes on only the few GitHub calls the owner page needs. Wrong passwords are limited: 5 per device every 15 minutes (and each try is slowed down), 30 per hour in total. Sign-ins last 12 hours, or 30 days with "Keep me signed in".
 
+The password is built in (stored as a hash), so signing in needs no setup; to use a different one, set `OWNER_PASSWORD` on the host. Signing in lets you edit; **publishing also needs `GITHUB_TOKEN`** on the host (the page says so until it's there).
+
 Set it up once:
 
 1. **Make the GitHub key** the server uses: signed in to GitHub as `rkcreatives3d`, create a **fine-grained personal access token** with repository access to `rkcreativesweb` only and **Contents → Read and write**. (The owner page's sign-in has a link under "Sign in with a GitHub key instead".)
