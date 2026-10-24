@@ -182,3 +182,14 @@ test("a big 3D file is sent in pieces under 4.5 MB each (the most a Vercel funct
   expect(joined.equals(file)).toBe(true);
   for (const p of parts) expect(gh.raw(p)!.length).toBeLessThanOrEqual(3_000_000);
 });
+
+test("a password typed into the GitHub key box gets a clear hint, and isn't sent anywhere", async ({ page }) => {
+  await prepare(page, { lite: true });
+  let sent = false;
+  await page.route("https://api.github.com/**", (r) => ((sent = true), r.abort()));
+  await page.goto("/owner/");
+  await page.getByLabel("GitHub key").fill("mypassword123");
+  await page.getByRole("button", { name: "Sign in with key" }).click();
+  await expect(page.getByRole("alert").filter({ hasText: "not a GitHub key" })).toBeVisible();
+  expect(sent).toBe(false);
+});

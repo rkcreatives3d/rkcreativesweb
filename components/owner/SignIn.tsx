@@ -17,6 +17,9 @@ const TOKEN_URL =
     contents: "write",
   });
 
+/** The Vercel project's environment-variable settings (team "rkc4", project "rkcreativesweb"). */
+const VERCEL_ENV = "https://vercel.com/rkc4/rkcreativesweb/settings/environment-variables";
+
 const input = "w-full rounded-xl border border-fg/15 bg-raised px-3.5 py-3 outline-none focus:border-accent-2 focus:ring-2 focus:ring-accent-2/20";
 
 function keep(token: string, remember: boolean) {
@@ -80,6 +83,11 @@ export function SignIn() {
     e.preventDefault();
     const t = token.trim();
     if (!t) return;
+    // GitHub keys start like this; anything else is probably the password, typed in the wrong box
+    if (!/^(github_pat_|ghp_)/.test(t)) {
+      setError("That's not a GitHub key (they start with github_pat_). If it's your password: the password box appears once password sign-in is switched on in Vercel, see the box above.");
+      return;
+    }
     setBusy(true);
     setError("");
     try {
@@ -161,9 +169,12 @@ export function SignIn() {
         <form onSubmit={withKey} className="mt-8 space-y-4">
           {server === "not-set-up" && (
             <p className="rounded-xl border border-pop/40 bg-pop/10 p-3 text-sm">
-              Password sign-in isn&apos;t switched on yet. In <b>Vercel → your project → Settings → Environment Variables</b>, add{" "}
-              <code className="font-mono">OWNER_PASSWORD</code> and <code className="font-mono">GITHUB_TOKEN</code>, then redeploy. Meanwhile you can
-              sign in with your GitHub key.
+              Password sign-in isn&apos;t switched on yet. In{" "}
+              <a href={VERCEL_ENV} target="_blank" rel="noreferrer" className="font-semibold underline underline-offset-4">
+                Vercel → Settings → Environment Variables
+              </a>
+              , add <code className="font-mono">OWNER_PASSWORD</code> (your password) and <code className="font-mono">GITHUB_TOKEN</code> (a GitHub key), then
+              redeploy. Then this page shows a password box. Meanwhile you can sign in with a GitHub key.
             </p>
           )}
           <div>
