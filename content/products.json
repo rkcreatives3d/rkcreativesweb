@@ -1,5 +1,34 @@
 [
   {
+    "slug": "lord-vishnu",
+    "name": "Lord Vishnu",
+    "tagline": "",
+    "description": "",
+    "price": 599,
+    "category": "Decor",
+    "shape": "vase",
+    "finishes": [
+      "onyx"
+    ],
+    "sizes": [
+      {
+        "id": "S",
+        "label": "Small",
+        "dims": "15cms ",
+        "priceDelta": 0
+      }
+    ],
+    "material": "PLA",
+    "printTime": "3-4 hrs",
+    "tags": [
+      "festive"
+    ],
+    "hidden": false,
+    "images": [
+      "/products/lord-vishnu/mvm3ud5n-0.jpg"
+    ]
+  },
+  {
     "slug": "vortex-vase",
     "name": "Vortex Vase",
     "tagline": "A seven-point star, twisted through time.",
