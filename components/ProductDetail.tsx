@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { AnimatePresence, motion } from "motion/react";
 import { getFinish, photosFor, products, type Product } from "@/lib/products";
 import { itemPrice, useCart } from "@/lib/cart";
 import { bumpCart } from "@/lib/fly";
@@ -38,7 +37,7 @@ export function ProductDetail({ product: p }: { product: Product }) {
   const [size, setSize] = useState(p.sizes[0].id);
   const [qty, setQty] = useState(1);
   const [slicer, setSlicer] = useState(false);
-  const [autoSpin, setAutoSpin] = useState(true);
+  const [autoSpin, setAutoSpin] = useState(false);
   const [viewEl, setViewEl] = useState<HTMLElement | null>(null);
 
   // personalisation: optional add-on, or required for name products
@@ -126,9 +125,9 @@ export function ProductDetail({ product: p }: { product: Product }) {
 
   return (
     <>
-      <section className="mx-auto grid max-w-7xl gap-10 px-5 pb-20 pt-28 sm:px-8 lg:grid-cols-[1.15fr_1fr] lg:gap-16 lg:pt-32">
+      <section className="mx-auto grid max-w-6xl gap-10 px-5 pb-20 pt-20 sm:px-6 sm:pt-24 lg:grid-cols-[1.12fr_1fr] lg:gap-16 lg:pt-28">
         {/* media: photos if the product has them, otherwise the 3D preview (or flat art in Lite mode) */}
-        <div className="min-w-0 lg:sticky lg:top-24 lg:self-start">
+        <div className="min-w-0 lg:sticky lg:top-20 lg:self-start">
           {(model || (has3D && photos.list.length > 0)) && (
             <div className="mb-3 flex flex-wrap items-center gap-2">
               {has3D && photos.list.length > 0 && (
@@ -153,9 +152,8 @@ export function ProductDetail({ product: p }: { product: Product }) {
           ) : (
             <>
               <div
-                className={`relative aspect-square overflow-hidden rounded-3xl border border-fg/10 viewer-bg ${showViewer ? "lg:aspect-auto lg:h-[calc(100svh-8rem)]" : ""}`}
+                className={`relative aspect-square overflow-hidden rounded-[var(--radius-tile)] viewer-bg ${showViewer ? "lg:aspect-auto lg:h-[min(46rem,calc(100svh-7.5rem))]" : ""}`}
               >
-                <div className="grid-bg absolute inset-0" />
                 {showViewer ? (
                   <>
                     {/* OrbitControls listen on this wrapper; events bubble up from the View div */}
@@ -180,13 +178,10 @@ export function ProductDetail({ product: p }: { product: Product }) {
                         <StudioImage product={p} finish={finish} alt={p.name} still priority />
                       </div>
                     )}
-                    <span className="pointer-events-none absolute left-5 top-5 flex items-center gap-2 rounded-full bg-page/70 px-3 py-1.5 text-xs font-semibold text-fg">
-                      <SpinIcon />
-                      <span>
-                        360° · <span className="[@media(pointer:coarse)]:hidden">drag</span>
-                        <span className="hidden [@media(pointer:coarse)]:inline">swipe</span>
-                        {" to spin"}
-                      </span>
+                    <span className="pointer-events-none absolute bottom-4 left-1/2 flex -translate-x-1/2 items-center gap-1.5 whitespace-nowrap text-xs font-medium text-muted">
+                      <SpinIcon size={14} />
+                      <span className="[@media(pointer:coarse)]:hidden">Drag to turn it around</span>
+                      <span className="hidden [@media(pointer:coarse)]:inline">Swipe to turn it around</span>
                     </span>
                   </>
                 ) : (
@@ -197,23 +192,19 @@ export function ProductDetail({ product: p }: { product: Product }) {
                     ) : (
                       <ProductArt product={p} finish={finish} large />
                     )}
-                    <button onClick={want3D} className="btn absolute bottom-4 left-1/2 -translate-x-1/2 bg-page/90">
+                    <button onClick={want3D} className="btn absolute bottom-4 left-1/2 -translate-x-1/2 bg-page">
                       <SpinIcon /> View in 3D · 360°
                     </button>
                   </>
                 )}
               </div>
               {showViewer && (
-                <div className="mt-3 flex flex-wrap gap-2">
-                  <Toggle on={!slicer} onClick={() => setSlicer(false)}>
-                    Render
+                <div className="mt-3 flex flex-wrap justify-center gap-2">
+                  <Toggle on={slicer} onClick={() => setSlicer((v) => !v)}>
+                    Slicer view
                   </Toggle>
-                  <Toggle on={slicer} onClick={() => setSlicer(true)}>
-                    Slicer
-                  </Toggle>
-                  <span className="mx-1 w-px bg-fg/10" />
                   <Toggle on={autoSpin} onClick={() => setAutoSpin((v) => !v)}>
-                    Auto-spin {autoSpin ? "on" : "off"}
+                    Turn slowly
                   </Toggle>
                 </div>
               )}
@@ -224,89 +215,74 @@ export function ProductDetail({ product: p }: { product: Product }) {
         {/* details */}
         <div className="min-w-0">
           <div className="flex items-center justify-between gap-3">
-            <nav className="tabular-nums text-xs uppercase tracking-[0.12em] text-muted">
-              <Link href="/shop/" className="inline-block py-2 hover:text-fg">
+            <nav aria-label="Breadcrumb" className="text-sm text-muted">
+              <Link href="/shop/" className="inline-block py-2 hover:text-fg hover:underline">
                 Shop
-              </Link>{" "}
-              /{" "}
-              <Link href={`/shop/?c=${encodeURIComponent(p.category)}`} className="inline-block py-2 hover:text-fg">
+              </Link>
+              <span aria-hidden className="mx-1.5">
+                ›
+              </span>
+              <Link href={`/shop/?c=${encodeURIComponent(p.category)}`} className="inline-block py-2 hover:text-fg hover:underline">
                 {p.category}
               </Link>
             </nav>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={share}
-                className="flex h-9 items-center gap-1.5 rounded-full border border-fg/15 px-3.5 text-xs font-semibold transition-colors hover:border-fg/40"
-              >
+            <div className="flex items-center gap-1">
+              <button onClick={share} className="flex h-9 items-center gap-1.5 rounded-lg px-2.5 text-sm text-muted transition-colors hover:text-fg">
                 <ShareIcon size={16} /> Share
               </button>
-              <SaveButton slug={p.slug} name={p.name} className="border border-fg/15 bg-transparent" />
+              <SaveButton slug={p.slug} name={p.name} className="bg-transparent" />
             </div>
           </div>
-          {p.badge && (
-            <span className="mt-5 inline-block rounded-full bg-pop px-3 py-1 tabular-nums text-xs font-semibold uppercase tracking-widest text-on-pop">
-              {p.badge}
-            </span>
-          )}
-          <h1 className="mt-4 font-display text-5xl font-extrabold display-case leading-[0.9] tracking-tight sm:text-7xl">
+          {p.badge && <p className="eyebrow mt-4">{p.badge}</p>}
+          <h1 className={`headline-lg ${p.badge ? "mt-1" : "mt-4"}`}>
             <KineticText text={p.name} stagger={0.025} />
           </h1>
-          <p className="mt-4 text-lg text-muted">{p.tagline}</p>
+          <p className="lead mt-3">{p.tagline}</p>
 
-          <div className="mt-6 flex items-baseline gap-3">
-            <AnimatePresence mode="popLayout">
-              <motion.span
-                key={price * qty}
-                initial={{ y: 16, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                exit={{ y: -16, opacity: 0 }}
-                className="font-display text-4xl font-bold"
-              >
-                {formatPrice(price * qty)}
-              </motion.span>
-            </AnimatePresence>
+          <p className="mt-5 flex items-baseline gap-3">
+            <span className="text-2xl font-semibold tabular-nums tracking-tight">{formatPrice(price * qty)}</span>
             {qty > 1 && <span className="tabular-nums text-sm text-muted">{formatPrice(price)} each</span>}
-          </div>
+          </p>
+          <p className="mt-1 text-sm text-muted">Made to order · dispatched in {dispatchLabel} working days</p>
 
-          {/* finish */}
-          <div className="mt-10">
-            <p className="flex justify-between text-sm">
-              <span className="text-muted">Finish</span>
-              <span className="font-semibold">{getFinish(finish).name}</span>
+          {/* colour */}
+          <div className="mt-9 border-t border-line pt-6">
+            <p className="text-sm">
+              <span className="font-semibold">Colour</span>
+              <span className="text-muted"> · {getFinish(finish).name}</span>
             </p>
-            <div className="mt-3 flex flex-wrap gap-3">
+            <div className="mt-3 flex flex-wrap gap-2.5">
               {p.finishes.map((f) => (
                 <button
                   key={f}
                   onClick={() => setFinish(f)}
                   aria-label={getFinish(f).name}
                   aria-pressed={finish === f}
-                  className={`rounded-full p-1 transition-transform hover:scale-110 ${finish === f ? "ring-2 ring-fg" : "ring-1 ring-fg/15"}`}
+                  title={getFinish(f).name}
+                  className={`rounded-full p-[3px] transition-shadow ${finish === f ? "ring-2 ring-fg" : "ring-1 ring-transparent hover:ring-fg/25"}`}
                 >
-                  <Swatch css={getFinish(f).swatch} size={34} />
+                  <Swatch css={getFinish(f).swatch} size={30} />
                 </button>
               ))}
             </div>
           </div>
 
           {/* size */}
-          <div className="mt-8">
-            <p className="text-sm text-muted">Size</p>
+          <div className="mt-7">
+            <p className="text-sm font-semibold">Size</p>
             <div className="mt-3 grid grid-cols-3 gap-2">
               {p.sizes.map((s) => (
                 <button
                   key={s.id}
                   onClick={() => setSize(s.id)}
                   aria-pressed={size === s.id}
-                  className={`rounded-xl border px-3 py-3 text-left transition-all ${
-                    size === s.id ? "pick-on" : "border-fg/15 hover:border-fg/40"
+                  className={`rounded-xl border px-3 py-3 text-left transition-colors ${
+                    size === s.id ? "pick-on" : "border-line hover:border-fg/30"
                   }`}
                 >
                   <span className="block font-semibold">{s.label}</span>
-                  <span className={`block text-xs ${size === s.id ? "text-fg/75" : "text-muted"}`}>{s.dims}</span>
-                  <span className={`mt-1 block tabular-nums text-xs ${size === s.id ? "text-fg/75" : "text-muted"}`}>
-                    {s.priceDelta ? `+${formatPrice(s.priceDelta)}` : "base"}
-                  </span>
+                  <span className="block text-xs text-muted">{s.dims}</span>
+                  <span className="mt-1 block tabular-nums text-xs text-muted">{s.priceDelta ? `+${formatPrice(s.priceDelta)}` : formatPrice(p.price)}</span>
                 </button>
               ))}
             </div>
@@ -314,7 +290,7 @@ export function ProductDetail({ product: p }: { product: Product }) {
 
           {/* personalisation */}
           {p.personalisation && (
-            <div className="mt-8 rounded-xl border border-line bg-surface p-4">
+            <div className="mt-7 rounded-xl border border-line p-4">
               {included ? (
                 <p className="flex items-center justify-between text-sm">
                   <span className="font-semibold">Name to print</span>
@@ -348,8 +324,8 @@ export function ProductDetail({ product: p }: { product: Product }) {
                     placeholder={included ? "e.g. ANANYA" : "e.g. Happy Birthday, Ria"}
                     maxLength={maxLen}
                     aria-label="Text to print"
-                    className={`mt-3 w-full rounded-xl border bg-page/60 px-4 py-3 text-fg outline-none transition-colors focus:border-accent-2 focus:ring-2 focus:ring-accent-2/20 ${
-                      nudge ? "border-danger" : "border-fg/15"
+                    className={`mt-3 w-full rounded-xl border bg-page px-4 py-3 text-fg outline-none transition-colors focus-visible:border-fg ${
+                      nudge ? "border-danger" : "border-line hover:border-fg/30"
                     }`}
                   />
                   <p className={`mt-1.5 flex justify-between text-xs ${nudge ? "text-danger" : "text-muted"}`}>
@@ -378,9 +354,9 @@ export function ProductDetail({ product: p }: { product: Product }) {
                 track("buy_now", { product: p.slug, value: price * qty });
                 router.push("/checkout/");
               }}
-              className="py-2 font-semibold text-fg underline decoration-fg/30 underline-offset-4 transition-colors hover:decoration-accent"
+              className="link-more py-2"
             >
-              or buy now →
+              Buy now
             </button>
             <a
               href={ask}
@@ -388,9 +364,7 @@ export function ProductDetail({ product: p }: { product: Product }) {
               rel="noreferrer"
               className="inline-flex items-center gap-1.5 py-2 text-muted transition-colors hover:text-fg"
             >
-              <span className="text-[#25D366]">
-                <WhatsAppIcon />
-              </span>
+              <WhatsAppIcon />
               Questions? Ask on WhatsApp
             </a>
           </div>
@@ -409,38 +383,39 @@ export function ProductDetail({ product: p }: { product: Product }) {
             <TrustBadges className="mt-4" />
           </div>
 
-          {/* specs */}
-          <dl className="mt-10 grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-fg/10 bg-fg/10 text-sm">
-            {[
-              ["Material", p.material],
-              ["Print time", p.printTime],
-              ["Layer height", "0.12–0.2 mm"],
-              ["Size", sizeInfo?.dims ?? ""],
-            ].map(([k, v]) => (
-              <div key={k} className="bg-page p-4">
-                <dt className="tabular-nums text-xs uppercase tracking-[0.12em] text-muted">{k}</dt>
-                <dd className="mt-1 font-semibold">{v}</dd>
-              </div>
-            ))}
-          </dl>
-
           {p.description.trim() && (
-            <div className="mt-10">
-              <h2 className="text-xs font-semibold uppercase tracking-[0.12em] text-muted">About it</h2>
-              <p className="mt-3 leading-relaxed text-fg/80">{p.description}</p>
-            </div>
+            <Detail title="Overview">
+              <p className="leading-relaxed text-fg/85">{p.description}</p>
+            </Detail>
           )}
+
+          {/* specifications: only what the product record actually says */}
+          <Detail title="Specifications">
+            <dl className="divide-y divide-line text-sm">
+              {[
+                ["Material", p.material],
+                ["Print time", p.printTime],
+                ["Sizes", p.sizes.map((s) => [s.label, s.dims].filter((x) => x?.trim()).join(", ")).join(" · ")],
+                ["Colours", p.finishes.map((f) => getFinish(f).name).join(", ")],
+              ]
+                .filter(([, v]) => v?.trim())
+                .map(([k, v]) => (
+                  <div key={k} className="grid grid-cols-[7rem_1fr] gap-4 py-3">
+                    <dt className="text-muted">{k}</dt>
+                    <dd>{v}</dd>
+                  </div>
+                ))}
+            </dl>
+          </Detail>
           {sizeInfo && <SizeGuide product={p} size={sizeInfo} />}
           <ProductFaq product={p} />
           <ProductReviews slug={p.slug} />
         </div>
       </section>
 
-      <section className="mx-auto max-w-7xl px-5 pb-24 sm:px-8">
-        <h2 className="section-title text-3xl sm:text-[2.6rem]">
-          You might also like
-        </h2>
-        <div className="mt-8 grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-3">
+      <section className="mx-auto max-w-6xl border-t border-line px-5 pb-28 pt-16 sm:px-6 sm:pt-20">
+        <h2 className="section-title text-2xl sm:text-[1.75rem]">You may also like</h2>
+        <div className="mt-8 grid grid-cols-2 gap-x-3 gap-y-9 sm:gap-x-5 lg:grid-cols-3">
           {related.map((r, i) => (
             <ProductCard key={r.slug} product={r} index={i} printIn={false} />
           ))}
@@ -450,7 +425,7 @@ export function ProductDetail({ product: p }: { product: Product }) {
 
       {/* phones: price and "Add to cart" always one tap away (hidden while the main button is in view) */}
       <div
-        className={`fixed inset-x-0 bottom-0 z-40 border-t border-line bg-page/95 px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 shadow-[0_-10px_30px_-18px_rgba(0,0,0,0.7)] transition-transform duration-300 lg:hidden ${
+        className={`fixed inset-x-0 bottom-0 z-40 border-t border-line bg-page/95 px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 backdrop-blur-xl transition-transform duration-300 lg:hidden ${
           barOn ? "translate-y-0" : "pointer-events-none translate-y-full"
         }`}
         aria-hidden={!barOn}
@@ -469,7 +444,7 @@ export function ProductDetail({ product: p }: { product: Product }) {
             target="_blank"
             rel="noreferrer"
             aria-label="Ask on WhatsApp"
-            className="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-fg/15 text-[#25D366]"
+            className="grid h-11 w-11 shrink-0 place-items-center rounded-xl border border-line text-fg/80"
           >
             <WhatsAppIcon />
           </a>
@@ -487,12 +462,20 @@ function Toggle({ on, onClick, children }: { on: boolean; onClick: () => void; c
     <button
       onClick={onClick}
       aria-pressed={on}
-      className={`rounded-full border px-4 py-1.5 tabular-nums text-xs uppercase tracking-widest transition-all ${
-        on ? "pick-on" : "border-fg/15 text-muted hover:text-fg"
-      }`}
+      className={`rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors ${on ? "pick-on" : "border-line text-muted hover:text-fg"}`}
     >
       {children}
     </button>
+  );
+}
+
+/** One block of the product's details below the buy box, under a hairline. */
+function Detail({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <section className="mt-10 border-t border-line pt-6">
+      <h2 className="mb-3 text-lg font-semibold tracking-tight">{title}</h2>
+      {children}
+    </section>
   );
 }
 
@@ -501,11 +484,11 @@ function ProductReviews({ slug }: { slug: string }) {
   const list = reviewsFor(slug);
   const avg = average(list);
   return (
-    <div className="mt-10">
-      <div className="flex items-end justify-between gap-3">
-        <h2 className="text-xs font-semibold uppercase tracking-[0.12em] text-muted">Reviews</h2>
-        <Link href={`/reviews/?product=${slug}#write`} className="py-1 text-sm font-semibold text-accent hover:underline">
-          Write a review →
+    <section className="mt-10 border-t border-line pt-6">
+      <div className="flex items-baseline justify-between gap-3">
+        <h2 className="text-lg font-semibold tracking-tight">Reviews</h2>
+        <Link href={`/reviews/?product=${slug}#write`} className="link-more py-1 text-sm">
+          Write a review
         </Link>
       </div>
       {list.length ? (
@@ -525,8 +508,8 @@ function ProductReviews({ slug }: { slug: string }) {
           )}
         </>
       ) : (
-        <p className="mt-2 text-sm text-muted">Bought it? Tell others what you think, with a photo.</p>
+        <p className="mt-2 text-sm text-muted">No reviews yet. Bought it? Tell others what you think, with a photo.</p>
       )}
-    </div>
+    </section>
   );
 }

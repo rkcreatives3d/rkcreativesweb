@@ -12,14 +12,16 @@ for (const mode of ["3D", "Lite"] as const) {
     await prepare(page, { lite: mode === "Lite" });
     await page.addInitScript(() => localStorage.setItem("rk-gpu", "ok"));
     await page.goto("/");
-    if (mode === "3D") await expect(page.locator("canvas")).toHaveCount(1, { timeout: 15_000 });
-    // nothing (like the 3D layer) may sit on top of the logo and catch the taps
-    const box = (await page.locator("#cover-logo").boundingBox())!;
+    // the logo in the brand story, near the end of the home page
+    await page.locator("#brand-logo").scrollIntoViewIfNeeded();
+    await page.waitForTimeout(300);
+    // nothing (like a 3D layer) may sit on top of the logo and catch the taps
+    const box = (await page.locator("#brand-logo").boundingBox())!;
     const [x, y] = [box.x + box.width / 2, box.y + box.height / 2];
     expect(await page.evaluate(([x, y]) => !!document.elementFromPoint(x, y)?.closest("[data-owner-tap]"), [x, y])).toBe(true);
     if (mode === "Lite") for (let i = 0; i < 5; i++) await page.mouse.click(x, y);
-    // with 3D, a test machine drawing it in software handles each real tap so slowly that 5 take
-    // longer than the 5-second window: tap the element under that point 5 times in quick succession
+    // with 3D on, a busy test machine can handle real taps slowly: tap the element under that point
+    // 5 times in quick succession
     else
       await page.evaluate(([x, y]) => {
         const el = document.elementFromPoint(x, y)!;
@@ -42,7 +44,9 @@ test("5 taps on the small logo in the top bar work too, on the home page only", 
 test("fewer than 5 taps don't open it", async ({ page }) => {
   await prepare(page, { lite: true });
   await page.goto("/");
-  const box = (await page.locator("#cover-logo").boundingBox())!;
+  await page.locator("#brand-logo").scrollIntoViewIfNeeded();
+  await page.waitForTimeout(300);
+  const box = (await page.locator("#brand-logo").boundingBox())!;
   for (let i = 0; i < 4; i++) await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
   await page.waitForTimeout(500);
   await expect(page).not.toHaveURL(/owner/);

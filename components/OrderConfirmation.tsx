@@ -16,7 +16,7 @@ export function OrderConfirmation() {
   if (!order) {
     return (
       <div className="mx-auto max-w-xl py-16 text-center">
-        <h1 className="font-display text-4xl font-extrabold display-case">No recent order</h1>
+        <h1 className="text-3xl font-semibold tracking-tight">No recent order</h1>
         <p className="mt-3 text-muted">Orders you send from this browser show up here.</p>
         <div className="mt-8">
           <ButtonLink href="/shop/" primary>
@@ -44,8 +44,8 @@ export function OrderConfirmation() {
 
   return (
     <div className="mx-auto max-w-3xl">
-      <p className="tabular-nums text-xs uppercase tracking-[0.12em] text-pop">Order {order.id}</p>
-      <h1 className="mt-3 font-display text-5xl font-extrabold display-case leading-[0.9] tracking-tight sm:text-7xl">
+      <p className="text-sm font-semibold text-accent">Order {order.id}</p>
+      <h1 className="mt-3 headline-lg">
         Thanks{order.name ? `, ${order.name}` : ""}!
       </h1>
       <p className="mt-4 max-w-xl text-lg text-muted">Your order is drafted. One step left: send the message in {app}.</p>
@@ -79,12 +79,12 @@ export function OrderConfirmation() {
 
       <div className="print:hidden">
         {order.pay === "cod" ? (
-          <p className="mx-auto mt-8 max-w-md rounded-3xl border border-line bg-surface p-6 text-sm text-muted">
+          <p className="mx-auto mt-8 max-w-md rounded-[var(--radius-tile)] bg-page-2 p-6 text-sm text-muted">
             <span className="block font-semibold text-fg">Cash on delivery</span>
             Pay {formatPrice(order.total)} to the courier when your order arrives.
           </p>
         ) : order.pay === "card" && site.payments.cardPayUrl ? (
-          <div className="mx-auto mt-8 max-w-md rounded-3xl border border-line bg-surface p-6 text-sm">
+          <div className="mx-auto mt-8 max-w-md rounded-[var(--radius-tile)] bg-page-2 p-6 text-sm">
             <p className="font-semibold">Pay by card, netbanking or wallet</p>
             <p className="mt-1 text-muted">
               Opens Razorpay&apos;s secure page. Enter {formatPrice(order.total)} and your order number <span className="text-fg">{order.id}</span>.
@@ -98,8 +98,8 @@ export function OrderConfirmation() {
         )}
       </div>
 
-      <section className="mt-10 rounded-3xl border border-line bg-surface p-6" aria-labelledby="summary">
-        <h2 id="summary" className="font-display text-2xl font-bold">
+      <section className="mt-10 rounded-[var(--radius-tile)] bg-page-2 p-6" aria-labelledby="summary">
+        <h2 id="summary" className="text-xl font-semibold tracking-tight">
           Summary
         </h2>
         <ul className="mt-4 divide-y divide-fg/10">
@@ -128,7 +128,7 @@ export function OrderConfirmation() {
               <dd className="tabular-nums text-fg">{formatPrice(order.codFee)}</dd>
             </div>
           ) : null}
-          <div className="flex justify-between pt-2 font-display text-2xl font-bold text-fg">
+          <div className="flex justify-between pt-2 text-xl font-semibold text-fg">
             <dt>Total</dt>
             <dd>{formatPrice(order.total)}</dd>
           </div>

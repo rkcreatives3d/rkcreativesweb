@@ -23,61 +23,38 @@ export async function GET(_: Request, { params }: { params: Promise<{ file: stri
   const coverFile = p.images?.[0] ?? renderCoverFor(p);
   const cover = coverFile ? `data:image/jpeg;base64,${(await readFile(join(process.cwd(), "public", coverFile))).toString("base64")}` : null;
   const f = getFinish(p.finishes[0]);
-  const saira = await readFile(join(process.cwd(), "lib/fonts/Saira-ExtraBold.ttf"));
-  // Saira has no ₹ glyph; Geist (bundled with next/og) does
+  const inter = await readFile(join(process.cwd(), "lib/fonts/Inter-SemiBold.ttf"));
+  // Geist (bundled with next/og) for anything the Inter file lacks
   const geist = await readFile(join(process.cwd(), "node_modules/next/dist/compiled/@vercel/og/Geist-Regular.ttf"));
+  const from = p.sizes.some((s) => s.priceDelta) ? "From " : "";
 
   return new ImageResponse(
     (
-      <div style={{ width: "100%", height: "100%", display: "flex", background: "#13110f", color: "#f4ece1", fontFamily: "sans-serif" }}>
-        <div style={{ width: 630, height: 630, display: "flex", alignItems: "center", justifyContent: "center", position: "relative" }}>
+      <div style={{ width: "100%", height: "100%", display: "flex", background: "#ffffff", color: "#1d1d1f", fontFamily: "Inter, Geist" }}>
+        <div style={{ width: 630, height: 630, display: "flex", alignItems: "center", justifyContent: "center", background: "#f5f5f7" }}>
           {cover ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img src={cover} width={630} height={630} style={{ objectFit: "cover" }} alt="" />
           ) : (
-            <div
-              style={{
-                width: 360,
-                height: 360,
-                borderRadius: 999,
-                background: f.color,
-                boxShadow: `0 0 160px 40px ${f.color}55`,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontSize: 140,
-                fontFamily: "Saira",
-                color: "rgba(0,0,0,0.55)",
-              }}
-            >
-              {p.name
-                .split(" ")
-                .slice(0, 2)
-                .map((w) => w[0])
-                .join("")}
-            </div>
+            <div style={{ width: 340, height: 340, borderRadius: 999, background: f.color, display: "flex" }} />
           )}
         </div>
-        <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", padding: "0 60px 0 20px" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+        <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", padding: "0 64px 0 56px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={logo} width={64} height={64} style={{ borderRadius: 999 }} alt="" />
-            <span style={{ fontSize: 24, letterSpacing: 4, color: "#ebb55c", textTransform: "uppercase" }}>{site.name}</span>
+            <img src={logo} width={44} height={44} style={{ borderRadius: 999 }} alt="" />
+            <span style={{ fontSize: 24, color: "#6e6e73" }}>{site.name}</span>
           </div>
-          <div style={{ fontSize: 80, fontFamily: "Saira", lineHeight: 1.02, marginTop: 36 }}>{p.name}</div>
-          <div style={{ fontSize: 28, color: "#ab9f90", marginTop: 18 }}>{p.tagline}</div>
-          <div style={{ display: "flex", marginTop: 40 }}>
-            <div style={{ fontSize: 40, fontFamily: "Geist", padding: "12px 28px", borderRadius: 999, background: "#f39a1e", color: "#1a1206" }}>
-              {`from ${formatPrice(p.price)}`}
-            </div>
-          </div>
+          <div style={{ fontSize: 76, lineHeight: 1.04, letterSpacing: -2.5, marginTop: 34 }}>{p.name}</div>
+          {p.tagline && <div style={{ fontSize: 28, lineHeight: 1.3, color: "#6e6e73", marginTop: 18 }}>{p.tagline}</div>}
+          <div style={{ fontSize: 34, marginTop: 34 }}>{`${from}${formatPrice(p.price)}`}</div>
         </div>
       </div>
     ),
     {
       ...size,
       fonts: [
-        { name: "Saira", data: saira, weight: 800, style: "normal" },
+        { name: "Inter", data: inter, weight: 600, style: "normal" },
         { name: "Geist", data: geist, weight: 400, style: "normal" },
       ],
     },

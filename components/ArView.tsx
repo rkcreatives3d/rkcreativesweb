@@ -105,7 +105,7 @@ export function ArView({ model, name, slug, sizeCm, tint }: { model: string; nam
     <>
       <button
         onClick={show}
-        className="inline-flex items-center gap-2 rounded-full border border-fg/15 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-fg transition-colors hover:border-fg/40"
+        className="inline-flex items-center gap-2 rounded-lg border border-line px-3 py-1.5 text-xs font-medium text-fg transition-colors hover:border-fg/30"
       >
         <ArIcon /> View in your room
       </button>
@@ -114,7 +114,7 @@ export function ArView({ model, name, slug, sizeCm, tint }: { model: string; nam
         onClose={() => setOpen(false)}
         onClick={(e) => e.target === dialog.current && dialog.current?.close()}
         aria-labelledby="ar-title"
-        className="m-auto w-[min(920px,calc(100vw-2rem))] rounded-3xl border border-fg/10 bg-page p-0 text-fg backdrop:bg-black/70 backdrop:backdrop-blur-sm"
+        className="m-auto w-[min(920px,calc(100vw-2rem))] rounded-[var(--radius-tile)] bg-page p-0 text-fg backdrop:bg-black/70 backdrop:backdrop-blur-sm"
       >
         {open && (
           <div className="grid md:grid-cols-[1.3fr_1fr]">

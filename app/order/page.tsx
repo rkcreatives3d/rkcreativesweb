@@ -5,7 +5,7 @@ export const metadata: Metadata = { title: "Your order", robots: { index: false,
 
 export default function OrderPage() {
   return (
-    <div className="px-5 pb-24 pt-28 sm:px-8 sm:pt-36">
+    <div className="px-5 pb-24 pt-28 sm:px-6 sm:pt-32">
       <OrderConfirmation />
     </div>
   );

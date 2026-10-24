@@ -3,6 +3,7 @@ import type { Page } from "@playwright/test";
 export const pages = [
   "/",
   "/shop/",
+  "/collections/",
   "/shop/vortex-vase/",
   "/shop/name-keychain/",
   "/personalise/",

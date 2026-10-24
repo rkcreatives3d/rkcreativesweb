@@ -1,33 +1,28 @@
+import Link from "next/link";
 import { site, whatsappUrl } from "@/lib/site";
-import { ButtonLink, Reveal, SectionLabel } from "../ui";
+import { Reveal } from "../ui";
 
+/** For anything that isn't in the shop: one line of how it works and one way to start. */
 export function CustomCta() {
   return (
-    <section className="px-5 py-24 sm:px-8 sm:py-32">
-      <div className="cta-card relative mx-auto max-w-7xl overflow-hidden rounded-3xl p-8 sm:p-16">
-        <SectionLabel>Custom orders</SectionLabel>
-        <Reveal y={24}>
-          <h2 className="mt-6 max-w-4xl section-title text-4xl sm:text-6xl">
-            Got a wild idea?
-            <br />
-            We&apos;ll print it.
-          </h2>
-        </Reveal>
-        <Reveal delay={0.2}>
-          <p className="mt-8 max-w-xl text-muted sm:text-lg">
-            Cosplay parts, name plates, replacement knobs, trophies, a figurine of your cat. Send an STL or just a
-            sketch and we&apos;ll quote within a day.
-          </p>
-          <div className="mt-10 flex flex-wrap gap-3">
-            <ButtonLink href="/custom/" primary>
-              Start a custom order →
-            </ButtonLink>
-            <ButtonLink href={whatsappUrl(`Hi ${site.name}! I'd like a custom print.`)} target="_blank" rel="noreferrer">
-              Chat on WhatsApp
-            </ButtonLink>
-          </div>
-        </Reveal>
-      </div>
+    <section className="px-3 pb-3 sm:px-4 sm:pb-4" aria-labelledby="custom-title">
+      <Reveal className="mx-auto max-w-[90rem] rounded-[var(--radius-tile)] bg-page-2 px-6 py-20 text-center sm:py-28">
+        <p className="eyebrow">Custom 3D printing</p>
+        <h2 id="custom-title" className="headline-lg mx-auto mt-2 max-w-2xl">
+          Have something else in mind?
+        </h2>
+        <p className="lead mx-auto mt-4 max-w-xl">
+          Send a sketch, a photo or a 3D file. We reply with a price and a timeline, and nothing is printed until you say yes.
+        </p>
+        <div className="mt-7 flex flex-wrap items-center justify-center gap-x-7 gap-y-3">
+          <Link href="/custom/" className="btn btn-primary">
+            Start a custom request
+          </Link>
+          <a href={whatsappUrl(`Hi ${site.name}! I'd like a custom print.`)} target="_blank" rel="noreferrer" className="link-more">
+            Chat on WhatsApp
+          </a>
+        </div>
+      </Reveal>
     </section>
   );
 }

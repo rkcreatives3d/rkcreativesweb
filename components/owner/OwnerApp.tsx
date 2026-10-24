@@ -84,7 +84,7 @@ export function OwnerApp() {
 
   return (
     // over the site's own header and footer; scrolls by itself (Lenis leaves it alone)
-    <div className="fixed inset-0 z-[60] overflow-y-auto bg-page" data-lenis-prevent>
+    <div className="fixed inset-0 z-[60] overflow-y-auto bg-page">
       {checking ? (
         <p className="p-10 text-center text-muted">Loading…</p>
       ) : !token ? (

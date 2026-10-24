@@ -15,7 +15,7 @@ export const metadata: Metadata = {
 
 const steps = [
   ["Model", "Every object starts as a 3D design, sculpted or chosen with you, and checked for strength and printability."],
-  ["Slice", "Software cuts it into hundreds of thin layers, as fine as 0.12 mm, and plans every move of the nozzle."],
+  ["Slice", "Software cuts it into hundreds of thin layers and plans every move of the nozzle."],
   ["Print", "The printer lays down each layer of molten plastic on top of the last. Some pieces take a few hours, some a whole day."],
   ["Finish", "Supports removed, edges cleaned up, then checked, packed with care and sent to your door."],
 ];
@@ -39,32 +39,30 @@ const showcase = (["vortex-vase", "infinity-knot", "geodesic-orb-lamp", "name-ke
 export default function AboutPage() {
   return (
     <>
-      <section className="mx-auto grid max-w-7xl gap-12 px-5 pb-20 pt-28 sm:px-8 sm:pt-36 lg:grid-cols-[1.1fr_1fr] lg:items-center">
+      <section className="mx-auto grid max-w-6xl gap-12 px-5 pb-20 pt-24 sm:px-6 sm:pt-32 lg:grid-cols-[1.1fr_1fr] lg:items-center">
         <div>
           <SectionLabel>About {site.name}</SectionLabel>
-          <h1 className="mt-4 font-display text-6xl font-extrabold display-case leading-[0.88] tracking-tight sm:text-8xl">
-            <KineticText text="The maker" />
-            <br />
-            <KineticText text="behind it" delay={0.15} />
+          <h1 className="headline-lg mt-2">
+            <KineticText text="The maker behind it." />
           </h1>
-          <div className="mt-8 max-w-xl space-y-4 text-lg leading-relaxed text-fg/80">
+          <div className="mt-6 max-w-xl space-y-4 text-lg leading-relaxed text-fg/80">
             {/* top of the page: shown straight away, no fade-in (it's what people came to read) */}
             {about.story.map((p, i) => (
               <p key={i}>{p}</p>
             ))}
           </div>
-          <p className="mt-6 tabular-nums text-xs uppercase tracking-[0.12em] text-muted">Based in {site.city}</p>
+          <p className="mt-6 text-sm text-muted">Based in {site.city}</p>
         </div>
         <div className="relative">
           {about.photos[0] ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={about.photos[0].src} alt={about.photos[0].caption ?? ""} className="aspect-square w-full rounded-3xl border border-line object-cover" />
+            <img src={about.photos[0].src} alt={about.photos[0].caption ?? ""} className="aspect-square w-full rounded-[var(--radius-tile)] object-cover" />
           ) : (
             // until there's a workshop photo (lib/content.ts about.photos): a few of the designs
             <figure>
               <ul className="grid grid-cols-2 gap-3">
                 {showcase.map(({ p, f }, i) => (
-                  <li key={p.slug} className={`stage overflow-hidden rounded-3xl border border-line ${i % 2 ? "translate-y-6" : ""}`}>
+                  <li key={p.slug} className="stage overflow-hidden rounded-[var(--radius-tile)]">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={renderFor(p, f)}
@@ -77,33 +75,33 @@ export default function AboutPage() {
                   </li>
                 ))}
               </ul>
-              <figcaption className="mt-10 text-xs text-muted">A few of our designs, each printed to order.</figcaption>
+              <figcaption className="mt-3 text-sm text-muted">A few of our designs, each printed to order.</figcaption>
             </figure>
           )}
         </div>
       </section>
 
-      <section className="mx-auto max-w-7xl px-5 py-16 sm:px-8">
-        <SectionLabel>How every order is made</SectionLabel>
-        <ol className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {steps.map(([title, body], i) => (
-            <Reveal as="li" key={title} delay={i * 0.08} className="h-full rounded-3xl border border-line bg-surface p-6">
-                <span className="tabular-nums text-xs text-pop">0{i + 1}</span>
-                <p className="mt-2 font-display text-2xl display-case">{title}</p>
-                <p className="mt-2 text-sm leading-relaxed text-muted">{body}</p>
-            </Reveal>
-          ))}
-        </ol>
+      <section className="bg-page-2 px-5 py-20 sm:px-6 sm:py-24">
+        <div className="mx-auto max-w-6xl">
+          <h2 className="headline-md">How every piece is made.</h2>
+          <ol className="mt-10 grid gap-x-8 gap-y-10 sm:grid-cols-2 lg:grid-cols-4">
+            {steps.map(([title, body], i) => (
+              <Reveal as="li" key={title} delay={i * 0.06} className="border-t border-line pt-5">
+                <span className="tabular-nums text-sm text-muted">0{i + 1}</span>
+                <p className="mt-1 text-xl font-semibold tracking-tight">{title}</p>
+                <p className="mt-2 leading-relaxed text-muted">{body}</p>
+              </Reveal>
+            ))}
+          </ol>
+        </div>
       </section>
 
-      <section className="mx-auto max-w-7xl px-5 py-16 sm:px-8">
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <section className="mx-auto max-w-6xl px-5 py-20 sm:px-6 sm:py-24">
+        <div className="grid gap-x-8 gap-y-8 sm:grid-cols-2 lg:grid-cols-4">
           {promises.map(([title, body], i) => (
-            <Reveal key={title} delay={i * 0.06}>
-              <div className="border-t border-pop/40 pt-4">
-                <p className="font-semibold">{title}</p>
-                <p className="mt-1 text-sm text-muted">{body}</p>
-              </div>
+            <Reveal key={title} delay={i * 0.05}>
+              <p className="font-semibold">{title}</p>
+              <p className="mt-1 text-muted">{body}</p>
             </Reveal>
           ))}
         </div>
@@ -116,22 +114,18 @@ export default function AboutPage() {
       <PhotoGrid photos={customerPhotos} label="From our customers" title="In their" highlight="homes" />
       <InstagramGrid posts={instagramPosts} />
 
-      <section className="px-5 py-20 sm:px-8">
-        <div className="cta-card mx-auto max-w-7xl rounded-3xl p-8 text-center sm:p-14">
-          <Reveal y={24}>
-            <h2 className="section-title text-3xl sm:text-[2.6rem]">
-              Say hello
-            </h2>
-          </Reveal>
-          <p className="mx-auto mt-4 max-w-md text-muted">Questions, ideas or bulk orders. Message the maker directly.</p>
-          <div className="mt-8 flex flex-wrap justify-center gap-3">
+      <section className="px-3 pb-3 sm:px-4 sm:pb-4">
+        <div className="cta-card mx-auto max-w-[90rem] rounded-[var(--radius-tile)] px-6 py-20 text-center sm:py-24">
+          <h2 className="headline-md">Say hello.</h2>
+          <p className="lead mx-auto mt-3 max-w-md">Questions, ideas or bulk orders. Message the maker directly.</p>
+          <div className="mt-7 flex flex-wrap items-center justify-center gap-x-6 gap-y-3">
             <ButtonLink href={whatsappUrl(`Hi ${site.name}!`)} primary target="_blank" rel="noreferrer">
               WhatsApp us
             </ButtonLink>
-            <ButtonLink href={`mailto:${site.email}`}>Email</ButtonLink>
-            <ButtonLink href={site.instagram} target="_blank" rel="noreferrer">
+            {!site.email.endsWith("@example.com") && <ButtonLink href={`mailto:${site.email}`}>Email</ButtonLink>}
+            <a href={site.instagram} target="_blank" rel="noreferrer" className="link-more">
               Instagram
-            </ButtonLink>
+            </a>
           </div>
         </div>
       </section>

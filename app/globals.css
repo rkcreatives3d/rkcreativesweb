@@ -1,100 +1,351 @@
 @import "tailwindcss";
 
 @theme inline {
-  --font-display: var(--font-saira), ui-sans-serif, system-ui, sans-serif;
-  --font-sans: var(--font-manrope), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-inter), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-sans: var(--font-inter), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 }
 
-/* "Workshop at night": the logo's own world. Warm charcoal, molten amber,
-   brushed gold, warm white text.
+/* Design system: quiet and precise. White and soft grey surfaces, near-black
+   text, the products carry the colour.
    Colour roles (keep to them):
-     amber       = the only accent: solid buttons (accent-fill), links and small
-                   actions (accent), badges, labels and stars (pop, a touch more gold)
-     warm white  = text; warm greys = secondary text
-     surfaces    = charcoal page; cards and panels a step lighter with a fine
-                   top highlight; page-2 = the band for alternate sections and the
-                   footer, with faint print-layer lines
-     danger / ok = errors and confirmations
-     pale amber  = keyboard focus only
-   Every text colour here passes WCAG AA (4.5:1) on page, page-2, surface and raised. */
+     ink (fg)       = text and the solid primary button
+     grey (muted)   = secondary text
+     page / page-2  = white, and the soft grey of secondary sections and product stages
+     amber (accent) = the brand's one accent, used sparingly: text links, small
+                      labels ("New"), keyboard focus. accent-fill is the logo's own
+                      molten amber, for small marks only (never text on white)
+     danger / ok    = errors and confirmations
+   A section can switch to the dark "spotlight" palette with .theme-dark (below).
+   Every text colour passes WCAG AA (4.5:1) on page, page-2 and surface. */
 @theme {
-  --color-page: #13110f; /* warm charcoal */
-  --color-surface: #1d1a17; /* cards and panels */
-  --color-raised: #27231f; /* inputs, drawers and wells inside panels */
-  --color-line: #3a342d; /* borders */
-  --color-page-2: #191613; /* the band for alternate sections and the footer */
-  --color-fg: #f4ece1; /* warm white */
-  --color-muted: #ab9f90;
-  --color-accent: #f5a442; /* amber: links, small actions */
-  --color-accent-fill: #f39a1e; /* molten amber from the logo: solid buttons */
-  --color-on-accent: #1a1206;
-  --color-accent-2: #ffc46b; /* pale amber: focus rings */
-  --color-gold: #d4973f; /* brushed gold: glows only */
-  --color-pop: #ebb55c; /* badges, small labels, stars */
-  --color-on-pop: #1a1206;
-  --color-danger: #ff8a7a;
-  --color-ok: #6fd69a;
+  --color-page: #ffffff;
+  --color-page-2: #f5f5f7;
+  --color-surface: #ffffff;
+  --color-raised: #f5f5f7;
+  --color-line: #e2e2e7;
+  --color-fg: #1d1d1f;
+  --color-muted: #6e6e73;
+  --color-accent: #a8530c;
+  --color-accent-fill: #e8891a;
+  --color-on-accent: #1d1d1f;
+  --color-accent-2: #a8530c;
+  --color-gold: #c08a3e;
+  --color-pop: #a8530c;
+  --color-on-pop: #ffffff;
+  --color-danger: #c22a1d;
+  --color-ok: #1a7f37;
   /* readable minimums: body copy 15px, small labels 13px */
   --text-xs: 0.8125rem;
   --text-xs--line-height: 1.4;
   --text-sm: 0.9375rem;
   --text-sm--line-height: 1.5;
+  --radius-tile: 1.375rem; /* big imagery tiles */
 }
 
 :root {
-  color-scheme: dark;
-  /* headings: Saira ExtraBold, sentence case (the logo's squared letters, without shouting) */
-  --display-weight: 800;
+  color-scheme: light;
+  --display-weight: 600;
   --display-case: none;
-  --display-stretch: normal;
-  --holo-style: normal;
-  --glow-a: 10%;
-  --glow-b: 6%;
+}
+
+/* the dark "spotlight" palette, for a few deliberate sections (and the opening animation) */
+.theme-dark {
+  color-scheme: dark;
+  --color-page: #000000;
+  --color-page-2: #111112;
+  --color-surface: #1c1c1e;
+  --color-raised: #1c1c1e;
+  --color-line: #333336;
+  --color-fg: #f5f5f7;
+  --color-muted: #a1a1a6;
+  --color-accent: #f5a442;
+  --color-accent-2: #f5a442;
+  --color-pop: #f5a442;
+  --color-on-pop: #000000;
+  --color-danger: #ff8a7a;
+  --color-ok: #6fd69a;
+  background-color: var(--color-page);
+  color: var(--color-fg);
 }
 
 html {
   background: var(--color-page);
-  /* in-page links (#request) land below the fixed nav */
-  scroll-padding-top: 6rem;
+  /* in-page links (#write) land below the fixed nav */
+  scroll-padding-top: 5rem;
 }
 
-/* cover logo image: cut out of its black square; a deep shadow under it, in its own shape */
-.logo-cut {
-  filter: drop-shadow(0 22px 28px rgb(0 0 0 / 0.55));
+body {
+  color: var(--color-fg);
+  font-family: var(--font-sans);
+  font-size: 1.0625rem;
+  line-height: 1.47;
+  letter-spacing: -0.011em;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: clip;
 }
-/* transform only, so it runs on the compositor (no layout or repaint per frame) */
-.logo-float {
-  animation: logo-float 6s ease-in-out infinite;
+
+/* ── type ──────────────────────────────────────────────
+   One family (Inter). Headlines semibold and tight; body 17 px. */
+h1,
+h2,
+h3 {
+  text-wrap: balance;
 }
-@keyframes logo-float {
-  50% {
-    transform: translateY(-10px);
+/* Unlayered, so it wins over Tailwind's weight/leading utilities on old call sites */
+.font-display {
+  font-weight: var(--display-weight);
+  letter-spacing: -0.028em;
+  line-height: 1.07;
+  font-synthesis: none;
+}
+.display-case {
+  text-transform: var(--display-case);
+}
+.section-title {
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: -0.028em;
+  line-height: 1.08;
+}
+.headline-xl {
+  font-weight: 600;
+  font-size: clamp(2.6rem, 6.4vw, 4.875rem);
+  line-height: 1.03;
+  letter-spacing: -0.038em;
+}
+.headline-lg {
+  font-weight: 600;
+  font-size: clamp(2.1rem, 4.8vw, 3.75rem);
+  line-height: 1.05;
+  letter-spacing: -0.032em;
+}
+.headline-md {
+  font-weight: 600;
+  font-size: clamp(1.7rem, 3.1vw, 2.5rem);
+  line-height: 1.1;
+  letter-spacing: -0.028em;
+}
+.lead {
+  font-size: clamp(1.125rem, 1.55vw, 1.3125rem);
+  line-height: 1.42;
+  letter-spacing: -0.016em;
+  color: var(--color-muted);
+}
+.eyebrow {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--color-accent);
+}
+/* a text link with a chevron: the quiet second action next to a button */
+.link-more {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2em;
+  color: var(--color-accent);
+  font-weight: 500;
+  text-underline-offset: 0.2em;
+}
+.link-more::after {
+  content: "›";
+  font-size: 1.15em;
+  line-height: 1;
+  transition: transform 0.2s;
+}
+.link-more:hover {
+  text-decoration: underline;
+}
+.link-more:hover::after {
+  transform: translateX(2px);
+}
+
+::selection {
+  background: color-mix(in oklab, var(--color-accent-fill) 32%, transparent);
+}
+
+/* the keyboard focus ring, in the base layer so a component can refine it (inputs show their own border) */
+@layer base {
+  :focus-visible {
+    outline: 2px solid var(--color-accent-2);
+    outline-offset: 2px;
   }
 }
 
-/* Cover text fade-in. Pure CSS, so on a slow phone the headline never waits
+/* keyboard users: jump past the nav */
+.skip-link {
+  position: fixed;
+  left: 1rem;
+  top: 0.75rem;
+  z-index: 100;
+  padding: 0.7rem 1.1rem;
+  border-radius: 10px;
+  background: var(--color-fg);
+  color: var(--color-page);
+  font-weight: 600;
+  transform: translateY(-200%);
+  transition: transform 0.2s;
+}
+.skip-link:focus {
+  transform: none;
+}
+
+/* ── buttons ──────────────────────────────────────
+   .btn          quiet secondary action (outline)
+   .btn-primary  the one solid action on a screen (ink; light ink in dark sections) */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 2.75rem;
+  border-radius: 12px;
+  padding: 0.7rem 1.3rem;
+  font-weight: 600;
+  font-size: 0.9375rem;
+  letter-spacing: -0.01em;
+  color: var(--color-fg);
+  white-space: nowrap;
+  border: 1px solid color-mix(in oklab, var(--color-fg) 20%, transparent);
+  transition:
+    background-color 0.2s,
+    border-color 0.2s,
+    color 0.2s,
+    transform 0.15s;
+}
+.btn:hover {
+  border-color: color-mix(in oklab, var(--color-fg) 45%, transparent);
+  background: color-mix(in oklab, var(--color-fg) 4%, transparent);
+}
+.btn:active {
+  transform: scale(0.985);
+}
+.btn-primary {
+  background: var(--color-fg);
+  border-color: var(--color-fg);
+  color: var(--color-page);
+}
+.btn-primary:hover {
+  background: color-mix(in oklab, var(--color-fg) 84%, var(--color-page));
+  border-color: transparent;
+}
+.btn:disabled {
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+/* the chosen option in a group (size, filter, lettering): an ink outline */
+.pick-on {
+  border-color: var(--color-fg);
+  box-shadow: inset 0 0 0 1px var(--color-fg);
+  color: var(--color-fg);
+}
+
+/* ── surfaces ─────────────────────────────────────── */
+.card-lift {
+  background: var(--color-surface);
+  border: 1px solid var(--color-line);
+}
+.cta-card {
+  background: var(--color-page-2);
+}
+.orbit-btn {
+  display: grid;
+  place-items: center;
+  width: 3rem;
+  height: 3rem;
+  flex-shrink: 0;
+  border-radius: 999px;
+  border: 1px solid var(--color-line);
+  font-size: 1.15rem;
+  transition: background-color 0.2s;
+}
+.orbit-btn:hover {
+  background: color-mix(in oklab, var(--color-fg) 6%, transparent);
+}
+.holo-text {
+  color: var(--color-accent);
+}
+
+/* the product stage: a soft grey studio sweep behind every product picture.
+   Studio pictures are transparent, so this is what they sit on. Keep in step
+   with lib/owner/stage.ts (photos are cleaned up onto the same sweep). */
+.stage,
+.viewer-bg {
+  background: radial-gradient(ellipse 70% 60% at 50% 42%, #fcfcfd, #f5f5f7 58%, #ececef 100%);
+}
+/* a soft floor shadow under a live 3D model */
+.stage-shadow {
+  position: absolute;
+  left: 50%;
+  bottom: 13%;
+  width: 46%;
+  height: 7%;
+  translate: -50% 0;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgb(0 0 0 / 0.16), transparent);
+}
+.grid-bg {
+  background-image:
+    linear-gradient(color-mix(in oklab, var(--color-fg) 4%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in oklab, var(--color-fg) 4%, transparent) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+/* the logo artwork (made for black): a deep shadow in its own shape */
+.logo-cut {
+  filter: drop-shadow(0 22px 28px rgb(0 0 0 / 0.55));
+}
+/* transform only, so it runs on the compositor */
+.logo-float {
+  animation: logo-float 7s ease-in-out infinite;
+}
+@keyframes logo-float {
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+/* the opening animation's backdrop: the logo's world, charcoal with its amber glow */
+.intro-bg {
+  background:
+    radial-gradient(ellipse 60% 55% at 50% 45%, color-mix(in oklab, #f39a1e 15%, transparent), transparent 62%),
+    #0b0a09;
+}
+
+/* Hero text fade-in. Pure CSS, so on a slow phone the headline never waits
    for JavaScript. When the opening animation plays, it starts as that lifts
    away (or straight after Skip: Intro adds .intro-done). */
 .hero-in {
   animation: hero-in 0.9s cubic-bezier(0.16, 1, 0.3, 1) var(--d, 0s) both;
 }
 html:not(.no-intro) .hero-in {
-  animation-delay: calc(var(--d, 0s) + 2.6s); /* as the opening animation lifts away */
+  animation-delay: calc(var(--d, 0s) + 2.6s);
 }
 html.intro-done .hero-in {
   animation-name: hero-in-again;
-  animation-delay: calc(var(--d, 0s) + 0.25s);
+  animation-delay: calc(var(--d, 0s) + 0.2s);
 }
 @keyframes hero-in {
   from {
     opacity: 0;
-    transform: translateY(18px);
+    transform: translateY(14px);
   }
 }
 @keyframes hero-in-again {
   from {
     opacity: 0;
-    transform: translateY(18px);
+    transform: translateY(14px);
+  }
+}
+
+/* product pictures ease up a touch on hover (pointer devices only) */
+@media (hover: hover) {
+  .zoom-on-hover img {
+    transition: transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .group:hover .zoom-on-hover img {
+    transform: scale(1.035);
   }
 }
 
@@ -103,11 +354,13 @@ html.intro-done .hero-in {
   .hero-in {
     animation: none;
   }
+  .group:hover .zoom-on-hover img {
+    transform: none;
+  }
 }
 
-/* Lite mode (budget phones): keep the look, drop the effects that cost the
-   most on a weak graphics chip: background blur behind glass panels, and
-   endless animations that repaint every frame. */
+/* Lite mode (budget phones): drop the effects that cost the most on a weak
+   graphics chip: background blur, and endless animations. */
 .lite .logo-float {
   animation: none;
 }
@@ -118,10 +371,12 @@ html.intro-done .hero-in {
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
 }
+.lite .nav-glass {
+  background: color-mix(in oklab, var(--color-page) 97%, transparent);
+}
 /* Scroll-in fades start hidden until JavaScript has loaded, which on a phone
    can take a second or two: on phones (and in Lite mode) content is simply
-   there from the first paint. Computers keep the fades; the 3D print-in
-   animations play everywhere. */
+   there from the first paint. Computers keep the fades. */
 .lite [data-reveal] {
   opacity: 1 !important;
   transform: none !important;
@@ -133,10 +388,6 @@ html.intro-done .hero-in {
     transform: none !important;
     will-change: auto !important;
   }
-}
-/* without the blur, the glass nav needs a near-solid fill to stay readable */
-.lite .nav-glass {
-  background: color-mix(in oklab, var(--color-page) 94%, transparent);
 }
 
 /* Lite-mode stand-in art prints in from the bed up, like the 3D models */
@@ -402,237 +653,4 @@ html.intro-skipped #intro {
   #intro {
     display: none;
   }
-}
-
-body {
-  color: var(--color-fg);
-  font-family: var(--font-sans);
-  -webkit-font-smoothing: antialiased;
-  overflow-x: clip;
-}
-
-/* faint amber light behind everything, like a lamp off to one side (kept low so the products carry the colour) */
-body::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
-  background:
-    radial-gradient(ellipse 70% 55% at 75% -5%, color-mix(in oklab, var(--color-gold) var(--glow-a), transparent), transparent 60%),
-    radial-gradient(ellipse 60% 45% at 105% 95%, color-mix(in oklab, var(--color-gold) var(--glow-b), transparent), transparent 60%);
-}
-
-/* the cover: the workshop at night. Charcoal, the logo's amber glow, and faint
-   print-layer lines that fade out towards the edges, then into the page */
-.cover-bg {
-  position: relative;
-  background:
-    linear-gradient(to bottom, transparent 80%, var(--color-page)),
-    radial-gradient(ellipse 60% 55% at 72% 42%, color-mix(in oklab, #f39a1e 16%, transparent), transparent 62%),
-    radial-gradient(ellipse 50% 40% at -5% 100%, color-mix(in oklab, #d4973f 9%, transparent), transparent 60%),
-    #100e0c;
-}
-.cover-bg::before,
-.layer-lines::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background: repeating-linear-gradient(to bottom, rgb(255 236 210 / 0.035) 0 1px, transparent 1px 5px);
-  -webkit-mask: radial-gradient(ellipse 75% 70% at 60% 45%, #000 20%, transparent 75%);
-  mask: radial-gradient(ellipse 75% 70% at 60% 45%, #000 20%, transparent 75%);
-}
-/* bands (page-2) carry the same lines, quieter */
-.layer-lines {
-  position: relative;
-  isolation: isolate;
-}
-.layer-lines::before {
-  z-index: -1;
-  -webkit-mask: linear-gradient(to bottom, transparent, #000 30%, #000 70%, transparent);
-  mask: linear-gradient(to bottom, transparent, #000 30%, #000 70%, transparent);
-}
-
-/* One heading face, Saira ExtraBold (squared like the logo's lettering), in
-   sentence case: page titles big, section titles smaller. */
-.section-title {
-  font-family: var(--font-display);
-  font-weight: 800;
-  letter-spacing: -0.02em;
-  line-height: 1.05;
-  text-transform: none;
-}
-
-/* cards and panels: a step up from the charcoal, with a fine top highlight */
-.card-lift {
-  background: var(--color-surface);
-  border: 1px solid color-mix(in oklab, var(--color-line) 80%, transparent);
-  box-shadow:
-    inset 0 1px 0 rgb(255 240 220 / 0.05),
-    0 18px 40px -22px rgb(0 0 0 / 0.8);
-}
-
-/* headings wrap into even lines, never leaving one word alone at the end */
-h1,
-h2,
-h3 {
-  text-wrap: balance;
-}
-
-/* Unlayered, so it wins over Tailwind's font-weight utilities: each theme
-   decides how heavy its display face is. */
-.font-display {
-  font-weight: var(--display-weight);
-  font-stretch: var(--display-stretch);
-  font-synthesis: none;
-}
-
-.display-case {
-  text-transform: var(--display-case);
-}
-
-::selection {
-  background: var(--color-accent-fill);
-  color: var(--color-on-accent);
-}
-
-/* keyboard users: jump past the nav */
-.skip-link {
-  position: fixed;
-  left: 1rem;
-  top: 1rem;
-  z-index: 100;
-  padding: 0.75rem 1.25rem;
-  border-radius: 999px;
-  background: var(--color-fg);
-  color: var(--color-page);
-  font-weight: 600;
-  transform: translateY(-200%);
-  transition: transform 0.2s;
-}
-.skip-link:focus {
-  transform: none;
-}
-
-:focus-visible {
-  outline: 2px solid var(--color-accent-2);
-  outline-offset: 3px;
-}
-
-/* ── highlighted text ─────────────────────────────── */
-/* accent words: amber, still (no shimmer pulling the eye from the buttons) */
-.holo-text {
-  color: var(--color-accent);
-  font-style: var(--holo-style);
-}
-
-/* ── buttons ──────────────────────────────────────
-   .btn          quiet secondary action (outline)
-   .btn-primary  the one solid amber action on a screen */
-.btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  border-radius: 999px;
-  padding: 0.8rem 1.5rem;
-  font-weight: 700;
-  font-size: 0.95rem;
-  color: var(--color-fg);
-  white-space: nowrap;
-  border: 1px solid color-mix(in oklab, var(--color-fg) 22%, transparent);
-  transition:
-    background-color 0.2s,
-    border-color 0.2s,
-    color 0.2s,
-    transform 0.15s;
-}
-.btn:hover {
-  border-color: color-mix(in oklab, var(--color-fg) 55%, transparent);
-  background: color-mix(in oklab, var(--color-fg) 6%, transparent);
-}
-.btn:active {
-  transform: scale(0.98);
-}
-.btn-primary {
-  background: var(--color-accent-fill);
-  border-color: var(--color-accent-fill);
-  color: var(--color-on-accent);
-  box-shadow: 0 8px 26px -10px rgb(243 154 30 / 0.65);
-}
-.btn-primary:hover {
-  background: #ffab3d;
-  border-color: #ffab3d;
-}
-.btn:disabled {
-  opacity: 0.5;
-  pointer-events: none;
-}
-
-/* the chosen option in a group (size, filter, lettering): amber outline on a warm tint */
-.pick-on {
-  border-color: var(--color-accent-fill);
-  background: color-mix(in oklab, var(--color-accent-fill) 14%, var(--color-surface));
-  color: var(--color-fg);
-  box-shadow: inset 0 0 0 1px var(--color-accent-fill);
-}
-
-/* ── surfaces ─────────────────────────────────────── */
-.orbit-btn {
-  display: grid;
-  place-items: center;
-  width: 3.25rem;
-  height: 3.25rem;
-  flex-shrink: 0;
-  border-radius: 999px;
-  border: 1px solid color-mix(in oklab, var(--color-fg) 15%, transparent);
-  font-size: 1.25rem;
-  transition: all 0.25s;
-}
-.orbit-btn:hover {
-  background: var(--color-fg);
-  color: var(--color-page);
-  transform: scale(1.08);
-}
-
-.cta-card {
-  background:
-    radial-gradient(ellipse 60% 80% at 100% 0%, color-mix(in oklab, var(--color-accent-fill) 14%, transparent), transparent 60%),
-    var(--color-surface);
-  border: 1px solid var(--color-line);
-}
-
-/* a dark photo studio behind products: a soft spotlight on a warm grey sweep,
-   bright enough in the middle that black prints keep their outline (the 3D adds
-   a warm rim light too). Keep in step with lib/owner/stage.ts. */
-.stage,
-.viewer-bg {
-  background:
-    radial-gradient(ellipse 70% 60% at 50% 40%, #4a4239, #2d2823 55%, #1a1714 100%);
-}
-/* a soft floor shadow under the model; it tightens as the model lifts */
-.stage-shadow {
-  position: absolute;
-  left: 50%;
-  bottom: 13%;
-  width: 46%;
-  height: 7%;
-  translate: -50% 0;
-  border-radius: 50%;
-  background: radial-gradient(closest-side, rgb(0 0 0 / 0.6), transparent);
-  transition:
-    scale 0.6s cubic-bezier(0.16, 1, 0.3, 1),
-    opacity 0.6s;
-}
-.group:hover .stage-shadow {
-  scale: 0.8;
-  opacity: 0.7;
-}
-
-.grid-bg {
-  background-image:
-    linear-gradient(color-mix(in oklab, var(--color-fg) 6%, transparent) 1px, transparent 1px),
-    linear-gradient(90deg, color-mix(in oklab, var(--color-fg) 6%, transparent) 1px, transparent 1px);
-  background-size: 40px 40px;
 }

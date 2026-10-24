@@ -1,13 +1,13 @@
 import { expect, test } from "@playwright/test";
 import { opened, prepare } from "./helpers";
 
-// Shopping helpers added for phones: two-up grid, quick add with a confirmation,
-// saving with the heart, the menu, the product buy bar, sharing, recently viewed.
+// Shopping helpers: the two-up grid on phones, saving with the heart, the
+// menu, search, the product buy bar, sharing, recently viewed.
 
 test.describe("phone", () => {
   test.skip(({ isMobile }) => !isMobile, "phone layout");
 
-  test("shop shows two products per row; '+' adds to cart with a confirmation", async ({ page }) => {
+  test("shop shows two products per row; a card leads to its product page", async ({ page }) => {
     await prepare(page, { lite: true });
     await page.goto("/shop/");
     const cards = page.locator("article");
@@ -15,11 +15,21 @@ test.describe("phone", () => {
     expect(Math.abs(a!.y - b!.y)).toBeLessThan(2);
     expect(b!.x).toBeGreaterThan(a!.x + a!.width - 1);
 
-    await page.getByRole("button", { name: "Add Vortex Vase to cart" }).click();
-    const toast = page.getByRole("status").filter({ hasText: "Added to cart" });
-    await expect(toast).toContainText("Vortex Vase");
-    await toast.getByRole("button", { name: "View cart" }).click();
-    await expect(page.getByRole("dialog", { name: "Cart" })).toContainText("Vortex Vase");
+    await page.getByRole("link", { name: "Vortex Vase", exact: true }).first().click();
+    await expect(page).toHaveURL(/\/shop\/vortex-vase\/$/);
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Vortex Vase");
+  });
+
+  test("menu opens and closes with Esc", async ({ page }) => {
+    await prepare(page, { lite: true });
+    await page.goto("/about/");
+    const btn = page.getByRole("button", { name: "Menu" });
+    await btn.click();
+    await expect(btn).toHaveAttribute("aria-expanded", "true");
+    await expect(page.getByRole("navigation", { name: "More" }).getByRole("link", { name: "Track an order" })).toBeVisible();
+    await page.keyboard.press("Escape");
+    await expect(page.getByRole("navigation", { name: "More" })).toHaveCount(0);
+    await expect(btn).toBeFocused();
   });
 
   test("product page: the buy bar is there while the main button is off screen", async ({ page }) => {
@@ -48,30 +58,49 @@ test.describe("phone", () => {
   });
 });
 
-test("heart saves a product; it's listed under Menu → Saved", async ({ page }) => {
+test("heart saves a product; it's listed under Saved (phone menu, or the footer)", async ({ page, isMobile }) => {
   await prepare(page, { lite: true });
   await page.goto("/shop/");
   await page.getByRole("button", { name: "Save Infinity Knot" }).click();
   await expect(page.getByRole("button", { name: "Remove Infinity Knot from saved" })).toHaveAttribute("aria-pressed", "true");
-  await page.getByRole("button", { name: "Menu" }).click();
-  const menu = page.getByRole("navigation", { name: "More" });
-  await expect(menu.getByRole("link", { name: /Saved/ })).toContainText("1");
-  await menu.getByRole("link", { name: /Saved/ }).click();
+  if (isMobile) {
+    await page.getByRole("button", { name: "Menu" }).click();
+    const menu = page.getByRole("navigation", { name: "More" });
+    await expect(menu.getByRole("link", { name: /Saved/ })).toContainText("1");
+    await menu.getByRole("link", { name: /Saved/ }).click();
+  } else await page.getByRole("contentinfo").getByRole("link", { name: "Saved" }).click();
   await expect(page).toHaveURL(/\/saved\/$/);
   await expect(page.locator("article")).toHaveCount(1);
   await expect(page.locator("article")).toContainText("Infinity Knot");
 });
 
-test("menu opens and closes with Esc", async ({ page }) => {
+test("search in the nav finds products as you type; Enter opens the first, Esc closes", async ({ page }) => {
   await prepare(page, { lite: true });
   await page.goto("/about/");
-  const btn = page.getByRole("button", { name: "Menu" });
-  await btn.click();
-  await expect(btn).toHaveAttribute("aria-expanded", "true");
-  await expect(page.getByRole("navigation", { name: "More" }).getByRole("link", { name: "Track an order" })).toBeVisible();
+  await page.getByRole("button", { name: "Search" }).click();
+  const dialog = page.getByRole("dialog", { name: "Search" });
+  const box = dialog.getByRole("textbox", { name: "Search products" });
+  await expect(box).toBeFocused();
+  await box.fill("lamp");
+  await expect(dialog.getByRole("link", { name: /Geodesic Orb Lamp/ })).toBeVisible();
+  await expect(dialog.getByRole("link", { name: /Saturn Night Lamp/ })).toBeVisible();
+  await box.fill("zzzz");
+  await expect(dialog).toContainText("No products match");
   await page.keyboard.press("Escape");
-  await expect(page.getByRole("navigation", { name: "More" })).toHaveCount(0);
-  await expect(btn).toBeFocused();
+  await expect(dialog).toHaveCount(0);
+
+  await page.getByRole("button", { name: "Search" }).click();
+  await page.getByRole("textbox", { name: "Search products" }).fill("knot");
+  await page.keyboard.press("Enter");
+  await expect(page).toHaveURL(/\/shop\/infinity-knot\/$/);
+});
+
+test("the shop reads a search from the address: /shop/?q=", async ({ page }) => {
+  await prepare(page, { lite: true });
+  await page.goto("/shop/?q=gear");
+  await expect(page.getByRole("searchbox", { name: "Search products" })).toHaveValue("gear");
+  await expect(page.locator("article")).toHaveCount(1);
+  await expect(page.locator("article")).toContainText("Gear Spinner");
 });
 
 test("share falls back to WhatsApp where there's no share sheet", async ({ page }) => {

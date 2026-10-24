@@ -28,8 +28,8 @@ export function SavedList() {
           ))}
         </div>
       ) : (
-        <div className="rounded-3xl border border-line bg-surface p-10 text-center">
-          <p className="font-display text-3xl display-case">Nothing saved yet</p>
+        <div className="rounded-[var(--radius-tile)] bg-page-2 p-10 text-center">
+          <p className="text-2xl font-semibold tracking-tight">Nothing saved yet</p>
           <p className="mt-2 text-muted">Tap the heart on anything you like and it shows up here, on this phone or computer.</p>
           <div className="mt-6">
             <ButtonLink href="/shop/" primary>

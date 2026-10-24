@@ -1,47 +1,55 @@
 import type { Metadata } from "next";
 import { Hero } from "@/components/home/Hero";
+import { Showcase, ShowcasePair } from "@/components/home/Showcase";
 import { ShopByCollection } from "@/components/home/ShopByCollection";
-import { CustomCta } from "@/components/home/CustomCta";
 import { NameTeaser } from "@/components/home/NameTeaser";
+import { CustomCta } from "@/components/home/CustomCta";
+import { BrandStory } from "@/components/home/BrandStory";
 import { InstagramGrid, PhotoGrid, Reviews } from "@/components/Proof";
 import { StudioClip } from "@/components/StudioClip";
 import { customerPhotos, instagramPosts, reviews } from "@/lib/content";
-import { ProductCard } from "@/components/ProductCard";
-import { ButtonLink, Reveal } from "@/components/ui";
-import { products } from "@/lib/products";
 
 export const metadata: Metadata = { alternates: { canonical: "/" } };
 
 export default function Home() {
-  const fresh = products.filter((p) => p.badge).concat(products.filter((p) => !p.badge)).slice(0, 6);
   return (
     <>
       <Hero />
-      {/* straight into the shop: ways in, then the pieces themselves */}
+      <Showcase
+        dark
+        story={{
+          slug: "infinity-knot",
+          eyebrow: "Giftables",
+          title: "No beginning. No end.",
+          body: "A trefoil knot in silk gold, sanded and clear-coated for a glass-smooth finish.",
+          more: { href: "/shop/?c=Giftables", label: "Shop giftables" },
+        }}
+      />
+      <Showcase
+        layout="split"
+        story={{
+          slug: "geodesic-orb-lamp",
+          eyebrow: "New",
+          title: "Light, in eighty facets.",
+          body: "A geodesic cage around a warm LED core. Switch it on and the room fills with a web of shadows.",
+          more: { href: "/shop/?c=Aesthetic", label: "Shop aesthetic" },
+        }}
+      />
+      <div className="pt-3 sm:pt-4" />
+      <ShowcasePair
+        stories={[
+          { slug: "lord-vishnu", eyebrow: "Devotion", title: "Lord Vishnu", body: "A devotional figure, printed in matte black.", more: { href: "/shop/?c=Devotion", label: "Shop devotion" } },
+          { slug: "gear-spinner", eyebrow: "Giftables", title: "Gear Spinner", body: "A twelve-tooth desk fidget on a steel bearing. Flick it and it spins for ages." },
+        ]}
+      />
       <ShopByCollection />
-
-      <section className="mx-auto max-w-7xl px-5 pb-24 pt-14 sm:px-8 sm:pt-16">
-        <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <Reveal y={24}>
-              <h2 className="section-title text-3xl sm:text-[2.6rem]">Fresh off the bed</h2>
-            </Reveal>
-          </div>
-          <ButtonLink href="/shop/">View all {products.length} →</ButtonLink>
-        </div>
-        <div className="mt-6 grid grid-cols-2 gap-3 sm:mt-12 sm:gap-5 lg:grid-cols-3">
-          {fresh.map((p, i) => (
-            <ProductCard key={p.slug} product={p} index={i} />
-          ))}
-        </div>
-      </section>
-
       <NameTeaser />
+      <CustomCta />
+      <BrandStory />
       <StudioClip />
       <Reviews reviews={reviews} />
       <PhotoGrid photos={customerPhotos} label="From our customers" title="In their" highlight="homes" />
       <InstagramGrid posts={instagramPosts} />
-      <CustomCta />
     </>
   );
 }

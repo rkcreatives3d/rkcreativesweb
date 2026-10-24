@@ -8,7 +8,7 @@ const badges: { icon: React.ReactNode; title: string; text: string; href?: strin
   {
     icon: <path d="M12 3 4 6v6c0 4.4 3.4 8.3 8 9 4.6-.7 8-4.6 8-9V6l-8-3Zm-1.2 12.6-3.3-3.3 1.4-1.4 1.9 1.9 4.4-4.4 1.4 1.4-5.8 5.8Z" />,
     title: "Safe payment",
-    text: "UPI or bank transfer, straight to us",
+    text: "by UPI or bank transfer, straight to us",
   },
   {
     icon: <path d="M12 4a8 8 0 1 0 8 8h-2a6 6 0 1 1-1.8-4.3L14 10h6V4l-2.4 2.4A8 8 0 0 0 12 4Z" />,
@@ -32,27 +32,26 @@ const badges: { icon: React.ReactNode; title: string; text: string; href?: strin
 
 export function TrustBadges({ className = "" }: { className?: string }) {
   return (
-    <ul className={`grid grid-cols-2 gap-2 ${className}`} aria-label="Our promises">
+    <ul className={`divide-y divide-line border-y border-line ${className}`} aria-label="Our promises">
       {badges.map((b) => {
         const body = (
           <>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden className="mt-0.5 shrink-0 text-pop">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden className="shrink-0 text-fg/70">
               {b.icon}
             </svg>
-            <span className="text-xs leading-snug">
-              <span className="block font-semibold text-fg">{b.title}</span>
-              <span className="text-muted">{b.text}</span>
+            <span className="min-w-0 flex-1 text-sm">
+              <span className="font-medium text-fg">{b.title}</span> <span className="text-muted">{b.text}</span>
             </span>
           </>
         );
         return (
           <li key={b.title}>
             {b.href ? (
-              <Link href={b.href} className="flex h-full gap-2.5 rounded-xl border border-line p-3 transition-colors hover:border-fg/30">
+              <Link href={b.href} className="flex items-center gap-3 py-3 transition-colors hover:text-fg [&:hover_.font-medium]:underline">
                 {body}
               </Link>
             ) : (
-              <div className="flex h-full gap-2.5 rounded-xl border border-line p-3">{body}</div>
+              <div className="flex items-center gap-3 py-3">{body}</div>
             )}
           </li>
         );

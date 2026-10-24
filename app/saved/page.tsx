@@ -12,9 +12,9 @@ export const metadata: Metadata = {
 
 export default function SavedPage() {
   return (
-    <div className="mx-auto max-w-7xl px-5 pb-24 pt-24 sm:px-8 sm:pt-36">
+    <div className="mx-auto max-w-6xl px-5 pb-24 pt-24 sm:px-6 sm:pt-32">
       <SectionLabel>Kept on this device</SectionLabel>
-      <h1 className="mb-8 mt-3 font-display text-5xl font-extrabold display-case leading-[0.9] tracking-tight sm:mb-10 sm:mt-4 sm:text-7xl">
+      <h1 className="headline-lg mb-8 mt-2 sm:mb-10">
         Saved
       </h1>
       <SavedList />

@@ -10,7 +10,7 @@ import { track } from "@/lib/track";
 const API = (process.env.NEXT_PUBLIC_OWNER_API || "/api/owner").replace(/\/$/, "");
 
 const input =
-  "w-full rounded-xl border border-fg/15 bg-raised px-3.5 py-3 text-fg outline-none placeholder:text-fg/40 focus:border-accent-2 focus:ring-2 focus:ring-accent-2/20";
+  "w-full rounded-xl border border-line bg-page px-3.5 py-3 text-fg outline-none placeholder:text-fg/40 focus:border-fg/60 focus:ring-4 focus:ring-fg/[0.06]";
 
 type State = { k: "idle" } | { k: "sending" } | { k: "sent" } | { k: "error"; message: string; whatsapp?: boolean };
 
@@ -72,14 +72,14 @@ export function ReviewForm() {
 
   if (state.k === "sent")
     return (
-      <div role="status" className="rounded-3xl border border-ok/30 bg-ok/5 p-6 text-center">
-        <p className="font-display text-2xl font-extrabold display-case">Thank you!</p>
+      <div role="status" className="rounded-[var(--radius-tile)] bg-page-2 p-6 text-center">
+        <p className="text-2xl font-semibold tracking-tight">Thank you!</p>
         <p className="mt-2 text-muted">Your review is with us. It appears here once we&apos;ve had a look, usually within a day.</p>
       </div>
     );
 
   return (
-    <form onSubmit={submit} className="space-y-5 rounded-3xl border border-line bg-surface p-5 sm:p-6">
+    <form onSubmit={submit} className="space-y-5 rounded-[var(--radius-tile)] bg-page-2 p-5 sm:p-6">
       <div>
         <label htmlFor="r-product" className="mb-1.5 block text-sm font-semibold">
           What did you buy?

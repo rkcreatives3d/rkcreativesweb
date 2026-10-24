@@ -27,8 +27,8 @@ export function UpiPay({ amount, orderId }: { amount: number; orderId: string })
   if (notSetUp && process.env.NODE_ENV === "production") return null;
 
   return (
-    <div className="mx-auto mt-8 max-w-md rounded-3xl border border-fg/10 bg-page/60 p-6 text-left">
-      <p className="tabular-nums text-xs uppercase tracking-[0.12em] text-pop">Pay now with UPI (optional)</p>
+    <div className="mx-auto mt-8 max-w-md rounded-[var(--radius-tile)] bg-page-2 p-6 text-left">
+      <p className="text-sm font-semibold text-accent">Pay now with UPI (optional)</p>
       <p className="mt-2 text-sm text-muted">
         Pay {formatPrice(amount)} now to lock in your print slot, or wait for us to confirm on WhatsApp. Please send the
         payment screenshot in the chat.
@@ -51,7 +51,7 @@ export function UpiPay({ amount, orderId }: { amount: number; orderId: string })
           <p className="text-xs text-muted">Scan with GPay, PhonePe, Paytm or any UPI app</p>
           <button
             onClick={() => navigator.clipboard?.writeText(site.upi.id).then(() => setCopied(true))}
-            className="block w-full truncate rounded-xl border border-fg/15 px-3 py-2 text-left tabular-nums text-sm hover:border-accent"
+            className="block w-full truncate rounded-xl border border-line px-3 py-2 text-left tabular-nums text-sm hover:border-accent"
           >
             {copied ? "Copied ✓" : site.upi.id}
           </button>

@@ -26,8 +26,11 @@ import { DeliveryEstimate, usePin } from "./Delivery";
 import { TrustBadges } from "./TrustBadges";
 import { MailIcon, TruckIcon } from "./Icons";
 
+/** the UPI QR on the order page only appears once the shop's real UPI ID is set (components/UpiPay.tsx) */
+const upiReady = !site.upi.id.startsWith("yourname");
+
 const payNotes: Record<PayMethod, string> = {
-  upi: "Pay now on the next page, or after we confirm. No extra charge.",
+  upi: upiReady ? "Pay now on the next page, or after we confirm. No extra charge." : "Pay after we confirm your order on WhatsApp. No extra charge.",
   card: "Pay securely on Razorpay's page after you send the order.",
   cod: `Pay the courier when it arrives (+${formatPrice(site.payments.cod.fee)} COD fee).`,
 };
@@ -70,7 +73,7 @@ export function CheckoutForm() {
   if (items.length === 0) {
     return (
       <div className="mx-auto max-w-xl py-16 text-center">
-        <p className="font-display text-4xl font-extrabold display-case">Cart&apos;s empty</p>
+        <p className="text-3xl font-semibold tracking-tight">Cart&apos;s empty</p>
         <p className="mt-3 text-muted">Nothing to check out yet.</p>
         <div className="mt-8">
           <ButtonLink href="/shop/" primary>
@@ -125,7 +128,7 @@ export function CheckoutForm() {
               · {cartCount(items)} {cartCount(items) === 1 ? "item" : "items"}
             </span>
           </span>
-          <span className="flex items-center gap-2 font-display text-xl font-bold tabular-nums">
+          <span className="flex items-center gap-2 text-lg font-semibold tabular-nums">
             {formatPrice(total)}
             <span aria-hidden className="text-sm text-muted transition-transform group-open:rotate-180">
               ▾
@@ -198,7 +201,7 @@ export function CheckoutForm() {
           <p id="pin-quote" aria-live="polite" className="text-sm text-muted">
             {quote?.zone ? (
               <>
-                <TruckIcon className="mr-1.5 text-pop" />
+                <TruckIcon className="mr-1.5 text-muted" />
                 {quote.zoneLabel}: delivered <span className="font-semibold text-fg">{quote.window}</span>
               </>
             ) : (
@@ -228,15 +231,15 @@ export function CheckoutForm() {
             </div>
           ) : (
             <p className="text-sm text-muted">
-              Pay by UPI (GPay, PhonePe, Paytm) or bank transfer. You can pay straight away on the next page, or after we confirm on
-              WhatsApp.
+              Pay by UPI (GPay, PhonePe, Paytm) or bank transfer.{" "}
+              {upiReady ? "You can pay straight away on the next page, or after we confirm on WhatsApp." : "We send the payment details when we confirm your order on WhatsApp."}
             </p>
           )}
         </Fieldset>
 
         <Fieldset title="04 · Send order">
           <p className="text-sm text-muted">
-            Your order goes straight to us on WhatsApp or email. We confirm colours and print time, usually within a few hours.
+            Your order goes straight to us on WhatsApp or email. We confirm colours and print time, {site.business.replyTime}.
           </p>
           <div className="flex flex-col gap-3 sm:flex-row">
             <button type="submit" name="via" value="whatsapp" className="btn btn-primary flex-1">
@@ -249,8 +252,8 @@ export function CheckoutForm() {
         </Fieldset>
       </form>
 
-      <aside className="h-fit rounded-3xl border border-line bg-surface p-6 lg:sticky lg:top-28">
-        <h2 className="font-display text-2xl font-bold">Order summary</h2>
+      <aside className="h-fit rounded-[var(--radius-tile)] bg-page-2 p-6 lg:sticky lg:top-28">
+        <h2 className="text-xl font-semibold tracking-tight">Order summary</h2>
         <ul className="mt-5 space-y-4">
           {items.map((i) => {
             const p = getProduct(i.slug);
@@ -289,7 +292,7 @@ export function CheckoutForm() {
               Cash on delivery fee <span className="tabular-nums text-fg">{formatPrice(codFee)}</span>
             </p>
           )}
-          <p className="flex justify-between pt-2 font-display text-2xl font-bold text-fg">
+          <p className="flex justify-between pt-2 text-xl font-semibold text-fg">
             Total <span>{formatPrice(total)}</span>
           </p>
         </div>
@@ -308,9 +311,9 @@ export function CheckoutForm() {
 
 export function Fieldset({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <fieldset className="space-y-4 rounded-3xl border border-line bg-surface p-6">
+    <fieldset className="space-y-4 rounded-[var(--radius-tile)] bg-page-2 p-6">
       <legend className="sr-only">{title}</legend>
-      <p className="tabular-nums text-xs uppercase tracking-[0.12em] text-pop">{title}</p>
+      <p className="text-sm font-semibold text-accent">{title}</p>
       {children}
     </fieldset>
   );
@@ -324,7 +327,7 @@ type FieldProps = {
 
 export function Field({ label, textarea, className = "", ...rest }: FieldProps) {
   const cls =
-    "mt-1.5 w-full rounded-xl border border-fg/15 bg-page/60 px-4 py-3 text-fg outline-none transition-colors placeholder:text-fg/50 focus:border-accent-2 focus:ring-2 focus:ring-accent-2/20";
+    "mt-1.5 w-full rounded-xl border border-line bg-page px-4 py-3 text-fg outline-none transition-colors placeholder:text-fg/50 focus:border-fg/60 focus:ring-4 focus:ring-fg/[0.06]";
   return (
     <label className={`block text-sm ${className}`}>
       <span className="text-muted">

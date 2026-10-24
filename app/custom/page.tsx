@@ -15,7 +15,7 @@ export const metadata: Metadata = {
 
 const steps: [string, string][] = [
   ["You send a photo", "A photo, sketch, link or STL file, plus the size and colour you have in mind."],
-  ["We model it", "We design it in 3D and reply with a price and timeline, usually within 24 hours."],
+  ["We model it", "We design it in 3D and reply with a price and a timeline."],
   ["You approve", "You see renders of the model and ask for changes. Nothing is printed until you say yes."],
   ["We print and ship", `Printed, finished by hand and dispatched in ${dispatchLabel} working days.`],
 ];
@@ -23,48 +23,30 @@ const steps: [string, string][] = [
 export default function CustomPage() {
   return (
     <>
-      <div className="mx-auto max-w-7xl px-5 pt-24 sm:px-8 sm:pt-36">
+      <div className="mx-auto max-w-6xl px-5 pt-24 sm:px-6 sm:pt-32">
         <div className="grid gap-10 lg:grid-cols-[1fr_1.1fr] lg:items-center">
           <div>
-            <SectionLabel>Custom orders</SectionLabel>
-            <h1 className="mt-4 font-display text-5xl font-extrabold display-case leading-[0.88] tracking-tight sm:text-7xl lg:text-8xl">
-              <KineticText text="Custom" />
-              <br />
-              <KineticText text="prints" delay={0.15} />
+            <SectionLabel>Custom 3D printing</SectionLabel>
+            <h1 className="headline-lg mt-2">
+              <KineticText text="Custom prints." />
             </h1>
-            <p className="mt-5 max-w-md text-lg text-muted sm:mt-6">
-              <span className="font-semibold text-fg">Dream it up, we print it.</span> Cosplay props, replacement parts, personalised
-              gifts, figurines, architectural models. If it fits on the print bed, we can make it.
+            <p className="lead mt-4 max-w-md">
+              Cosplay props, replacement parts, personalised gifts, figurines, architectural models. If it fits on the print bed, we can make it.
             </p>
-            <a href="#request" className="btn btn-primary mt-6">
-              Start a custom order ↓
+            <a href="#request" className="btn btn-primary mt-7">
+              Start a custom request
             </a>
           </div>
           <CustomViewer />
         </div>
 
         {/* how it works */}
-        {/* phones: a compact numbered list; wider screens: four cards */}
-        <ol className="relative mt-10 grid gap-2 sm:mt-16 sm:grid-cols-2 sm:gap-4 lg:grid-cols-4" aria-label="How a custom order works">
+        <ol className="mt-16 grid gap-x-8 gap-y-8 sm:mt-20 sm:grid-cols-2 lg:grid-cols-4" aria-label="How a custom order works">
           {steps.map(([title, body], i) => (
-            <Reveal
-              as="li"
-              key={title}
-              delay={i * 0.08}
-              className="relative flex h-full gap-4 rounded-2xl border border-line bg-surface p-4 sm:block sm:rounded-3xl sm:p-6"
-            >
-                <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-pop/15 font-display text-lg font-bold tabular-nums text-pop">
-                  {i + 1}
-                </span>
-                <span className="block min-w-0">
-                  <span className="block font-display text-lg font-bold sm:mt-4 sm:text-2xl">{title}</span>
-                  <span className="mt-1 block text-sm leading-relaxed text-muted sm:mt-2">{body}</span>
-                </span>
-                {i < steps.length - 1 && (
-                  <span aria-hidden className="absolute -right-3 top-1/2 z-10 hidden -translate-y-1/2 text-xl text-pop lg:block">
-                    →
-                  </span>
-                )}
+            <Reveal as="li" key={title} delay={i * 0.06} className="border-t border-line pt-5">
+              <span className="tabular-nums text-sm text-muted">0{i + 1}</span>
+              <span className="mt-1 block text-lg font-semibold tracking-tight">{title}</span>
+              <span className="mt-1.5 block leading-relaxed text-muted">{body}</span>
             </Reveal>
           ))}
         </ol>
@@ -72,9 +54,9 @@ export default function CustomPage() {
 
       <BeforeAfter items={beforeAfter} />
 
-      <section className="mx-auto max-w-3xl px-5 py-20 sm:px-8" aria-labelledby="request">
-        <h2 id="request" className="section-title text-3xl sm:text-[2.6rem]">
-          Tell us about it
+      <section className="mx-auto max-w-3xl px-5 py-20 sm:px-6 sm:py-28" aria-labelledby="request">
+        <h2 id="request" className="headline-md">
+          Tell us about it.
         </h2>
         <p className="mb-8 mt-3 text-muted">The more detail, the faster and closer the quote.</p>
         <CustomForm />

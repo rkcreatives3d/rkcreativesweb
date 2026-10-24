@@ -64,3 +64,30 @@ export function PlusIcon({ size = 18 }: { size?: number }) {
     </svg>
   );
 }
+
+export function SearchIcon({ size = 18 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" aria-hidden>
+      <circle cx="10.5" cy="10.5" r="6.5" />
+      <path d="m20 20-4.6-4.6" />
+    </svg>
+  );
+}
+
+/** the shopping bag in the nav (the cart) */
+export function BagIcon({ size = 18 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" aria-hidden>
+      <path d="M5 8h14l-1 12.2a1.5 1.5 0 0 1-1.5 1.3h-9A1.5 1.5 0 0 1 6 20.2L5 8Z" />
+      <path d="M9 10V6.5a3 3 0 0 1 6 0V10" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+export function ChevronIcon({ size = 14, dir = "right" }: { size?: number; dir?: "right" | "down" }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden style={dir === "down" ? { transform: "rotate(90deg)" } : undefined}>
+      <path d="m6 3 5 5-5 5" />
+    </svg>
+  );
+}

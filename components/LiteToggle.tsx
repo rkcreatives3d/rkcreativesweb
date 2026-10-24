@@ -10,9 +10,9 @@ export function LiteToggle() {
     <button
       onClick={() => set(!lite)}
       aria-pressed={lite}
-      className="rounded-full border border-fg/15 px-3 py-1.5 tracking-[0.12em] transition-colors hover:border-accent hover:text-fg"
+      className="py-1 text-left hover:text-fg hover:underline"
     >
-      {lite ? "Lite mode on · switch to 3D" : "Slow phone? Lite mode"}
+      {lite ? "Lite mode is on · use 3D" : "Lite mode for slow phones"}
     </button>
   );
 }

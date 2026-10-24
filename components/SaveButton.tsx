@@ -22,12 +22,12 @@ export function SaveButton({ slug, name, className = "" }: { slug: string; name:
         toggle(slug);
         if (!saved) {
           track("save", { product: slug });
-          show({ title: "Saved", detail: `${name} · find it under Menu → Saved` });
+          show({ title: "Saved", detail: `${name} · find it under Saved, in the menu or at the bottom of any page` });
         }
       }}
-      className={`grid h-9 w-9 place-items-center rounded-full bg-page/85 transition-transform active:scale-90 ${saved ? "text-danger" : "text-fg hover:text-danger"} ${className}`}
+      className={`grid h-9 w-9 place-items-center rounded-full bg-page/80 text-fg/70 transition-[transform,color] active:scale-90 ${saved ? "text-fg" : "hover:text-fg"} ${className}`}
     >
-      <HeartIcon filled={saved} />
+      <HeartIcon filled={saved} size={17} />
     </button>
   );
 }

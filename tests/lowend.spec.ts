@@ -23,7 +23,7 @@ test("budget phone: Lite mode by itself, opening animation, no 3D", async ({ pag
   await expect(page.locator("#intro")).toBeVisible();
   await expect(page.locator("#intro")).toHaveCount(0, { timeout: 6000 });
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
-  await expect(page.getByRole("link", { name: /shop the collection/i })).toBeInViewport();
+  await expect(page.getByRole("link", { name: /explore the collection/i })).toBeInViewport();
   await page.waitForTimeout(1500);
   expect(await page.locator("canvas").count()).toBe(0);
   // the 3D engine is never even downloaded
@@ -57,7 +57,7 @@ test.describe("4 GB phone", () => {
   test("gets the 3D site: the studio picture stands in, then the live 360° model takes over", async ({ page }) => {
     await page.goto("/shop/vortex-vase/", { waitUntil: "load" });
     await expect(page.locator("html")).not.toHaveClass(/\blite\b/);
-    await expect(page.getByText(/360°/).first()).toBeVisible();
+    await expect(page.getByText("Swipe to turn it around")).toBeVisible();
     await expect(page.locator("canvas")).toHaveCount(1, { timeout: 15_000 });
     // the stand-in fades away once the model has been drawn
     await expect(page.locator("main .transition-opacity.opacity-0 img[src*='/renders/']").first()).toBeAttached({ timeout: 20_000 });

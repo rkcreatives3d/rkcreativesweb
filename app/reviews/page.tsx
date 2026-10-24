@@ -14,9 +14,9 @@ export const metadata: Metadata = {
 export default function ReviewsPage() {
   const avg = average(reviews);
   return (
-    <div className="mx-auto max-w-7xl px-5 pb-24 pt-24 sm:px-8 sm:pt-36">
+    <div className="mx-auto max-w-6xl px-5 pb-24 pt-24 sm:px-6 sm:pt-32">
       <SectionLabel>From our customers</SectionLabel>
-      <h1 className="mt-3 font-display text-5xl font-extrabold display-case leading-[0.9] tracking-tight sm:mt-4 sm:text-7xl">Reviews</h1>
+      <h1 className="headline-lg mt-2">Reviews</h1>
       {reviews.length ? (
         <p className="mt-4 flex items-center gap-2 text-muted">
           <Stars rating={Math.round(avg)} className="text-xl" />
@@ -54,7 +54,7 @@ export default function ReviewsPage() {
             <ReviewForm />
           </section>
           <aside aria-labelledby="tips-title" className="hidden lg:block lg:pt-12">
-            <div className="card-lift rounded-3xl p-6">
+            <div className="rounded-[var(--radius-tile)] bg-page-2 p-7">
               <h2 id="tips-title" className="section-title text-xl">
                 What helps other buyers
               </h2>

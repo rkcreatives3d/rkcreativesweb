@@ -27,7 +27,7 @@ export function KineticText({
     <motion.span
       data-reveal
       className={`inline-block ${holo || shine ? "text-accent" : ""} ${className}`}
-      initial={{ opacity: 0, y: 14 }}
+      initial={{ opacity: 0, y: 10 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-5% 0px" }}
       transition={{ duration: 0.7, delay, ease: [0.16, 1, 0.3, 1] }}
@@ -41,7 +41,7 @@ export function Reveal({
   children,
   className = "",
   delay = 0,
-  y = 40,
+  y = 24,
   as = "div",
 }: {
   children: React.ReactNode;
@@ -59,7 +59,7 @@ export function Reveal({
       initial={{ opacity: 0, y }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-10% 0px" }}
-      transition={{ duration: 0.9, delay, ease: [0.16, 1, 0.3, 1] }}
+      transition={{ duration: 0.8, delay, ease: [0.16, 1, 0.3, 1] }}
     >
       {children}
     </Tag>
@@ -118,17 +118,26 @@ export function Heading({ children, className = "" }: { children: React.ReactNod
 export function Swatch({ css, size = 18, ring = false }: { css: string; size?: number; ring?: boolean }) {
   return (
     <span
-      className={`inline-block shrink-0 rounded-full border border-fg/40 ${ring ? "ring-2 ring-fg ring-offset-2 ring-offset-page" : ""}`}
+      className={`inline-block shrink-0 rounded-full border border-black/15 ${ring ? "ring-2 ring-fg ring-offset-2 ring-offset-page" : ""}`}
       style={{ background: css, width: size, height: size }}
     />
   );
 }
 
-export function SectionLabel({ children }: { children: React.ReactNode }) {
-  return (
-    <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.12em] text-muted">
-      <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-pop" />
+/** The small line above a page or section title, in the accent colour (sentence case, no shouting). */
+export function SectionLabel({ children, className = "" }: { children: React.ReactNode; className?: string }) {
+  return <p className={`eyebrow ${className}`}>{children}</p>;
+}
+
+/** A quiet text link with a chevron, the second action beside a button. */
+export function MoreLink({ href, children, className = "", ...rest }: { href: string; children: React.ReactNode; className?: string; target?: string; rel?: string }) {
+  return /^(https?:|mailto:)/.test(href) ? (
+    <a href={href} className={`link-more ${className}`} {...rest}>
       {children}
-    </p>
+    </a>
+  ) : (
+    <Link href={href} className={`link-more ${className}`}>
+      {children}
+    </Link>
   );
 }

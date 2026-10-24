@@ -2,35 +2,34 @@ import { expect, test } from "@playwright/test";
 import { draws, pages, prepare } from "./helpers";
 
 test.describe("3D", () => {
-  test("cover animates; the shop grid idles until a card is hovered", async ({ page, isMobile }) => {
-    test.skip(isMobile, "hover is a desktop interaction");
+  test("only pages with a 3D spot load the 3D engine; the product page draws its model, then idles", async ({ page }) => {
     await prepare(page);
-    await page.goto("/");
-    await expect(page.locator("canvas")).toHaveCount(1, { timeout: 15_000 });
-    await expect.poll(() => draws(page), { timeout: 15_000 }).toBeGreaterThan(30);
+    const chunks: string[] = [];
+    page.on("response", (r) => r.url().includes("/_next/static/chunks/") && chunks.push(r.url()));
+    for (const p of ["/", "/shop/", "/collections/"]) {
+      await page.goto(p);
+      await page.waitForTimeout(2500);
+      await expect(page.locator("canvas")).toHaveCount(0);
+    }
+    for (const url of new Set(chunks)) {
+      const body = await (await page.request.get(url)).text();
+      expect(body.includes("WebGLRenderer"), url).toBe(false);
+    }
 
-    await page.goto("/shop/");
+    await page.goto("/shop/vortex-vase/");
     await expect(page.locator("canvas")).toHaveCount(1, { timeout: 15_000 });
-    // cards pop in, then settle: the canvas must stop drawing completely
-    let idle = -1;
+    await expect.poll(() => draws(page), { timeout: 20_000 }).toBeGreaterThan(5);
+    // it prints in, then settles: the canvas must stop drawing completely
     await expect
       .poll(
         async () => {
           const a = await draws(page);
           await page.waitForTimeout(1500);
-          const b = await draws(page);
-          idle = b;
-          return b - a;
+          return (await draws(page)) - a;
         },
         { timeout: 30_000, intervals: [0] },
       )
       .toBe(0);
-
-    // hovering lifts the model and it turns to follow the cursor: frames come again
-    const card = page.locator("article").first();
-    await card.hover();
-    await card.hover({ position: { x: 30, y: 40 } });
-    await expect.poll(() => draws(page), { timeout: 15_000 }).toBeGreaterThan(idle + 10);
   });
 
   test("Lite mode loads no 3D at all", async ({ page }) => {

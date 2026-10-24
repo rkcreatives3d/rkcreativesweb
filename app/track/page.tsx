@@ -11,13 +11,11 @@ export const metadata: Metadata = {
 
 export default function TrackPage() {
   return (
-    <div className="mx-auto max-w-4xl px-5 pb-24 pt-28 sm:px-8 sm:pt-36">
-      <h1 className="font-display text-6xl font-extrabold display-case leading-[0.88] tracking-tight sm:text-8xl">
-        <KineticText text="Where's my" />
-        <br />
-        <KineticText text="order?" delay={0.15} />
+    <div className="mx-auto max-w-3xl px-5 pb-28 pt-24 sm:px-6 sm:pt-32">
+      <h1 className="headline-lg">
+        <KineticText text="Where's my order?" />
       </h1>
-      <p className="mt-6 max-w-xl text-lg text-muted">
+      <p className="lead mt-4 max-w-xl">
         Every piece is printed for you, so it ships {dispatchLabel} working days after payment. Then it&apos;s with the courier.
       </p>
       <div className="mt-10">

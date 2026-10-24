@@ -40,10 +40,13 @@ export function NameplateStudio() {
   const box = useRef<HTMLDivElement>(null);
   const visible = useInView(box);
 
-  // a name passed from the home page teaser: /personalise/?name=Ananya
+  // a name (and keychain / nameplate) passed from the home page: /personalise/?name=Ananya&style=nameplate
   useEffect(() => {
-    const name = new URLSearchParams(window.location.search).get("name");
+    const q = new URLSearchParams(window.location.search);
+    const name = q.get("name");
     if (name) setText(name.slice(0, MAX_NAME));
+    const s = styles.find((x) => x.id === q.get("style"));
+    if (s) setStyle(s.id);
   }, []);
 
   useEffect(() => {
@@ -67,13 +70,12 @@ export function NameplateStudio() {
       {/* preview: stays in view while you type and pick options (phones: a shorter strip under the nav) */}
       <div
         ref={box}
-        className="sticky top-[4.5rem] z-10 aspect-[16/10] overflow-hidden rounded-3xl border border-fg/10 viewer-bg shadow-[0_14px_30px_-20px_rgba(0,0,0,0.8)] sm:top-24 sm:aspect-[4/3] lg:aspect-auto lg:h-[min(640px,calc(100svh-8rem))] lg:shadow-none"
+        className="sticky top-[3.75rem] z-10 aspect-[16/10] overflow-hidden rounded-[var(--radius-tile)] viewer-bg sm:top-20 sm:aspect-[4/3] lg:aspect-auto lg:h-[min(640px,calc(100svh-8rem))]"
       >
-        <div className="grid-bg absolute inset-0" />
         {lite ? (
           <div className="absolute inset-0 grid place-items-center p-8">
-            <div className="rounded-3xl border-4 border-pop/60 bg-raised px-8 py-5 shadow-[0_0_60px_-10px_var(--color-gold)]">
-              <p className="holo-text font-display text-4xl display-case sm:text-6xl">{shown}</p>
+            <div className="max-w-full rounded-2xl bg-[#2a2a2c] px-8 py-5 shadow-[0_22px_40px_-22px_rgba(0,0,0,0.55)]">
+              <p className="truncate bg-[linear-gradient(180deg,#f7dc8f,#c8922e_70%,#a8731f)] bg-clip-text text-4xl font-bold tracking-tight text-transparent sm:text-6xl">{shown}</p>
             </div>
           </div>
         ) : (
@@ -119,7 +121,7 @@ export function NameplateStudio() {
       {/* controls */}
       <div>
         <label className="block">
-          <span className="tabular-nums text-xs uppercase tracking-[0.12em] text-muted">Your name or word</span>
+          <span className="text-sm text-muted">Your name or word</span>
           <input
             value={text}
             onChange={(e) => {
@@ -129,8 +131,8 @@ export function NameplateStudio() {
             placeholder="Type here…"
             maxLength={MAX_NAME}
             autoComplete="off"
-            className={`mt-2 w-full rounded-xl border bg-page/60 px-5 py-4 font-display text-3xl display-case text-fg outline-none transition-colors placeholder:text-fg/50 focus:border-accent focus:ring-2 focus:ring-accent/20 ${
-              nudge ? "border-danger" : "border-fg/15"
+            className={`mt-2 w-full rounded-xl border bg-page px-5 py-4 text-2xl font-semibold tracking-tight text-fg outline-none transition-colors placeholder:text-fg/40 focus:border-fg/60 focus:ring-4 focus:ring-fg/[0.06] ${
+              nudge ? "border-danger" : "border-line"
             }`}
           />
           <span className={`mt-1.5 flex justify-between text-xs ${nudge ? "text-danger" : "text-muted"}`}>
@@ -149,7 +151,7 @@ export function NameplateStudio() {
                 key={s.id}
                 onClick={() => setStyle(s.id)}
                 aria-pressed={style === s.id}
-                className={`rounded-xl border px-4 py-3 text-left transition-all ${style === s.id ? "pick-on" : "border-fg/15 hover:border-fg/40"}`}
+                className={`rounded-xl border px-4 py-3 text-left transition-all ${style === s.id ? "pick-on" : "border-line hover:border-fg/30"}`}
               >
                 <span className="block font-semibold">{s.label}</span>
                 <span className={`tabular-nums text-xs ${style === s.id ? "text-fg/75" : "text-muted"}`}>from {formatPrice(p.price)}</span>
@@ -166,7 +168,7 @@ export function NameplateStudio() {
                 key={f.id}
                 onClick={() => setFont(f.id)}
                 aria-pressed={font === f.id}
-                className={`rounded-xl border px-3 py-2.5 text-left text-sm transition-all ${font === f.id ? "pick-on" : "border-fg/15 hover:border-fg/40"}`}
+                className={`rounded-xl border px-3 py-2.5 text-left text-sm transition-all ${font === f.id ? "pick-on" : "border-line hover:border-fg/30"}`}
               >
                 <span className="block font-semibold">{f.label}</span>
                 <span className={`block text-xs ${font === f.id ? "text-fg/75" : "text-muted"}`}>{f.note}</span>
@@ -188,7 +190,7 @@ export function NameplateStudio() {
                 aria-pressed={icon === i.id}
                 aria-label={i.label}
                 title={i.label}
-                className={`grid h-11 w-11 place-items-center rounded-xl border transition-all ${icon === i.id ? "pick-on" : "border-fg/15 text-fg hover:border-fg/40"}`}
+                className={`grid h-11 w-11 place-items-center rounded-xl border transition-all ${icon === i.id ? "pick-on" : "border-line text-fg hover:border-fg/30"}`}
               >
                 <IconGlyph icon={i.id} />
               </button>
@@ -224,7 +226,7 @@ export function NameplateStudio() {
                 key={s.id}
                 onClick={() => setSize(s.id)}
                 aria-pressed={size === s.id}
-                className={`rounded-xl border px-3 py-2.5 text-left text-sm transition-all ${size === s.id ? "pick-on" : "border-fg/15 hover:border-fg/40"}`}
+                className={`rounded-xl border px-3 py-2.5 text-left text-sm transition-all ${size === s.id ? "pick-on" : "border-line hover:border-fg/30"}`}
               >
                 <span className="block font-semibold">{s.label}</span>
                 <span className={`block text-xs ${size === s.id ? "text-fg/75" : "text-muted"}`}>{s.dims}</span>
@@ -240,7 +242,7 @@ export function NameplateStudio() {
               initial={{ y: 12, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: -12, opacity: 0 }}
-              className="font-display text-4xl font-bold"
+              className="text-3xl font-semibold tracking-tight tabular-nums"
             >
               {formatPrice(price)}
             </motion.span>

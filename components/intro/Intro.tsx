@@ -3,14 +3,14 @@
 import { useEffect, useRef, useState } from "react";
 import { site } from "@/lib/site";
 
-// the same cut-out logo the cover shows, so the hand-off matches
+// the logo cut out of its black square (as in the brand story on the home page)
 const LOGO_SRCSET = "/brand/logo-cut-480.webp 480w, /brand/logo-cut-720.webp 720w";
 
 /**
  * Opening animation: the logo prints itself on a print bed, layer by layer,
  * with the nozzle sweeping each layer; the layer lines fuse, a sheen passes
- * over it, and the page lifts away like a curtain onto the same logo on the
- * cover (about 3 seconds).
+ * over it, and the page lifts away like a curtain onto the home page (about 3
+ * seconds).
  *
  * It's all CSS (see "opening animation" in globals.css) on markup that's in
  * the static HTML, so it starts with the first paint and never waits for
@@ -42,7 +42,7 @@ export function Intro() {
   if (gone) return null;
 
   return (
-    <div id="intro" ref={ref} role="dialog" aria-label={`${site.name} opening animation`} className="cover-bg">
+    <div id="intro" ref={ref} role="dialog" aria-label={`${site.name} opening animation`} className="theme-dark intro-bg">
       <div className="intro-stage" aria-hidden>
         {/* a window that rises from the bed while the picture inside counter-moves, so the
             print grows upward using transforms alone (smooth even while the page loads) */}

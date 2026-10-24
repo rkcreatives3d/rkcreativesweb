@@ -8,7 +8,7 @@ import { Reveal, SectionLabel } from "./ui";
 export function BeforeAfter({ items }: { items: { title: string; before: Photo; after: Photo }[] }) {
   if (!items.length) return null;
   return (
-    <section className="mx-auto max-w-7xl px-5 py-16 sm:px-8">
+    <section className="mx-auto max-w-6xl px-5 py-16 sm:px-6">
       <SectionLabel>From photo to print</SectionLabel>
       <Reveal y={24}>
         <h2 className="mt-4 section-title text-3xl sm:text-[2.6rem]">
@@ -28,7 +28,7 @@ function Compare({ title, before, after }: { title: string; before: Photo; after
   const [pos, setPos] = useState(50);
   return (
     <figure>
-      <div className="relative aspect-square overflow-hidden rounded-3xl border border-fg/10 has-[input:focus-visible]:ring-2 has-[input:focus-visible]:ring-accent-2">
+      <div className="relative aspect-square overflow-hidden rounded-[var(--radius-tile)] has-[input:focus-visible]:ring-2 has-[input:focus-visible]:ring-accent-2">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={after.src} alt={after.caption ?? `${title}, the finished print`} loading="lazy" className="absolute inset-0 h-full w-full object-cover" />
         <div className="absolute inset-0" style={{ clipPath: `inset(0 ${100 - pos}% 0 0)` }}>

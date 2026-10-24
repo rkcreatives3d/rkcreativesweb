@@ -25,7 +25,7 @@ export function StudioClip({ link = true }: { link?: boolean }) {
 
   if (!video) return null;
   return (
-    <section className="mx-auto grid max-w-7xl items-center gap-10 px-5 py-20 sm:px-8 lg:grid-cols-[1.2fr_1fr]">
+    <section className="mx-auto grid max-w-6xl items-center gap-10 px-5 py-20 sm:px-6 lg:grid-cols-[1.2fr_1fr]">
       <Reveal>
         <video
           ref={ref}
@@ -37,7 +37,7 @@ export function StudioClip({ link = true }: { link?: boolean }) {
           preload="none"
           controls={calm}
           aria-label="Our printer at work"
-          className="aspect-video w-full rounded-3xl border border-fg/10 bg-fg/5 object-cover"
+          className="aspect-video w-full rounded-[var(--radius-tile)] bg-fg/5 object-cover"
         />
       </Reveal>
       <div>

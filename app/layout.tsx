@@ -1,24 +1,20 @@
 import type { Metadata, Viewport } from "next";
-import { Manrope, Saira } from "next/font/google";
-import "lenis/dist/lenis.css";
+import { Inter } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/Providers";
 import { Nav } from "@/components/Nav";
 import { Footer } from "@/components/Footer";
 import { CartDrawer } from "@/components/CartDrawer";
 import { Intro } from "@/components/intro/Intro";
-import { WhatsAppBubble } from "@/components/WhatsAppBubble";
 import { Analytics } from "@/components/Analytics";
 import { site } from "@/lib/site";
 import { routeGuardScript } from "@/lib/routeGuard";
 import { bootScript } from "@/lib/lite";
 import { launchProblems } from "@/lib/launch";
 
-// Two families: Saira's squared letters (close to the logo's lettering, and
-// the same face as the 3D name lettering) for headings, Manrope for everything
-// else. Headings only ever use Saira ExtraBold, so just that one file is loaded.
-const saira = Saira({ subsets: ["latin"], weight: "800", variable: "--font-saira" });
-const manrope = Manrope({ subsets: ["latin"], variable: "--font-manrope" });
+// One family for everything: Inter (variable, so one file covers every weight),
+// with the system's own UI font as the fallback while it loads.
+const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swap" });
 
 // Until the real WhatsApp number, email and UPI ID are in lib/site.ts, ask
 // search engines not to index anything, so sample details never reach Google.
@@ -67,11 +63,11 @@ const storeJsonLd = {
   sameAs: [site.instagram],
 };
 
-export const viewport: Viewport = { themeColor: "#13110f", viewportFit: "cover", colorScheme: "dark" };
+export const viewport: Viewport = { themeColor: "#ffffff", viewportFit: "cover", colorScheme: "light" };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={[saira, manrope].map((f) => f.variable).join(" ")} suppressHydrationWarning>
+    <html lang="en" className={inter.variable} suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: routeGuardScript }} />
         <script dangerouslySetInnerHTML={{ __html: bootScript }} />
@@ -91,7 +87,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           </main>
           <Footer />
           <CartDrawer />
-          <WhatsAppBubble />
           <Intro />
         </Providers>
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(storeJsonLd) }} />

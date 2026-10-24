@@ -91,8 +91,8 @@ export function CustomForm() {
 
   if (sent) {
     return (
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="cta-card rounded-3xl p-8 sm:p-10">
-        <p className="tabular-nums text-xs uppercase tracking-[0.12em] text-pop">Request drafted ✦</p>
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="cta-card rounded-[var(--radius-tile)] p-8 sm:p-10">
+        <p className="text-sm font-semibold text-accent">Request drafted ✦</p>
         <h2 className="mt-3 section-title text-3xl">Send it over</h2>
         <p className="mt-3 text-muted">
           Hit send in the window that just opened. We usually reply with an exact quote within a day.
@@ -111,7 +111,7 @@ export function CustomForm() {
   }
 
   const selectCls =
-    "mt-1.5 w-full appearance-none rounded-xl border border-fg/15 bg-page/60 px-4 py-3 text-fg outline-none focus:border-accent-2 focus:ring-2 focus:ring-accent-2/20";
+    "mt-1.5 w-full appearance-none rounded-xl border border-line bg-page px-4 py-3 text-fg outline-none focus:border-fg/60 focus:ring-4 focus:ring-fg/[0.06]";
 
   return (
     <form onSubmit={submit} className="space-y-5">
@@ -174,15 +174,15 @@ export function CustomForm() {
             onChange={(e) => setR((v) => ({ ...v, qty: Math.max(1, Number(e.target.value) || 1) }))}
           />
         </div>
-        <div className="rounded-xl border border-pop/30 bg-pop/[0.06] p-5">
-          <p className="tabular-nums text-xs uppercase tracking-[0.12em] text-pop">Estimated price</p>
+        <div className="rounded-xl bg-page-2 p-5">
+          <p className="text-sm font-semibold text-accent">Estimated price</p>
           <AnimatePresence mode="popLayout">
             <motion.p
               key={`${est.low}-${est.high}`}
               initial={{ y: 10, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: -10, opacity: 0 }}
-              className="mt-1 font-display text-3xl font-bold"
+              className="mt-1 text-2xl font-semibold tracking-tight tabular-nums"
             >
               {formatPrice(est.low)} – {formatPrice(est.high)}
             </motion.p>

@@ -122,52 +122,6 @@ export function StudioImage({
   );
 }
 
-/**
- * Gives a flat photo depth: it tilts toward the mouse with a moving glare,
- * and sways gently on its own (phones, or when nobody is hovering).
- */
-export function Tilt({ children, className = "", max = 12 }: { children: React.ReactNode; className?: string; max?: number }) {
-  const card = useRef<HTMLDivElement>(null);
-  const [active, setActive] = useState(false);
-  const set = (rx: number, ry: number, gx = 50, gy = 50) => {
-    const s = card.current!.style;
-    s.setProperty("--rx", `${rx}deg`);
-    s.setProperty("--ry", `${ry}deg`);
-    s.setProperty("--gx", `${gx}%`);
-    s.setProperty("--gy", `${gy}%`);
-  };
-  return (
-    <div
-      className={`[perspective:900px] ${className}`}
-      onPointerMove={(e) => {
-        if (e.pointerType !== "mouse") return;
-        const r = e.currentTarget.getBoundingClientRect();
-        const x = (e.clientX - r.left) / r.width - 0.5;
-        const y = (e.clientY - r.top) / r.height - 0.5;
-        set(-y * max, x * max, (x + 0.5) * 100, (y + 0.5) * 100);
-      }}
-      onPointerEnter={(e) => e.pointerType === "mouse" && setActive(true)}
-      onPointerLeave={() => {
-        setActive(false);
-        set(0, 0);
-      }}
-    >
-      <div
-        ref={card}
-        className="relative h-full w-full transition-transform duration-300 ease-out [transform-style:preserve-3d]"
-        style={{ transform: "rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) scale(1.02)" }}
-      >
-        {children}
-        <div
-          aria-hidden
-          className={`pointer-events-none absolute inset-0 transition-opacity duration-300 ${active ? "opacity-100" : "opacity-0"}`}
-          style={{ background: "radial-gradient(circle at var(--gx, 50%) var(--gy, 50%), rgba(255,255,255,0.2), transparent 55%)" }}
-        />
-      </div>
-    </div>
-  );
-}
-
 /** Cover photo (in the chosen finish) that swaps to the second photo on hover. */
 export function PhotoStack({
   images,
@@ -185,7 +139,7 @@ export function PhotoStack({
   const cover = useFinishPhoto(images[0], finish, preview);
   const second = useFinishPhoto(images[1], finish, preview && hovered);
   return (
-    <Tilt className="absolute inset-0">
+    <div className="absolute inset-0">
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src={cover.url}
@@ -203,30 +157,34 @@ export function PhotoStack({
         />
       )}
       {cover.previewed && <PreviewTag />}
-    </Tilt>
+    </div>
   );
 }
 
 function PreviewTag({ large = false }: { large?: boolean }) {
   return (
     <span
-      className={`pointer-events-none absolute bottom-3 left-3 rounded-full bg-black/60 tabular-nums uppercase tracking-widest text-white/80 backdrop-blur ${
-        large ? "px-3 py-1.5 text-xs" : "px-2.5 py-1 text-xs"
-      }`}
+      className={`pointer-events-none absolute bottom-3 left-3 rounded-md bg-black/55 font-medium text-white ${large ? "px-2.5 py-1 text-xs" : "px-2 py-0.5 text-xs"}`}
     >
       Colour preview
     </span>
   );
 }
 
-/** Product page photo gallery with thumbnails, in the chosen finish. */
+/** Product page photo gallery: the main photo (tap for full screen) and thumbnails, in the chosen finish. */
 export function Gallery({ images, finish, preview, alt }: { images: string[]; finish: string; preview: boolean; alt: string }) {
   const [active, setActive] = useState(0);
+  const [full, setFull] = useState(false);
   useEffect(() => setActive((a) => (a < images.length ? a : 0)), [images]);
   const main = useFinishPhoto(images[active], finish, preview);
   return (
     <div>
-      <Tilt className="relative aspect-square overflow-hidden rounded-3xl border border-fg/10 bg-page-2" max={8}>
+      <button
+        type="button"
+        onClick={() => setFull(true)}
+        aria-label={`Open photo ${active + 1} full screen`}
+        className="stage relative block aspect-square w-full cursor-zoom-in overflow-hidden rounded-[var(--radius-tile)]"
+      >
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={main.url}
@@ -234,7 +192,7 @@ export function Gallery({ images, finish, preview, alt }: { images: string[]; fi
           className={`h-full w-full object-cover transition-[filter,opacity] duration-300 ${main.busy ? "opacity-70 blur-[2px]" : ""}`}
         />
         {main.previewed && <PreviewTag large />}
-      </Tilt>
+      </button>
       {main.previewed && (
         <p className="mt-2 text-xs text-muted">
           Colour preview made from our photo of this piece. The real {getFinish(finish).name.toLowerCase()} print may look slightly different.
@@ -248,13 +206,98 @@ export function Gallery({ images, finish, preview, alt }: { images: string[]; fi
               onClick={() => setActive(i)}
               aria-label={`Show photo ${i + 1}`}
               aria-pressed={active === i}
-              className={`h-20 w-20 shrink-0 overflow-hidden rounded-xl border-2 transition-colors ${active === i ? "border-accent" : "border-transparent opacity-70 hover:opacity-100"}`}
+              className={`stage h-16 w-16 shrink-0 overflow-hidden rounded-xl border-2 transition-colors sm:h-20 sm:w-20 ${active === i ? "border-fg" : "border-transparent opacity-75 hover:opacity-100"}`}
             >
               <Thumb src={src} finish={finish} preview={preview} />
             </button>
           ))}
         </div>
       )}
+      {full && (
+        <Lightbox
+          images={images}
+          start={active}
+          finish={finish}
+          preview={preview}
+          alt={alt}
+          onClose={(i) => {
+            setActive(i);
+            setFull(false);
+          }}
+        />
+      )}
+    </div>
+  );
+}
+
+/** Full-screen photos: ←/→ or the buttons to move, Esc or ✕ to close. */
+function Lightbox({
+  images,
+  start,
+  finish,
+  preview,
+  alt,
+  onClose,
+}: {
+  images: string[];
+  start: number;
+  finish: string;
+  preview: boolean;
+  alt: string;
+  onClose: (at: number) => void;
+}) {
+  const [i, setI] = useState(start);
+  const box = useRef<HTMLDivElement>(null);
+  const photo = useFinishPhoto(images[i], finish, preview);
+  const n = images.length;
+  useEffect(() => {
+    const opener = document.activeElement as HTMLElement | null;
+    box.current?.focus();
+    const prev = document.documentElement.style.overflow;
+    document.documentElement.style.overflow = "hidden";
+    return () => {
+      document.documentElement.style.overflow = prev;
+      opener?.focus();
+    };
+  }, []);
+  return (
+    <div
+      ref={box}
+      role="dialog"
+      aria-modal="true"
+      aria-label={`${alt}: photos`}
+      tabIndex={-1}
+      onKeyDown={(e) => {
+        if (e.key === "Escape") onClose(i);
+        if (e.key === "ArrowRight") setI((v) => (v + 1) % n);
+        if (e.key === "ArrowLeft") setI((v) => (v - 1 + n) % n);
+      }}
+      className="fixed inset-0 z-[70] flex flex-col bg-page outline-none"
+    >
+      <div className="flex items-center justify-between px-5 py-3">
+        <span className="tabular-nums text-sm text-muted">
+          {i + 1} / {n}
+        </span>
+        <button onClick={() => onClose(i)} className="grid h-10 w-10 place-items-center rounded-full hover:bg-fg/5" aria-label="Close">
+          <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden>
+            <path d="M3 3l10 10M13 3 3 13" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+          </svg>
+        </button>
+      </div>
+      <div className="relative min-h-0 flex-1 px-4 pb-6">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={photo.url} alt={`${alt} in ${getFinish(finish).name}, photo ${i + 1}`} className="h-full w-full object-contain" />
+        {n > 1 && (
+          <>
+            <button onClick={() => setI((v) => (v - 1 + n) % n)} aria-label="Previous photo" className="absolute left-4 top-1/2 grid h-11 w-11 -translate-y-1/2 place-items-center rounded-full bg-page/90 shadow">
+              ‹
+            </button>
+            <button onClick={() => setI((v) => (v + 1) % n)} aria-label="Next photo" className="absolute right-4 top-1/2 grid h-11 w-11 -translate-y-1/2 place-items-center rounded-full bg-page/90 shadow">
+              ›
+            </button>
+          </>
+        )}
+      </div>
     </div>
   );
 }

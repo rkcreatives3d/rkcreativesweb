@@ -41,16 +41,20 @@ export function ModelPreview({ product, finish, modelUrl }: { product: Product; 
   );
 }
 
-export type Shot = { finish: string; large: Uint8Array; small: Uint8Array; cover?: Uint8Array };
+export type Shot = { finish: string; large: Uint8Array; small: Uint8Array; xl?: Uint8Array; cover?: Uint8Array };
 
 const SIZE = 720;
 
-/** The 3D picture on the card's dark stage and floor shadow (lib/owner/stage.ts). */
+/**
+ * The 3D picture with its floor shadow, transparent like the site's other
+ * studio pictures (they sit on the stage in CSS); the share-card JPEG gets the
+ * stage itself (lib/owner/stage.ts).
+ */
 function composite(src: HTMLCanvasElement, size: number, type: string, quality: number): Promise<Uint8Array> {
   const c = document.createElement("canvas");
   c.width = c.height = size;
   const g = c.getContext("2d")!;
-  drawStage(g, size);
+  if (type === "image/jpeg") drawStage(g, size);
   drawShadow(g, size * 0.5, size * 0.835, size * 0.23, size * 0.035);
   g.imageSmoothingQuality = "high";
   g.drawImage(src, 0, 0, size, size);
@@ -104,6 +108,8 @@ export function StudioCapture({
       finish,
       large: await composite(canvas, SIZE, "image/webp", 0.82),
       small: await composite(canvas, 200, "image/webp", 0.8),
+      // the main colour also gets the big picture the home page uses
+      xl: i === 0 ? await composite(canvas, 1200, "image/webp", 0.86) : undefined,
       cover: i === 0 ? await composite(canvas, 630, "image/jpeg", 0.85) : undefined,
     };
     shots.current.push(shot);

@@ -8,7 +8,7 @@ import { PATHS } from "./repo";
 // (re)make, which files to write, which to delete.
 
 export type RenderJob = { product: Product; modelUrl?: string; finishes: string[] };
-export type ShotFiles = { finish: string; large: Uint8Array; small: Uint8Array; cover?: Uint8Array };
+export type ShotFiles = { finish: string; large: Uint8Array; small: Uint8Array; xl?: Uint8Array; cover?: Uint8Array };
 
 const json = (v: unknown) => JSON.stringify(v, null, 2) + "\n";
 /** Largest piece of a 3D file sent in one request (base64 makes it a third bigger: still under 4.5 MB). */
@@ -54,6 +54,7 @@ export async function buildChanges(
     for (const s of list) {
       changes.push({ path: `public/renders/${slug}/${s.finish}.webp`, content: s.large });
       changes.push({ path: `public/renders/${slug}/${s.finish}-sm.webp`, content: s.small });
+      if (s.xl && s.finish === p.finishes[0]) changes.push({ path: `public/renders/${slug}/${s.finish}-xl.webp`, content: s.xl });
       if (s.cover && s.finish === p.finishes[0]) changes.push({ path: `public/renders/${slug}/cover.jpg`, content: s.cover });
     }
     renders[slug] = [...new Set([...(renders[slug] ?? []), ...list.map((s) => s.finish)])].filter((f) => p.finishes.includes(f));

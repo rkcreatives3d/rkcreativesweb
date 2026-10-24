@@ -43,7 +43,7 @@ test("if reviews can't be received right now, the customer can send it on WhatsA
 test("a product page links to writing a review of that product", async ({ page }) => {
   await prepare(page, { lite: true });
   await page.goto("/shop/infinity-knot/");
-  await page.getByRole("link", { name: "Write a review →" }).click();
+  await page.getByRole("link", { name: "Write a review" }).click();
   await expect(page).toHaveURL(/\/reviews\/\?product=infinity-knot#write$/);
   await expect(page.getByLabel("What did you buy?")).toHaveValue("infinity-knot");
 });

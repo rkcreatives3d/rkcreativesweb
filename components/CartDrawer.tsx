@@ -3,7 +3,6 @@
 import { useEffect, useRef } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "motion/react";
-import { useLenis } from "lenis/react";
 import { optionsLabel } from "@/lib/personalise";
 import { useCart, cartSubtotal, lineTotal } from "@/lib/cart";
 import { getFinish, getProduct } from "@/lib/products";
@@ -15,7 +14,6 @@ import { DeliveryEstimate } from "./Delivery";
 
 export function CartDrawer() {
   const { items, open, setOpen, setQty, remove } = useCart();
-  const lenis = useLenis();
   const subtotal = cartSubtotal(items);
   const shipping = shippingFor(subtotal);
   const toFree = Math.max(0, site.freeShippingOver - subtotal);
@@ -23,12 +21,17 @@ export function CartDrawer() {
   useFocusTrap(panel, open);
 
   useEffect(() => {
-    if (open) lenis?.stop();
-    else lenis?.start();
+    if (!open) return;
+    // the page behind stays put while the cart is open
+    const prev = document.documentElement.style.overflow;
+    document.documentElement.style.overflow = "hidden";
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
     window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [open, lenis, setOpen]);
+    return () => {
+      document.documentElement.style.overflow = prev;
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [open, setOpen]);
 
   return (
     <AnimatePresence>
@@ -36,7 +39,7 @@ export function CartDrawer() {
         <>
           <motion.div
             key="backdrop"
-            className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm"
+            className="fixed inset-0 z-50 bg-black/30"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -48,34 +51,35 @@ export function CartDrawer() {
             role="dialog"
             aria-modal="true"
             aria-label="Cart"
-            className="fixed inset-y-0 right-0 z-50 flex w-full max-w-md flex-col border-l border-line bg-page/95 backdrop-blur-2xl"
+            className="fixed inset-y-0 right-0 z-50 flex w-full max-w-md flex-col border-l border-line bg-page shadow-[0_0_60px_-20px_rgba(0,0,0,0.35)]"
             initial={{ x: "100%" }}
             animate={{ x: 0 }}
             exit={{ x: "100%" }}
-            transition={{ type: "spring", stiffness: 260, damping: 32 }}
+            transition={{ duration: 0.38, ease: [0.32, 0.72, 0, 1] }}
           >
-            <div className="flex items-center justify-between border-b border-fg/10 px-6 py-5">
-              <h2 className="font-display text-2xl font-bold">Your cart</h2>
+            <div className="flex items-center justify-between border-b border-line px-6 py-4">
+              <h2 className="text-xl font-semibold tracking-tight">Your cart</h2>
               <button
                 onClick={() => setOpen(false)}
-                className="grid h-10 w-10 place-items-center rounded-full border border-fg/15 text-lg hover:bg-fg hover:text-page"
+                className="grid h-10 w-10 place-items-center rounded-full text-muted transition-colors hover:bg-fg/5 hover:text-fg"
                 aria-label="Close cart"
               >
-                ✕
+                <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden>
+                  <path d="M3 3l10 10M13 3 3 13" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+                </svg>
               </button>
             </div>
 
             {items.length === 0 ? (
               <div className="flex flex-1 flex-col items-center justify-center gap-5 px-8 text-center">
-                <p className="font-display text-3xl font-bold">Nothing printed yet.</p>
-                <p className="text-muted">Your cart is empty.</p>
+                <p className="text-2xl font-semibold tracking-tight">Your cart is empty.</p>
                 <Link href="/shop/" onClick={() => setOpen(false)} className="btn btn-primary">
-                  Browse the shop →
+                  Explore the collection
                 </Link>
               </div>
             ) : (
               <>
-                <ul className="flex-1 space-y-3 overflow-y-auto px-6 py-5" data-lenis-prevent>
+                <ul className="flex-1 overflow-y-auto overscroll-contain px-6">
                   <AnimatePresence initial={false}>
                     {items.map((i) => {
                       const p = getProduct(i.slug);
@@ -89,9 +93,9 @@ export function CartDrawer() {
                           initial={{ opacity: 0, x: 40 }}
                           animate={{ opacity: 1, x: 0 }}
                           exit={{ opacity: 0, x: 40, height: 0, marginTop: 0 }}
-                          className="flex gap-4 rounded-xl border border-line bg-surface p-4"
+                          className="flex gap-4 border-b border-line py-5 last:border-b-0"
                         >
-                          <ProductThumb product={p} finish={i.finish} />
+                          <ProductThumb product={p} finish={i.finish} className="h-20 w-20" />
                           <div className="min-w-0 flex-1">
                             <div className="flex items-start justify-between gap-2">
                               <Link
@@ -132,12 +136,12 @@ export function CartDrawer() {
                           Add <span className="text-fg">{formatPrice(toFree)}</span> more for free shipping
                         </>
                       ) : (
-                        <span className="text-pop">Free shipping unlocked ✦</span>
+                        <span className="text-ok">Free shipping on this order</span>
                       )}
                     </p>
-                    <div className="h-1.5 overflow-hidden rounded-full bg-fg/10">
+                    <div className="h-1 overflow-hidden rounded-full bg-fg/10">
                       <motion.div
-                        className="h-full rounded-full bg-pop"
+                        className="h-full rounded-full bg-fg"
                         animate={{ width: `${Math.min(100, (subtotal / site.freeShippingOver) * 100)}%` }}
                       />
                     </div>
@@ -145,13 +149,13 @@ export function CartDrawer() {
                   <div className="space-y-1 text-sm">
                     <Row label="Subtotal" value={formatPrice(subtotal)} />
                     <Row label="Shipping" value={shipping === 0 ? "Free" : formatPrice(shipping)} />
-                    <div className="flex justify-between pt-2 font-display text-xl font-bold">
+                    <div className="flex justify-between pt-2 text-lg font-semibold">
                       <span>Total</span>
                       <span>{formatPrice(subtotal + shipping)}</span>
                     </div>
                   </div>
                   <Link href="/checkout/" onClick={() => setOpen(false)} className="btn btn-primary w-full">
-                    Checkout →
+                    Checkout
                   </Link>
                   <DeliveryEstimate className="text-center text-xs text-muted" />
                   <p className="text-center text-xs text-muted">You&apos;ll confirm your order on WhatsApp or by email.</p>
@@ -176,7 +180,7 @@ function Row({ label, value }: { label: string; value: string }) {
 
 export function Stepper({ value, onChange, min = 1 }: { value: number; onChange: (v: number) => void; min?: number }) {
   return (
-    <div className="inline-flex items-center rounded-full border border-fg/15">
+    <div className="inline-flex items-center rounded-full border border-line">
       <button
         type="button"
         onClick={() => onChange(Math.max(min, value - 1))}

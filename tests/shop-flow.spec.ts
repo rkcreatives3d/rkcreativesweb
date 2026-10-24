@@ -19,7 +19,7 @@ test("intro can be skipped", async ({ page }) => {
   await page.getByRole("button", { name: "Skip" }).click();
   // out of view within about half a second, even before the page's JavaScript has loaded
   await expect(page.locator("#intro")).toBeHidden({ timeout: 1500 });
-  await expect(page.getByRole("link", { name: /shop the collection/i })).toBeVisible();
+  await expect(page.getByRole("link", { name: /explore the collection/i })).toBeVisible();
 });
 
 test("intro never plays off the home page", async ({ page }) => {

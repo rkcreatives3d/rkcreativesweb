@@ -17,16 +17,15 @@ const steps = [
 
 export default function PersonalisePage() {
   return (
-    <div className="mx-auto max-w-7xl px-5 pb-24 pt-28 sm:px-8 sm:pt-36">
-      <h1 className="font-display text-6xl font-extrabold display-case leading-[0.88] tracking-tight sm:text-8xl">
-        <KineticText text="Your name" />
-        <br />
-        <KineticText text="in gold" delay={0.15} />
+    <div className="mx-auto max-w-6xl px-5 pb-28 pt-24 sm:px-6 sm:pt-32">
+      <p className="eyebrow">Personalised</p>
+      <h1 className="headline-lg mt-2">
+        <KineticText text="Your name, in raised letters." />
       </h1>
-      <ol className="mb-10 mt-6 flex flex-wrap gap-x-8 gap-y-2 text-sm text-muted">
+      <ol className="mb-10 mt-5 flex flex-wrap gap-x-8 gap-y-2 text-sm text-muted">
         {steps.map(([t, d], i) => (
           <li key={t}>
-            <span className="tabular-nums text-pop">0{i + 1}</span> <span className="font-semibold text-fg">{t}</span> · {d}
+            <span className="tabular-nums">0{i + 1}</span> <span className="font-medium text-fg">{t}</span> · {d}
           </li>
         ))}
       </ol>

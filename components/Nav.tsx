@@ -1,32 +1,41 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "motion/react";
 import { useCart, cartCount } from "@/lib/cart";
 import { useShelf } from "@/lib/shelf";
+import { useFocusTrap } from "@/lib/focus";
 import { site, whatsappUrl } from "@/lib/site";
-import { HeartIcon, MenuIcon } from "./Icons";
 import { ownerTap } from "@/lib/ownerTap";
+import { BagIcon, MenuIcon, SearchIcon } from "./Icons";
+import { SearchOverlay } from "./SearchOverlay";
 
+/** The main destinations: in the bar on wide screens, at the top of the menu on phones. */
 const links = [
   { href: "/shop/", label: "Shop" },
-  { href: "/personalise/", label: "Personalise", short: "Name it" },
-  // on the narrowest phones "Custom" moves into the menu, so the bar still fits
-  { href: "/custom/", label: "Custom", wide: true },
+  { href: "/collections/", label: "Collections" },
+  { href: "/personalise/", label: "Personalised" },
+  { href: "/custom/", label: "Custom Prints" },
+  { href: "/about/", label: "About" },
 ];
 
-/** Everything else, behind "Menu". */
+/** Everything else, in the phone menu (and the footer). */
 const more = [
-  { href: "/custom/", label: "Custom prints" },
-  { href: "/reviews/", label: "Reviews" },
-  { href: "/about/", label: "About us" },
-  { href: "/guides/", label: "Guides" },
+  { href: "/saved/", label: "Saved" },
   { href: "/track/", label: "Track an order" },
+  { href: "/reviews/", label: "Reviews" },
+  { href: "/guides/", label: "Guides" },
   { href: "/contact/", label: "Contact us" },
 ];
 
+const isActive = (pathname: string, href: string) => pathname.startsWith(href.replace(/\/$/, ""));
+
+/**
+ * The slim bar at the top of every page: the brand, five destinations, search
+ * and the bag. Under 1024 px the destinations move into a full-screen menu.
+ */
 export function Nav() {
   const pathname = usePathname();
   const router = useRouter();
@@ -34,11 +43,18 @@ export function Nav() {
   const setOpen = useCart((s) => s.setOpen);
   const saved = useShelf((s) => s.saved.length);
   const [menu, setMenu] = useState(false);
+  const [search, setSearch] = useState(false);
   const menuBtn = useRef<HTMLButtonElement>(null);
   const panel = useRef<HTMLDivElement>(null);
+  useFocusTrap(panel, menu);
+  const closeSearch = useCallback(() => setSearch(false), []);
 
-  // the menu closes on navigation, Esc, or a tap anywhere else
-  useEffect(() => setMenu(false), [pathname]);
+  // menus close on navigation
+  useEffect(() => {
+    setMenu(false);
+    setSearch(false);
+  }, [pathname]);
+  // the phone menu: Esc closes it; the page behind doesn't scroll
   useEffect(() => {
     if (!menu) return;
     const key = (e: KeyboardEvent) => {
@@ -46,163 +62,159 @@ export function Nav() {
       setMenu(false);
       menuBtn.current?.focus();
     };
-    const away = (e: PointerEvent) => {
-      const t = e.target as Node;
-      if (!panel.current?.contains(t) && !menuBtn.current?.contains(t)) setMenu(false);
-    };
+    const prev = document.documentElement.style.overflow;
+    document.documentElement.style.overflow = "hidden";
     window.addEventListener("keydown", key);
-    window.addEventListener("pointerdown", away);
     return () => {
+      document.documentElement.style.overflow = prev;
       window.removeEventListener("keydown", key);
-      window.removeEventListener("pointerdown", away);
     };
   }, [menu]);
 
   return (
-    <header className="fixed inset-x-0 top-0 z-40 px-[max(0.75rem,env(safe-area-inset-left))] pt-[max(0.75rem,env(safe-area-inset-top))] sm:px-6 sm:pt-5">
-      <nav aria-label="Main" className="mx-auto flex max-w-7xl items-center justify-between gap-1 nav-glass rounded-full border border-line bg-page/50 px-1.5 py-2 backdrop-blur-xl min-[380px]:gap-3 min-[380px]:px-2">
-        <Link
-          href="/"
-          // on the home page, 5 taps here open the owner page too (like the big logo)
-          onClick={(e) => {
-            if (pathname !== "/" || !ownerTap(e.timeStamp)) return;
-            e.preventDefault(); // instead of the link's own "go home"
-            router.push("/owner/");
-          }}
-          className="flex shrink-0 touch-manipulation items-center gap-3"
-          aria-label={`${site.name} home`}
+    <header className="fixed inset-x-0 top-0 z-40 pt-[env(safe-area-inset-top)]">
+      <div className={`nav-glass border-b border-line/80 backdrop-blur-xl backdrop-saturate-150 ${menu ? "bg-page" : "bg-page/80"}`}>
+        <nav
+          aria-label="Main"
+          className="mx-auto flex h-12 max-w-6xl items-center justify-between gap-4 px-[max(1rem,env(safe-area-inset-left))] sm:h-[3.25rem] sm:px-6"
         >
-          {/* the logo's emblem (printer, RK, spool): the full logo is unreadable this small */}
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="/brand/mark-80.webp"
-            srcSet="/brand/mark-80.webp 1x, /brand/mark-160.webp 2x"
-            alt=""
-            width={40}
-            height={40}
-            className="h-9 w-9 shrink-0 rounded-full ring-1 ring-accent/40 min-[380px]:h-10 min-[380px]:w-10"
-          />
-          {/* the name fits beside the links from tablet width up */}
-          <span className="hidden font-display text-base leading-none tracking-wide display-case md:block">
-            <span className="holo-text">RK</span> Creative Builds
-          </span>
-        </Link>
+          <Link
+            href="/"
+            // on the home page, 5 taps here open the owner page (lib/ownerTap.ts)
+            onClick={(e) => {
+              if (pathname !== "/" || !ownerTap(e.timeStamp)) return;
+              e.preventDefault(); // instead of the link's own "go home"
+              router.push("/owner/");
+            }}
+            className="-ml-1 flex shrink-0 touch-manipulation items-center gap-2.5 rounded-lg p-1"
+            aria-label={`${site.name} home`}
+          >
+            {/* the logo's emblem (printer, RK, spool): the full logo is unreadable this small */}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/brand/mark-80.webp" srcSet="/brand/mark-80.webp 1x, /brand/mark-160.webp 2x" alt="" width={28} height={28} className="h-7 w-7 shrink-0 rounded-full" />
+            <span className="hidden text-[0.9375rem] font-semibold tracking-tight min-[360px]:inline">{site.name}</span>
+          </Link>
 
-        <div className="flex items-center gap-0.5 min-[380px]:gap-1 sm:gap-2">
-          {links.map((l) => {
-            const active = pathname.startsWith(l.href.replace(/\/$/, ""));
-            return (
-              <Link
-                key={l.href}
-                href={l.href}
-                aria-current={active ? "page" : undefined}
-                className={`whitespace-nowrap rounded-full px-1.5 py-2 text-sm font-medium transition-colors min-[380px]:px-2.5 md:px-4 ${
-                  active ? "bg-fg/10 text-fg" : "text-fg/75 hover:text-fg"
-                } ${l.wide ? "hidden min-[430px]:inline-block" : ""}`}
-              >
-                {l.short ? (
-                  <>
-                    <span className="sm:hidden">{l.short}</span>
-                    <span className="hidden sm:inline">{l.label}</span>
-                  </>
-                ) : (
-                  l.label
+          <ul className="hidden items-center gap-8 lg:flex">
+            {links.map((l) => (
+              <li key={l.href}>
+                <Link
+                  href={l.href}
+                  aria-current={isActive(pathname, l.href) ? "page" : undefined}
+                  className="py-2 text-[0.8125rem] text-fg/80 transition-colors hover:text-fg aria-[current=page]:font-medium aria-[current=page]:text-fg"
+                >
+                  {l.label}
+                </Link>
+              </li>
+            ))}
+          </ul>
+
+          <div className="-mr-2 flex items-center">
+            <button
+              onClick={() => {
+                setMenu(false);
+                setSearch((v) => !v);
+              }}
+              aria-expanded={search}
+              className="grid h-10 w-10 place-items-center rounded-full text-fg/80 transition-colors hover:text-fg"
+            >
+              <SearchIcon size={18} />
+              <span className="sr-only">Search</span>
+            </button>
+            <button
+              data-cart-target
+              onClick={() => setOpen(true)}
+              className="relative grid h-10 w-10 place-items-center rounded-full text-fg/80 transition-colors hover:text-fg"
+            >
+              <BagIcon size={19} />
+              {/* the accessible name reads "Cart 2 items" */}
+              <span className="sr-only">Cart</span>
+              <AnimatePresence>
+                {count > 0 && (
+                  <motion.span
+                    key={count}
+                    aria-hidden
+                    initial={{ scale: 0.4, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    exit={{ scale: 0.4, opacity: 0 }}
+                    className="absolute bottom-1.5 right-1 grid h-4 min-w-4 place-items-center rounded-full bg-fg px-1 text-[10px] font-semibold tabular-nums leading-none text-page"
+                  >
+                    {count}
+                  </motion.span>
                 )}
-              </Link>
-            );
-          })}
-          <button
-            data-cart-target
-            onClick={() => setOpen(true)}
-            className={`relative ml-0.5 flex shrink-0 items-center gap-2 rounded-full border px-2.5 py-2 text-sm font-semibold transition-all min-[380px]:ml-1 min-[380px]:px-3 sm:px-4 hover:scale-105 active:scale-95 ${
-              count ? "border-accent-fill bg-accent-fill text-on-accent" : "border-fg/20 text-fg hover:border-fg/40"
-            }`}
-          >
-            <CartIcon />
-            {/* the accessible name reads "Cart 2 items", starting with what's on screen */}
-            <span className="sr-only sm:not-sr-only">Cart</span>
-            <AnimatePresence mode="popLayout">
-              <motion.span
-                key={count}
-                initial={{ y: -12, opacity: 0, scale: 0.6 }}
-                animate={{ y: 0, opacity: 1, scale: 1 }}
-                exit={{ y: 12, opacity: 0 }}
-                className={`h-5 min-w-5 place-items-center rounded-full px-1 tabular-nums text-xs ${count ? "grid bg-on-accent text-accent-fill" : "hidden bg-fg/10 text-muted min-[380px]:grid"}`}
-              >
-                {count}
-              </motion.span>
-            </AnimatePresence>
-            <span className="sr-only">{count === 1 ? "item" : "items"}</span>
-          </button>
-          <button
-            ref={menuBtn}
-            onClick={() => setMenu((v) => !v)}
-            aria-expanded={menu}
-            aria-controls="more-menu"
-            className="relative grid h-9 w-9 shrink-0 place-items-center rounded-full border border-fg/20 text-fg transition-colors hover:border-fg/40 min-[380px]:h-10 min-[380px]:w-10"
-          >
-            <MenuIcon open={menu} />
-            <span className="sr-only">Menu</span>
-            {saved > 0 && !menu && <span aria-hidden className="absolute right-1 top-1 h-2 w-2 rounded-full bg-danger" />}
-          </button>
-        </div>
-      </nav>
+              </AnimatePresence>
+              <span className="sr-only">
+                {count} {count === 1 ? "item" : "items"}
+              </span>
+            </button>
+            <button
+              ref={menuBtn}
+              onClick={() => {
+                setSearch(false);
+                setMenu((v) => !v);
+              }}
+              aria-expanded={menu}
+              aria-controls="site-menu"
+              className="grid h-10 w-10 place-items-center rounded-full text-fg/80 transition-colors hover:text-fg lg:hidden"
+            >
+              <MenuIcon open={menu} size={18} />
+              <span className="sr-only">Menu</span>
+            </button>
+          </div>
+        </nav>
+      </div>
+
+      <SearchOverlay open={search} onClose={closeSearch} />
 
       <AnimatePresence>
         {menu && (
           <motion.div
             ref={panel}
-            id="more-menu"
-            initial={{ opacity: 0, y: -8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.18 }}
-            className="mx-auto mt-2 max-w-7xl"
+            id="site-menu"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-x-0 bottom-0 top-[calc(3rem+env(safe-area-inset-top))] overflow-y-auto overscroll-contain bg-page px-6 pb-[max(2rem,env(safe-area-inset-bottom))] pt-6 sm:top-[calc(3.25rem+env(safe-area-inset-top))] lg:hidden"
           >
-            <nav aria-label="More" className="ml-auto w-full rounded-3xl border border-line bg-raised p-2 shadow-[0_20px_50px_-20px_rgba(0,0,0,0.7)] sm:w-72">
-              <Link href="/saved/" className="flex items-center justify-between rounded-2xl px-4 py-3 font-semibold hover:bg-fg/5">
-                <span className="flex items-center gap-2.5">
-                  <span className="text-danger">
-                    <HeartIcon size={16} filled={saved > 0} />
-                  </span>
-                  Saved
-                </span>
-                <span className="tabular-nums text-sm text-muted">{saved}</span>
-              </Link>
-              <div className="my-1 h-px bg-line" />
-              {more.map((l) => (
-                <Link
-                  key={l.href}
-                  href={l.href}
-                  aria-current={pathname.startsWith(l.href.replace(/\/$/, "")) ? "page" : undefined}
-                  className={`block rounded-2xl px-4 py-3 hover:bg-fg/5 aria-[current=page]:font-semibold ${l.href === "/custom/" ? "min-[430px]:hidden" : ""}`}
-                >
-                  {l.label}
-                </Link>
-              ))}
-              <div className="my-1 h-px bg-line" />
-              <a
-                href={whatsappUrl(`Hi ${site.name}! I have a question.`)}
-                target="_blank"
-                rel="noreferrer"
-                className="block rounded-2xl px-4 py-3 font-semibold text-ok hover:bg-fg/5"
-              >
-                Chat on WhatsApp
-              </a>
+            <nav aria-label="More" className="mx-auto max-w-xl">
+              <ul>
+                {links.map((l, i) => (
+                  <motion.li key={l.href} initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.03 * i, duration: 0.25 }}>
+                    <Link
+                      href={l.href}
+                      aria-current={isActive(pathname, l.href) ? "page" : undefined}
+                      className="block py-2 text-[1.75rem] font-semibold tracking-tight text-fg/90 hover:text-fg"
+                    >
+                      {l.label}
+                    </Link>
+                  </motion.li>
+                ))}
+              </ul>
+              <ul className="mt-8 space-y-0.5 border-t border-line pt-6">
+                {more.map((l) => (
+                  <li key={l.href}>
+                    <Link href={l.href} className="flex items-center justify-between py-2 text-[0.9375rem] text-fg/80 hover:text-fg">
+                      {l.label}
+                      {l.href === "/saved/" && saved > 0 && <span className="tabular-nums text-sm text-muted">{saved}</span>}
+                    </Link>
+                  </li>
+                ))}
+                <li>
+                  <a
+                    href={whatsappUrl(`Hi ${site.name}! I have a question.`)}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="block py-2 text-[0.9375rem] font-medium text-accent"
+                  >
+                    Chat on WhatsApp
+                  </a>
+                </li>
+              </ul>
             </nav>
           </motion.div>
         )}
       </AnimatePresence>
     </header>
-  );
-}
-
-function CartIcon() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
-      <path d="M3 4h2l2.4 11.2a2 2 0 0 0 2 1.6h7.7a2 2 0 0 0 2-1.5L21 8H6" strokeLinecap="round" strokeLinejoin="round" />
-      <circle cx="10" cy="20" r="1.3" />
-      <circle cx="17" cy="20" r="1.3" />
-    </svg>
   );
 }

@@ -33,19 +33,19 @@ export function ToastHost() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 24 }}
             transition={{ duration: 0.25 }}
-            className="pointer-events-auto flex w-full max-w-md items-center gap-3 rounded-2xl border border-fg bg-fg p-2.5 pr-3 text-page shadow-[0_16px_40px_-12px_rgba(0,0,0,0.8)]"
+            className="pointer-events-auto flex w-full max-w-md items-center gap-3 rounded-2xl border border-line bg-page p-2.5 pr-3 text-fg shadow-[0_18px_50px_-18px_rgba(0,0,0,0.35)]"
           >
             {toast.image ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={toast.image} alt="" width={44} height={44} className="h-11 w-11 shrink-0 rounded-xl bg-page object-cover" />
+              <img src={toast.image} alt="" width={44} height={44} className="stage h-11 w-11 shrink-0 rounded-xl object-cover" />
             ) : (
-              <span aria-hidden className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-page/10 text-lg">
+              <span aria-hidden className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-page-2 text-lg">
                 ✓
               </span>
             )}
             <p className="min-w-0 flex-1 text-sm leading-snug">
               <span className="block font-semibold">{toast.title}</span>
-              {toast.detail && <span className="block truncate text-xs text-page/70">{toast.detail}</span>}
+              {toast.detail && <span className="block truncate text-xs text-muted">{toast.detail}</span>}
             </p>
             {toast.cart && (
               <>
@@ -54,11 +54,11 @@ export function ToastHost() {
                     hide();
                     setOpen(true);
                   }}
-                  className="shrink-0 rounded-full border border-page/25 px-3 py-2 text-xs font-semibold hover:border-page"
+                  className="shrink-0 rounded-lg border border-line px-3 py-2 text-xs font-semibold hover:border-fg/40"
                 >
                   View cart
                 </button>
-                <Link href="/checkout/" onClick={hide} className="shrink-0 rounded-full bg-accent-fill px-3 py-2 text-xs font-semibold text-on-accent">
+                <Link href="/checkout/" onClick={hide} className="shrink-0 rounded-lg bg-fg px-3 py-2 text-xs font-semibold text-page">
                   Checkout
                 </Link>
               </>

@@ -10,7 +10,7 @@ export function CustomViewer() {
   const visible = useInView(ref);
   if (useLiteMode()) return null;
   return (
-    <div ref={ref} className="relative aspect-[4/3] overflow-hidden rounded-3xl border border-line stage">
+    <div ref={ref} className="relative aspect-[4/3] overflow-hidden rounded-[var(--radius-tile)] stage">
       <View3D className="absolute inset-0">
         <SlicerScene visible={visible} />
       </View3D>

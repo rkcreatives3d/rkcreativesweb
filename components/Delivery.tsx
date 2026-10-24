@@ -32,7 +32,7 @@ export function DeliveryEstimate({ className = "", pin, inline }: { className?: 
   const Tag = inline ? "span" : "p";
   return (
     <Tag className={className}>
-      <TruckIcon className="mr-1.5 text-pop" />Order today, delivered <span className="text-fg">{quote.window}</span>
+      <TruckIcon className="mr-1.5 text-muted" />Order today, delivered <span className="text-fg">{quote.window}</span>
       {quote.zone && <> to {use}</>}
     </Tag>
   );
@@ -83,8 +83,8 @@ export function PinCheck({ subtotal }: { subtotal: number }) {
           placeholder="Your PIN code"
           aria-invalid={error}
           aria-describedby="pin-result"
-          className={`min-w-0 flex-1 rounded-xl border bg-page/60 px-3 py-2 text-sm tabular-nums text-fg outline-none transition-colors placeholder:text-fg/50 focus:border-accent-2 focus:ring-2 focus:ring-accent-2/20 ${
-            error ? "border-danger" : "border-fg/15"
+          className={`min-w-0 flex-1 rounded-xl border bg-page/60 px-3 py-2 text-sm tabular-nums text-fg outline-none transition-colors placeholder:text-fg/50 focus:border-fg/60 focus:ring-4 focus:ring-fg/[0.06] ${
+            error ? "border-danger" : "border-line"
           }`}
         />
         <button type="submit" className="shrink-0 rounded-xl px-3 py-2 text-sm font-semibold text-accent hover:bg-fg/5">

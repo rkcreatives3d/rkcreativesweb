@@ -33,8 +33,8 @@ export function SizeGuide({ product: p, size }: { product: Product; size: Size }
   const rows: [string, number, boolean][] = [[`${p.name}, ${size.label}`, cm, true], ...refs.map(([n, v]) => [n, v, false] as [string, number, boolean])];
 
   return (
-    <div className="mt-10">
-      <h2 className="text-xs font-semibold uppercase tracking-[0.12em] text-muted">How big is it?</h2>
+    <section className="mt-10 border-t border-line pt-6">
+      <h2 className="text-lg font-semibold tracking-tight">How big is it?</h2>
       {p.scalePhoto && (
         // eslint-disable-next-line @next/next/no-img-element
         <img src={p.scalePhoto} alt={`${p.name} held in a hand, for scale`} className="mt-4 aspect-[4/3] w-full rounded-xl object-cover" loading="lazy" />
@@ -46,9 +46,9 @@ export function SizeGuide({ product: p, size }: { product: Product; size: Size }
               <span className={me ? "font-semibold" : "text-muted"}>{name}</span>
               <span className="tabular-nums text-muted">{v} cm</span>
             </p>
-            <div className="mt-1.5 h-2.5 rounded-full bg-fg/[0.06]">
+            <div className="mt-1.5 h-1.5 rounded-full bg-fg/[0.07]">
               <motion.div
-                className={`h-full rounded-full ${me ? "bg-pop" : "bg-fg/25"}`}
+                className={`h-full rounded-full ${me ? "bg-fg" : "bg-fg/25"}`}
                 initial={false}
                 animate={{ width: `${(v / max) * 100}%` }}
                 transition={{ type: "spring", stiffness: 160, damping: 24 }}
@@ -58,7 +58,7 @@ export function SizeGuide({ product: p, size }: { product: Product; size: Size }
         ))}
       </ul>
       <p className="mt-3 text-xs text-muted">Sizes are the longest side, give or take 2 mm.</p>
-    </div>
+    </section>
   );
 }
 
@@ -80,23 +80,23 @@ function Answer({ item }: { item: FaqItem }) {
 
 export function ProductFaq({ product: p }: { product: Product }) {
   return (
-    <div className="mt-10">
-      <h2 className="text-xs font-semibold uppercase tracking-[0.12em] text-muted">Questions</h2>
-      <div className="mt-3 divide-y divide-line border-y border-line">
+    <section className="mt-10 border-t border-line pt-6">
+      <h2 className="text-lg font-semibold tracking-tight">Questions</h2>
+      <div className="mt-2 divide-y divide-line">
         {faqFor(p).map((item) => (
           <details key={item.q} className="group py-1">
-            <summary className="flex cursor-pointer list-none items-center justify-between gap-4 rounded-xl py-3 font-semibold [&::-webkit-details-marker]:hidden">
+            <summary className="flex cursor-pointer list-none items-center justify-between gap-4 rounded-lg py-3 font-medium [&::-webkit-details-marker]:hidden">
               {item.q}
               <span aria-hidden className="text-xl leading-none text-muted transition-transform group-open:rotate-45">
                 +
               </span>
             </summary>
-            <div className="pb-4 leading-relaxed text-fg/75">
+            <div className="pb-4 leading-relaxed text-muted">
               <Answer item={item} />
             </div>
           </details>
         ))}
       </div>
-    </div>
+    </section>
   );
 }

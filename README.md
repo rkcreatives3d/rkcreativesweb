@@ -2,7 +2,7 @@
 
 This is the 3D-animated storefront for RK Creative Builds ("Bring Ideas to Life"). Customers browse, personalise and add products to a cart, then send the order to you on WhatsApp or by email. After that, they can pay right away with a UPI QR code, or wait until you confirm.
 
-Built with Next.js 16, React Three Fiber, drei, Tailwind 4, Motion, Lenis and zustand.
+Built with Next.js 16, React Three Fiber, drei, Tailwind 4, Motion and zustand.
 
 ## Run it
 
@@ -31,7 +31,7 @@ npm run check      # typecheck + build + tests, the same as GitHub runs
 
 ## Owner page: manage products without code
 
-Tap the **logo on the home page 5 times** (within 3 seconds) to open the shop manager (`/owner/`). It isn't linked anywhere and search engines are told to skip it.
+Tap the **logo on the home page 5 times** within 5 seconds (the small one in the top bar, or the big one in the "Bring ideas to life" section near the bottom) to open the shop manager (`/owner/`). It isn't linked anywhere and search engines are told to skip it.
 
 **Signing in.** The secret tap only finds the page; the **password** is what protects it. The website runs in the visitor's browser and its code is public, so it can't check a password or keep a GitHub key itself. A tiny **owner sign-in server** (`scripts/owner-api.mjs`, no dependencies) does both: it checks the password, holds the GitHub key in secret, and passes on only the few GitHub calls the owner page needs. Wrong passwords are limited: 5 per device every 15 minutes (and each try is slowed down), 30 per hour in total. Sign-ins last 12 hours, or 30 days with "Keep me signed in".
 
@@ -52,7 +52,7 @@ To change the password, change `OWNER_PASSWORD` and redeploy: that also signs ou
 - **Products:** add, edit, duplicate, hide/show, delete, reorder (the shop shows them in this order), and change prices straight from the list.
 - **Each product:** name, short line, description, category (or a new one), badge, starting price, sizes with their own measurement and extra price, colours and the main colour, material, print time, personalisation, the occasions it shows under, and its own customer questions.
 - **3D model:** upload the STL, 3MF (Bambu Studio, Orca, PrusaSlicer), OBJ or GLB you print from and see it in 3D straight away, in every colour. Customers get it in 3D, 360° and AR.
-- **Photos:** upload, reorder (the first is the cover), remove. Big phone photos are resized automatically. **Clean up the background** (on by default) cuts the product out of the photo and puts it on the shop's dark studio stage with a soft shadow, sized and placed like every other product, so a photo taken on a table at home looks like the studio pictures. Bits of wall seen through gaps (between arms, under handles) are removed and the old background's colour is taken out of the edges, so no light fringe shows. ✨ on a photo does the same for one that's already there. It runs in your browser (a small AI model, `public/vendor/u2netp.onnx`, about 4.5 MB, downloaded the first time); if it can't find the product clearly, the photo is kept as taken. Best results: the product near the middle, on a plain surface, with nothing else touching it.
+- **Photos:** upload, reorder (the first is the cover), remove. Big phone photos are resized automatically. **Clean up the background** (on by default) cuts the product out of the photo and puts it on the shop's soft grey studio stage with a soft shadow, sized and placed like every other product, so a photo taken on a table at home looks like the studio pictures. Bits of wall seen through gaps (between arms, under handles) are removed and the old background's colour is taken out of the edges, so no light fringe shows. ✨ on a photo does the same for one that's already there. It runs in your browser (a small AI model, `public/vendor/u2netp.onnx`, about 4.5 MB, downloaded the first time); if it can't find the product clearly, the photo is kept as taken. Best results: the product near the middle, on a plain surface, with nothing else touching it.
 - **Colours:** add a filament colour (name, colour, matte / silk / glossy), edit or remove one.
 - **Shop settings:** WhatsApp number, order email, Instagram, city and PIN code, website address, UPI ID and name, card payment link, cash on delivery (fee, order limit), shipping fee and free-shipping amount, days to print and pack, name/message price, courier and tracking page, business details, review link, categories.
 
@@ -73,12 +73,14 @@ Under the hood, products, colours and settings live in `content/products.json`, 
 | Shop details, contact, UPI, shipping rules, engraving price, analytics | `lib/site.ts` |
 | Delivery dates and surcharges by PIN code | `lib/delivery.ts` |
 | Products: name, price, sizes, finishes, tags, photos, size photo, FAQ, personalisation | `lib/products.ts` |
-| "Shop by occasion" tiles on the home page | `lib/occasions.ts` |
+| Occasions in the shop filter (Birthday gifts, Under ₹499 …) | `lib/occasions.ts` |
+| Home page: featured products and their words | `app/page.tsx` |
+| Design tokens: colours, type scale, buttons, product stage | `app/globals.css` |
 | Personalise lettering styles and icons | `lib/personalise.ts` (3D shapes in `components/three/nameplate.ts`) |
 | About story, video, reviews, photo galleries, Instagram posts, before/after jobs, custom-price estimator rates | `lib/content.ts` |
 | Policies (shipping, returns, privacy, terms) | `lib/policies.ts` |
 | Guides | `lib/guides.ts` |
-| Brand colours: page / 3D | `app/globals.css` (`@theme`) / `lib/theme.ts` |
+| 3D lighting and colours | `lib/theme.ts` |
 | Filament colours customers can pick | `finishes` in `lib/products.ts` |
 | Logo files | `public/brand/`, `app/icon.png`, `app/apple-icon.png`, `app/opengraph-image.jpg` (original in `assets/`) |
 
@@ -86,7 +88,7 @@ The WhatsApp number must be in international format with digits only. For exampl
 
 ### Showing your products in real 3D
 
-Every product can be shown as its real 3D model, which customers can rotate and drag, and see in every colour, on the shop cards (including the home page's "Fresh off the bed") and the product page. Products with a model also get a **"View in your room"** button: on a phone it places the model, at its real size and in the chosen colour, on the customer's table or floor using AR (an iPhone, or an Android phone with Google Play Services for AR). On a computer it shows a QR code that opens the same view on a phone. Use the files you print from:
+Every product can be shown as its real 3D model, which customers can rotate and drag, and see in every colour, on its product page. The shop cards and the home page show its studio pictures (below), made from the same model, so the shop stays fast and calm. Products with a model also get a **"View in your room"** button: on a phone it places the model, at its real size and in the chosen colour, on the customer's table or floor using AR (an iPhone, or an Android phone with Google Play Services for AR). On a computer it shows a QR code that opens the same view on a phone. Use the files you print from:
 
 1. Put the file in the `models/` folder, named after the product's slug: `models/vortex-vase.stl`, `models/name-keychain.3mf`. You can use `.stl`, `.3mf` (Bambu Studio, Orca and PrusaSlicer projects work), `.obj`, `.glb` or `.gltf`.
 2. Run `npm run models`. This also happens automatically on `npm run build`.
@@ -96,15 +98,15 @@ The converter turns the print-bed orientation upright, keeps sharp edges crisp, 
 **No file for a product?** A single photo can't become a full 360° model on its own. Instead, use an image-to-3D tool, such as MakerWorld's **"Image to 3D"** in MakerLab (the same tool that made your Hanuman file), then drop the resulting `.3mf` into `models/`.
 
 What each product shows:
-- **Real model file:** 3D everywhere, with colours switching live.
-- **Photos only:** the photos, with a 3D tilt-and-glare effect and colour previews.
+- **Real model file:** live 3D on its page, with colours switching live; studio pictures everywhere else.
+- **Photos only:** the photos (tap for full screen), with colour previews.
 - **Neither:** the placeholder 3D shape.
 
 On the product page, items that have both a model and photos get a "3D view / Photos" switch.
 
 ### Product pictures (renders)
 
-Every product also has a studio picture of its 3D model in each of its colours, in `public/renders/`. They're used wherever live 3D is too heavy or too small: in Lite mode (cards and product pages), the cart and checkout, the "What's it for?" links, the About page, share images and Google results. Real photos always take their place once a product has them.
+Every product also has a studio picture of its 3D model in each of its colours, in `public/renders/`: the shop cards, the home page, Collections, search results, the cart and checkout, the About page, Lite-mode product pages, share images and Google results all show them. They're transparent (the product and its soft floor shadow), so the page decides what's behind them: the grey studio stage on cards, white or black on the home page. The main colour also gets a 1200 px version (`-xl`) for the big home-page pictures. Real photos always take their place once a product has them.
 
 The owner page makes them automatically when you publish. To remake all of them yourself (after changing the lighting, say), run this with the site running:
 
@@ -156,21 +158,22 @@ Customers can tap or hover over the colour swatches on shop cards and product pa
 
 ## Features
 
-- **Cover page:** what you sell, at a glance: a headline, the starting price, dispatch time and "Pay by UPI", and the two main buttons, beside your logo in 3D with printed objects orbiting it (stacked on phones, sized so the buttons are on the first screen even on a small phone). The headline fades in with plain CSS, so it never waits for JavaScript on a slow phone.
-- **Opening animation** (`components/intro/Intro.tsx`, styles under "opening animation" in `app/globals.css`): a print bed draws in, your logo prints itself on it layer by layer while a glowing nozzle sweeps each layer, the layer lines fuse, a sheen passes over it, and the page lifts away like a curtain onto the same logo on the cover. About 3 seconds, on the home page only, once per visit; tap, Esc or "Skip" to skip it. It's plain CSS in the page's HTML (no 3D, no waiting for JavaScript), so it plays smoothly on budget phones too. Not shown to people who prefer reduced motion. Timings are the `--print-at`, `--print` and delay values there; the printed picture is the cover's cut-out logo, `public/brand/logo-cut-*.webp`.
-- **Personalise** (`/personalise/`, and the second section of the home page): type a name and see it as a live 3D keychain or desk nameplate. Pick a lettering style (Bold, Script, Bubbly), an icon (heart, star, crown, paw, bolt) and a colour, and switch the preview to "On keys" or "On a desk" to judge the size. The choices go into the cart and the order message.
-- **Shop on a phone:** two products per row, each with a round "+" to add it straight away and a heart to save it; filters in one sideways-scrolling row; search and sort on one line. Adding from a card pops up "Added to cart" with "View cart" and "Checkout".
-- **Saved and recently viewed:** the heart keeps products in a "Saved" list (`/saved/`, under Menu), and the last 8 products someone looked at show as "Recently viewed" on the shop, product and Saved pages. Both live in the visitor's browser only, no account needed.
-- **Menu:** the top bar's menu button opens Saved, About, Guides, Track an order, Contact and WhatsApp (and Custom prints on narrow phones, where it doesn't fit in the bar).
+- **Home page** (`app/page.tsx`): one headline ("Small objects. Extraordinary ideas."), one sentence, one button and a quiet link, over a big picture of the Vortex Vase; then a few products told like small campaigns (the Infinity Knot on black, the Geodesic Orb Lamp, Lord Vishnu and the Gear Spinner), four collections, a name preview, custom prints, and the brand story with your logo. Reviews, customer photos and Instagram posts appear below once there are real ones. Which products are featured, and their words, are set in `app/page.tsx` (a featured product that's deleted simply drops out). The headline fades in with plain CSS, so it never waits for JavaScript on a slow phone.
+- **Opening animation** (`components/intro/Intro.tsx`, styles under "opening animation" in `app/globals.css`): a print bed draws in, your logo prints itself on it layer by layer while a glowing nozzle sweeps each layer, the layer lines fuse, a sheen passes over it, and the page lifts away like a curtain onto the home page. About 3 seconds, on the home page only, once per visit; tap, Esc or "Skip" to skip it. It's plain CSS in the page's HTML (no 3D, no waiting for JavaScript), so it plays smoothly on budget phones too. Not shown to people who prefer reduced motion. Timings are the `--print-at`, `--print` and delay values there; the printed picture is the cut-out logo, `public/brand/logo-cut-*.webp`.
+- **Personalise** (`/personalise/`; the home page has a quick version with a flat preview that hands the name and keychain/nameplate choice over): type a name and see it as a live 3D keychain or desk nameplate. Pick a lettering style (Bold, Script, Bubbly), an icon (heart, star, crown, paw, bolt) and a colour, and switch the preview to "On keys" or "On a desk" to judge the size. The choices go into the cart and the order message.
+- **Shop** (`/shop/`): collections as tabs, search, an occasion filter and sorting, all linkable: `/shop/?c=Decor`, `/shop/?for=birthday`, `/shop/?q=lamp`. Cards are quiet: picture, name, price and colours (hover or tap a colour to see the piece in it), and the whole card opens the product. Two per row on phones.
+- **Search:** the magnifier in the top bar searches the whole catalogue as you type (name, collection, material, tags) and lists matching products with pictures and prices. ↓/↑ move through them, Enter opens the first, Esc closes; with nothing typed it offers quick links.
+- **Collections** (`/collections/`): every collection that has products, each with a picture and a count.
+- **Saved and recently viewed:** the heart keeps products in a "Saved" list (`/saved/`, in the phone menu and the footer), and the last 8 products someone looked at show as "Recently viewed" on the shop, product and Saved pages. Both live in the visitor's browser only, no account needed.
+- **Navigation:** a slim bar with Shop, Collections, Personalised, Custom Prints and About, search, and the bag (with the number of items in it). On phones and tablets the five links, plus Saved, Track an order, Reviews, Guides, Contact and WhatsApp, open in a full-screen menu.
 - **Product page:** on phones, a bar fixed at the bottom shows the price, a WhatsApp button and "Add to cart" while the main button is off screen; a "Share" button opens the phone's share sheet (or WhatsApp on a computer); one main "Add to cart" button, with "buy now" and "Ask on WhatsApp" as quieter options; a PIN-code check that shows the delivery dates and shipping for the customer's area; a "How big is it?" size guide compared with everyday objects; and a short FAQ.
 - **Checkout and order page:** on phones, a tap-to-open order summary with the total sits above the form; the PIN code shows delivery dates as the customer types (and is pre-filled if they checked it on a product page). After sending the order, customers land on `/order/`: next steps, a button to reopen WhatsApp, the UPI QR code, and a summary they can print or save as PDF.
 - **Payment:** UPI is always offered, with a QR code and a "pay in UPI app" button after ordering. Cards via Razorpay and cash on delivery appear at checkout as soon as you switch them on in `lib/site.ts`, and the chosen method goes into the order message.
 - **Help pages:** `/contact/` (WhatsApp, email, hours, reply time, business details) and `/track/` (courier tracking, or ask about an order that hasn't shipped yet).
 - **Trust badges** next to the buy buttons and at checkout: safe payment, free reprint if damaged, dispatch time, a real person on WhatsApp. Each one matches a promise in the policies.
 - **Selling tools:**
-  - an "Ask on WhatsApp" link on every product, plus a floating WhatsApp button
-  - shop search, sorting and occasion filters
-  - an add-to-cart animation
+  - an "Ask on WhatsApp" link on every product (there's no floating button: WhatsApp is in the menu, the footer, product pages and Contact)
+  - search in the top bar, plus shop search, sorting and occasion filters
 - **Custom orders** (`/custom/`):
   - a "you send a photo → we model it → you approve → we print" timeline
   - drag-to-compare before/after examples (from `beforeAfter` in `lib/content.ts`)
@@ -178,16 +181,16 @@ Customers can tap or hover over the colour swatches on shop cards and product pa
   - file attachments: on phones, photos go straight into the WhatsApp share sheet
 - **Trust:** an About page, policy pages, and slots for a printer video ("Meet the maker"), reviews, packing photos, customer photos and an Instagram grid. Each appears as soon as you add content.
 - **Analytics events** (`lib/track.ts`): `add_to_cart`, `buy_now`, `begin_checkout`, `order_sent`, `whatsapp_click`, `custom_request`, `ar_view` and `pin_check`, sent to Plausible or GA4 when they're set up. No names, phone numbers or addresses are ever sent. In Plausible, add the event names under Site settings → Goals to see them.
-- **Accessibility:** a "Skip to content" link, visible keyboard focus, a focus-trapped cart drawer, readable text behind every animated heading, and reduced motion respected throughout (no intro, no smooth-scroll easing).
+- **Accessibility:** a "Skip to content" link, visible keyboard focus, a focus-trapped cart drawer, readable text behind every animated heading, and reduced motion respected throughout (no intro).
 - **Search and sharing:**
   - every page except checkout can be linked and shared, and has its own canonical URL
   - each product gets its own share image (`/og/<slug>.png`, built at export)
   - Google gets product, price, breadcrumb, FAQ and shop details (structured data)
   - `sitemap.xml` and `robots.txt` are generated automatically
-- **Speed:** the 3D engine (about 400 KB) never loads before the page is on screen. Pages show their content in well under a second, and the first download is about 250 KB of code. Lighthouse on a simulated mid-range phone: about 90 for the home page on a first visit (the opening animation's 3D work counts against it) and 95 for the shop and product pages; 100 on desktop; 100 for accessibility and best practices on every page, and 100 for SEO once the launch details are set.
+- **Speed:** the 3D engine (about 400 KB) only downloads on pages that show live 3D (product pages, Personalise), after the page is on screen; the home page, shop, collections and the rest never load it. Pictures are sized for the screen and below-the-fold ones load lazily.
 - **Works everywhere:** tested from 320 px phones to wide desktops. Nothing scrolls sideways, every button is at least 24 × 24 px, and the layout respects notches and home bars. If a 3D file fails to download, that spot simply stays flat, and the opening animation always ends within 7 seconds.
-- **3D on phones:** any phone with more than 2 GB of memory (a typical 4 GB Android phone included) gets the full 3D site: products print in, follow your finger, and turn a full 360° on their page (swipe sideways to spin, swipe up or down to scroll). Phones draw at a slightly lower resolution than computers to stay smooth. While the 3D engine downloads, every product shows its studio picture in the same pose, so nothing sits empty, and the live model takes over in place.
-- **Lite mode (budget phones):** phones with 2 GB of memory or less, data saver or 2G connections, and devices without a usable graphics chip get studio pictures of each product instead of live 3D, and the 3D engine is never downloaded. Each product page still has a **"View in 3D · 360°"** button that loads the 360° view for that product. Lite mode also drops the effects that cost most on a weak phone (background blur, endlessly repainting animations). On a simulated 1 GB phone with a 6× slower processor on slow 4G, pages show their content in under a second and use about 10 MB of memory. If 3D runs below about 24 frames a second on a phone that got it, the site first lowers the resolution, then switches to Lite mode for the rest of that visit and says so (with a "Use 3D" button); the next visit tries 3D again. Visitors can switch Lite mode on or off in the footer, and their choice is remembered. On phones, content never waits for JavaScript to fade in, and scrolling is always the phone's own.
+- **3D on phones:** any phone with more than 2 GB of memory (a typical 4 GB Android phone included) gets the full 3D site: products print in and turn a full 360° on their page (swipe sideways to spin, swipe up or down to scroll). Phones draw at a slightly lower resolution than computers to stay smooth. While the 3D engine downloads, every product shows its studio picture in the same pose, so nothing sits empty, and the live model takes over in place.
+- **Lite mode (budget phones):** phones with 2 GB of memory or less, data saver or 2G connections, and devices without a usable graphics chip see the studio picture on product pages instead of the live model, and the 3D engine is never downloaded. Each product page still has a **"View in 3D · 360°"** button that loads the 360° view for that product. Lite mode also drops the effects that cost most on a weak phone (background blur, endlessly repainting animations). On a simulated 1 GB phone with a 6× slower processor on slow 4G, pages show their content in under a second and use about 10 MB of memory. If 3D runs below about 24 frames a second on a phone that got it, the site first lowers the resolution, then switches to Lite mode for the rest of that visit and says so (with a "Use 3D" button); the next visit tries 3D again. Visitors can switch Lite mode on or off in the footer, and their choice is remembered. On phones, content never waits for JavaScript to fade in, and scrolling is always the phone's own.
 - **Browsers:** Chrome, Edge and Firefox 111+ and Safari 16.4+, which covers any Android 7 or newer phone with an up-to-date Chrome, Android Go phones included.
 
 ## Link rules
@@ -200,8 +203,8 @@ Every page can be opened directly from a link except **checkout**, which needs a
 
 - the full order flow, from Personalise and a product page to checkout and the order page, checking the WhatsApp message line by line
 - the intro, the checkout link guard, the Track page
-- 3D: the cover animates, the shop grid stops drawing when idle, and Lite mode loads no 3D at all
-- phone shopping: two products per row, "+" with its confirmation, the product buy bar, the checkout summary; the heart and Saved page, the menu, sharing, and recently viewed
+- 3D: the home page, shop and collections never download the 3D engine; a product page draws its model and then stops drawing; Lite mode loads no 3D at all
+- shopping: two products per row on phones (a card opens its product), the product buy bar, the checkout summary; the heart and Saved, the menu, search in the top bar, shop search from the address, sharing, and recently viewed
 - a budget phone (1 GB, slow processor): Lite mode switches on by itself, the opening animation plays and ends by itself, the 3D engine is never downloaded, products show as studio pictures in the chosen colour, and "View in 3D" loads the 360° view
 - a 4 GB phone: gets the 3D site, with the studio picture standing in until the live 360° model takes over
 - no page logs an error
@@ -216,46 +219,43 @@ The site is fully static, so you don't need a server. Push the repo to GitHub an
 
 Security headers and long caching for static files come with the repo: `vercel.json` for Vercel and `public/_headers` for Netlify and Cloudflare Pages.
 
-## Colours
+## Design
 
-"Workshop at night": the site lives in the logo's own world, a warm charcoal with molten amber and brushed gold, so the logo looks at home instead of pasted on. Each colour has one job (see the top of `app/globals.css`):
+Quiet and precise, so the products carry the page: white and soft grey surfaces, near-black text, one family of type, one restrained accent, and generous space. Everything is set up in `app/globals.css`:
 
-- **Amber:** the one accent. Solid buttons use the logo's molten amber (`accent-fill`) with dark text; links and small actions are amber text (`accent`); badges, small labels and stars use a touch more gold (`pop`). A chosen option (size, filter, lettering) gets an amber outline on a warm tint (`pick-on`). The cart button turns amber once something is in it. No gradients or shimmer on text.
-- **Warm white and warm greys:** text. **Red** (`danger`) for errors, **green** (`ok`) for confirmations. **Pale amber** (`accent-2`) shows keyboard focus.
-- **Surfaces, in three depths:** the charcoal page; cards a step lighter with a fine top highlight and a deep shadow (`surface`, the `card-lift` class: products, collections, reviews); and a band (`page-2`) with faint print-layer lines (`layer-lines`) for the "Type a name" section and the footer. Inputs and drawers are `raised`, borders `line`.
-- **The cover:** the amber glow from the logo behind it, and faint horizontal print-layer lines that fade towards the edges (`cover-bg`). The opening animation plays on the same background.
-- **The logo:** on the cover it's cut out of its black square (`public/brand/logo-cut-*.webp`, made by `python3 scripts/cutout-logo.py`): every part keeps the logo's own colours (the tagline and the script are un-multiplied from black), so it sits on the charcoal and its glow exactly as in the original. The opening animation prints the same logo. The nav icon, the browser-tab icon and the home-screen icon are cut from it too (`python3 scripts/make-icons.py`). The site's share picture is the logo on black; each product's share card (`app/og/`) uses the same charcoal, amber and Saira.
+- **Colours:** white page (`page`) and a soft grey (`page-2`, #f5f5f7) for secondary sections, product stages and panels; near-black text (`fg`, #1d1d1f) and a neutral grey (`muted`) for secondary text; hairline borders (`line`). The brand's amber is the one accent and is used sparingly: text links, small labels such as "New", keyboard focus (`accent`, a deep amber that's readable on white). The logo's own molten amber (`accent-fill`) is kept for small marks. **Red** (`danger`) for errors, **green** (`ok`) for confirmations.
+- **Dark sections:** `.theme-dark` switches a section to a black "spotlight" palette (light text, lighter amber links, light buttons). It's used deliberately: one product story on the home page, the brand story with the logo, and the opening animation.
+- **Type:** Inter (one variable file), with the system font as the fallback. Headlines are semibold and tight (`headline-xl`, `headline-lg`, `headline-md`, fluid sizes), body text is 17 px, small labels are sentence case (`eyebrow`), and secondary lines use `lead`.
+- **Buttons and links:** one solid near-black button per screen (`btn-primary`, light in dark sections), quiet outline buttons (`btn`), and text links with a chevron (`link-more`) for the second action. Corners are softly rounded (12 px buttons, 22 px picture tiles), not pills; shadows only where something floats (the cart drawer, the toast).
+- **Product pictures:** every product sits on the same soft grey studio sweep (`.stage`), with a soft floor shadow. Studio pictures are transparent and cleaned-up photos have the same sweep baked in (`lib/owner/stage.ts` draws it), so everything matches. The 3D adds soft rim lights from behind (warm amber on one side, white on the other).
+- **The logo:** the emblem (printer, RK and spool) sits in the top bar; the full logo, cut out of its black square (`public/brand/logo-cut-*.webp`, made by `python3 scripts/cutout-logo.py`, keeping its own colours), stars in the black brand-story section and the opening animation, where it looks as it was designed. The nav icon, browser-tab icon and home-screen icon come from `python3 scripts/make-icons.py`.
 
-Every text colour passes WCAG AA contrast (most pass AAA) on the page, the cards, inputs and the bands; the accessibility tests check every page.
-
-**Type:** two families. Headings use Saira ExtraBold (squared letters close to the logo's lettering, and the same face as the 3D name lettering) in sentence case: big for the cover, page titles and product names, smaller for section titles (`section-title`). Everything else is Manrope.
-
-**The product stage** is a dark photo studio: a soft spotlight on a warm grey sweep (`.stage` in `app/globals.css`; the owner page draws the same one in `lib/owner/stage.ts`). The 3D adds two rim lights from behind, one warm amber and one white, so every print, black ones included, gets a clean outline. Studio pictures (`npm run renders`) and cleaned-up photos are made on this stage, so if you change it, re-run both.
+Every text colour passes WCAG AA contrast on the page, the grey sections and the panels, in light and dark sections (the accessibility tests check every page).
 
 ## Product animations
 
-- **Print-in:** each product model prints itself in, layer by layer from the bed up, with a hot amber line where the nozzle would be, while the turntable swings round to its resting angle. Only the first row of cards on a page prints in (the home page's first three, the shop's first domain); the rest are simply there, so scrolling stays calm. The product page prints its model when it opens.
+- **Print-in:** on its product page, the model prints itself in, layer by layer from the bed up, with a hot amber line where the nozzle would be, while the turntable swings round to its resting angle.
 - **Filament swap:** picking another colour runs the new colour up the model from the bottom, as if the filament had been changed mid-print.
-- **Hover:** a product card's model lifts off the bed and turns to follow the cursor, then settles back when the mouse leaves.
 - **Lite mode:** the flat stand-in art prints in with CSS.
 - **Reduced motion:** visitors who ask for less motion see every model already printed, and colour changes simply fade.
-- **Kept quiet on purpose:** headlines fade up once (no letter-by-letter or shimmer), photos sit still until you touch them, the cover logo floats gently with nothing orbiting it, adding to the cart gives one clear signal (the cart icon bumps and the cart opens, or a short "Added to cart" note from a card's +), and the WhatsApp button appears only after you've scrolled, tucks away while you scroll down and stays out of the footer.
+- **Kept quiet on purpose:** sections fade up once as they come into view; product pictures ease up a touch on hover; nothing follows the cursor; the model on a product page rests until you turn it ("Turn slowly" switches on a slow spin); adding to the cart opens the cart; no floating buttons; scrolling is the browser's own.
 
 All of this is two shader hooks on the product material (`components/three/Studio.tsx`). The canvas only draws while something is moving.
 
 ## How the 3D works
 
-The page has one transparent WebGL canvas fixed over it (`components/three/CanvasRoot.tsx`). Each 3D spot on the page is a drei `<View>` that draws into that canvas, positioned over its own `<div>`. This lets every 3D scene share a single GPU context. In Lite mode the canvas is never created.
+The page has one transparent WebGL canvas fixed over it (`components/three/CanvasRoot.tsx`). Each 3D spot on the page is a drei `<View>` that draws into that canvas, positioned over its own `<div>`. This lets every 3D scene share a single GPU context. It's only created on pages that have a 3D spot (product pages, Personalise), and never in Lite mode.
 
 Page code never imports three.js directly: everything 3D goes through `components/three/lazy.tsx`, so it downloads after the page is on screen and the browser is idle. Whether a device gets 3D at all (memory, cores, data saver, a real graphics chip) is decided by a tiny script before the first paint (`lib/lite.ts`).
 
-The canvas only draws while something moves (`components/three/live.ts`): the cover while it's on screen, a shop card while it's hovered (or for one demo turn as it scrolls into view on touch screens), a colour change while it eases in, and the page while it scrolls. Every product comes to rest at the same turntable angle. When nothing moves, the GPU idles.
+The canvas only draws while something moves (`components/three/live.ts`): a model printing in, a drag, a colour change while it eases in, and the page while it scrolls. Every product comes to rest at the same turntable angle. When nothing moves, the GPU idles.
 
-The opening animation uses its own temporary canvas. Gold and metal finishes reflect a small light-box environment baked in memory (`components/three/Studio.tsx`). The logo is drawn by a small shader (`components/three/LogoPlaque.tsx`). The Bold lettering uses the Saira font, converted to `lib/fonts/saira-extrabold.typeface.json`. The Script and Bubbly lettering use Pacifico and Titan One, which only download when someone picks them.
+Gold and metal finishes reflect a small light-box environment baked in memory (`components/three/Studio.tsx`). The Bold lettering uses the Saira font, converted to `lib/fonts/saira-extrabold.typeface.json`. The Script and Bubbly lettering use Pacifico and Titan One, which only download when someone picks them.
 
 ## Third-party files
 
 - `public/vendor/model-viewer-4.3.1.min.js`: Google's [model-viewer](https://modelviewer.dev) for "View in your room" (Apache-2.0, see `model-viewer-LICENSE.txt`). It only loads when someone opens the AR view.
 - `lib/fonts/pacifico.typeface.json` and `titan-one.typeface.json`: converted from the Pacifico and Titan One fonts (SIL Open Font License, see `lib/fonts/OFL-*.txt`).
+- `lib/fonts/Inter-SemiBold.ttf`: the Inter font (SIL Open Font License, see `lib/fonts/OFL-Inter.txt`), for the product share cards. The site itself loads Inter through `next/font`.
 - `public/vendor/u2netp.onnx`: the small [U²-Net](https://github.com/xuebinqin/U-2-Net) model that finds the product in a photo for "Clean up the background" (Apache-2.0, see `u2netp-LICENSE.txt`). Only the shop manager loads it.
 - [ONNX Runtime Web](https://github.com/microsoft/onnxruntime) (`onnxruntime-web`, MIT) runs that model in the browser; its WebAssembly file is fetched from the jsDelivr CDN when the clean-up first runs.

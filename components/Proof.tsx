@@ -9,7 +9,7 @@ import { ReviewCard, Stars, average } from "./Reviews";
 export function PhotoGrid({ photos, label, title, highlight }: { photos: Photo[]; label: string; title: string; highlight: string }) {
   if (!photos.length) return null;
   return (
-    <section className="mx-auto max-w-7xl px-5 py-20 sm:px-8">
+    <section className="mx-auto max-w-6xl px-5 py-20 sm:px-6">
       <SectionLabel>{label}</SectionLabel>
       <Reveal y={24}>
         <h2 className="mt-4 section-title text-3xl sm:text-[2.6rem]">
@@ -19,7 +19,7 @@ export function PhotoGrid({ photos, label, title, highlight }: { photos: Photo[]
       <div className="mt-10 columns-2 gap-4 sm:columns-3 lg:columns-4">
         {photos.map((p, i) => (
           <Reveal key={p.src} delay={(i % 4) * 0.06} className="mb-4 break-inside-avoid">
-            <figure className="overflow-hidden rounded-3xl border border-fg/10">
+            <figure className="overflow-hidden rounded-[var(--radius-tile)]">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={p.src} alt={p.caption ?? ""} loading="lazy" className="w-full transition-transform duration-700 hover:scale-105" />
               {p.caption && <figcaption className="px-4 py-3 text-xs text-muted">{p.caption}</figcaption>}
@@ -35,7 +35,7 @@ export function Reviews({ reviews }: { reviews: Review[] }) {
   if (!reviews.length) return null;
   const avg = average(reviews);
   return (
-    <section className="mx-auto max-w-7xl px-5 py-20 sm:px-8">
+    <section className="mx-auto max-w-6xl px-5 py-20 sm:px-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <SectionLabel>Reviews</SectionLabel>
@@ -67,7 +67,7 @@ export function Reviews({ reviews }: { reviews: Review[] }) {
 export function InstagramGrid({ posts }: { posts: (Photo & { href: string })[] }) {
   if (!posts.length) return null;
   return (
-    <section className="mx-auto max-w-7xl px-5 py-20 sm:px-8">
+    <section className="mx-auto max-w-6xl px-5 py-20 sm:px-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <SectionLabel>On Instagram</SectionLabel>
