@@ -26,10 +26,13 @@ export function ShopGrid() {
   const [cat, setCat] = useState<Category | "All">("All");
   const [filter, setFilter] = useState<string | null>(null);
 
-  // /shop/?for=birthday (from the home page occasion tiles)
+  // linkable: /shop/?c=Decor (a collection), /shop/?for=birthday (an occasion)
   useEffect(() => {
-    const id = new URLSearchParams(window.location.search).get("for");
+    const q = new URLSearchParams(window.location.search);
+    const id = q.get("for");
     if (getOccasion(id)) setFilter(id);
+    const c = q.get("c");
+    if (c && categories.includes(c)) setCat(c);
   }, []);
   const [sort, setSort] = useState<keyof typeof sorts>("featured");
   const [q, setQ] = useState("");
@@ -46,6 +49,8 @@ export function ShopGrid() {
       )
       .sort(sorts[sort].fn);
   }, [cat, filter, sort, q]);
+  // the unfiltered shop shows each collection under its own heading
+  const grouped = cat === "All" && !filter && !q.trim() && sort === "featured";
 
   return (
     <>
@@ -88,8 +93,9 @@ export function ShopGrid() {
         ))}
       </div>
       <div className={`mt-2 ${chipRow}`} role="tablist" aria-label="Filter by category">
-        {(["All", ...categories] as const).map((c) => {
+        {["All", ...categories].map((c) => {
           const n = c === "All" ? products.length : products.filter((p) => p.category === c).length;
+          if (!n) return null; // a collection with nothing in it yet stays out of sight
           return (
             <button key={c} role="tab" aria-selected={cat === c} onClick={() => setCat(c)} className={chip(cat === c)}>
               {c} <span className="ml-1 tabular-nums text-xs opacity-60">{n}</span>
@@ -102,7 +108,32 @@ export function ShopGrid() {
         {list.length} {list.length === 1 ? "object" : "objects"}
       </p>
 
-      {list.length ? (
+      {list.length && grouped ? (
+        // everything, in its collections (the same groups the owner sorts products into)
+        <div className="mt-4 space-y-14">
+          {categories.map((c) => {
+            const items = list.filter((p) => p.category === c);
+            if (!items.length) return null;
+            return (
+              <section key={c} aria-labelledby={`c-${c}`}>
+                <div className="flex items-end justify-between gap-3">
+                  <h2 id={`c-${c}`} className="font-display text-2xl font-extrabold display-case leading-none tracking-tight sm:text-3xl">
+                    {c}
+                  </h2>
+                  <button onClick={() => setCat(c)} className="-my-1.5 shrink-0 py-1.5 pl-2 text-sm font-semibold text-accent hover:underline">
+                    {items.length} {items.length === 1 ? "piece" : "pieces"} →
+                  </button>
+                </div>
+                <div className="mt-4 grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-3">
+                  {items.map((p, i) => (
+                    <ProductCard key={p.slug} product={p} index={i} />
+                  ))}
+                </div>
+              </section>
+            );
+          })}
+        </div>
+      ) : list.length ? (
         <div className="mt-4 grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-3">
           {list.map((p, i) => (
             <ProductCard key={p.slug} product={p} index={i} />

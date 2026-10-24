@@ -20,6 +20,7 @@ const links = [
 /** Everything else, behind "Menu". */
 const more = [
   { href: "/custom/", label: "Custom prints" },
+  { href: "/reviews/", label: "Reviews" },
   { href: "/about/", label: "About us" },
   { href: "/guides/", label: "Guides" },
   { href: "/track/", label: "Track an order" },

@@ -9,4 +9,8 @@ export const PATHS = {
   finishes: "content/finishes.json",
   shop: "content/shop.json",
   renders: "lib/renders.generated.json",
+  reviews: "content/reviews.json",
 } as const;
+
+/** Customers' reviews wait on this branch until the owner approves them (scripts/owner-api.mjs). */
+export const REVIEWS_BRANCH = "reviews-inbox";

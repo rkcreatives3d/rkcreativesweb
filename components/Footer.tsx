@@ -29,6 +29,7 @@ export function Footer() {
         </FooterCol>
         <FooterCol title="Studio">
           <Link href="/about/">About</Link>
+          <Link href="/reviews/">Reviews</Link>
           <Link href="/guides/">Guides</Link>
           <a href={site.instagram} target="_blank" rel="noreferrer">
             Instagram

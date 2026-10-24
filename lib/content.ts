@@ -1,3 +1,5 @@
+import reviewData from "@/content/reviews.json";
+
 // ─────────────────────────────────────────────────────────────
 //  EDIT ME — words and photos for the About page and the trust
 //  sections. Put photo files in public/photos/ and list them here.
@@ -8,6 +10,8 @@
 export type Photo = { src: string; caption?: string };
 
 export type Review = {
+  /** set for reviews sent in through the site */
+  id?: string;
   name: string;
   /** e.g. "Bengaluru" */
   city?: string;
@@ -16,6 +20,10 @@ export type Review = {
   text: string;
   /** product slug it was about, optional */
   product?: string;
+  /** the customer's photo of what they bought, e.g. "/reviews/abc123.jpg" */
+  image?: string;
+  /** when it was written, ISO date */
+  date?: string;
 };
 
 export const about = {
@@ -35,7 +43,13 @@ export const about = {
 };
 
 /** EDIT: real customer reviews only (with their permission). */
-export const reviews: Review[] = [];
+/**
+ * Customer reviews, newest first: sent in on /reviews/, approved by the owner in
+ * the shop manager (Reviews tab), stored in content/reviews.json. Never invent reviews.
+ */
+export const reviews: Review[] = [...(reviewData as Review[])].sort((a, b) => (b.date ?? "").localeCompare(a.date ?? ""));
+
+export const reviewsFor = (slug: string) => reviews.filter((r) => r.product === slug);
 
 /** EDIT: photos customers have sent you of their prints. */
 export const customerPhotos: Photo[] = [];

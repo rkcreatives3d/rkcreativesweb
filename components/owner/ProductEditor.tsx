@@ -113,16 +113,17 @@ export function ProductEditor({ slug, onClose }: { slug: string; onClose: () => 
         <Text label="Description" multiline value={p.description} onChange={(v) => set({ description: v })} placeholder="What it is, how it's printed, what it's for." />
         <div className="grid gap-4 sm:grid-cols-2">
           <Choice
-            label="Category"
+            label="Domain"
             value={p.category}
             onChange={(v) => {
               if (v !== "__new") return set({ category: v });
-              const name = prompt("New category name")?.trim();
+              const name = prompt("New domain name, e.g. Devotion")?.trim();
               if (!name) return;
               if (!draft.shop.categories.includes(name)) setShop({ ...draft.shop, categories: [...draft.shop.categories, name] });
               set({ category: name });
             }}
-            options={[...draft.shop.categories.map((c) => [c, c] as const), ["__new", "+ New category…"] as const]}
+            options={[...draft.shop.categories.map((c) => [c, c] as const), ["__new", "+ New domain…"] as const]}
+            hint="Customers find it under this in the shop."
           />
           <div>
             <Text label="Badge (optional)" value={p.badge ?? ""} onChange={(v) => set({ badge: v || undefined })} list="badges" placeholder="e.g. New" />

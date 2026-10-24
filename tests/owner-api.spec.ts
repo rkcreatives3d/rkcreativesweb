@@ -9,7 +9,7 @@ import { expect, test } from "@playwright/test";
 
 test.skip(({ isMobile }) => isMobile, "server tests run once");
 
-type Call = { url: string; method: string; auth: string };
+type Call = { url: string; method: string; auth: string; body?: string };
 
 const freePort = () =>
   new Promise<number>((r) => {
@@ -21,9 +21,25 @@ const freePort = () =>
 
 async function start(extra: Record<string, string>) {
   const calls: Call[] = [];
+  // a pretend GitHub: records every call; plays along with the reviews inbox branch
+  let inboxExists = false;
+  const sha = (c: string) => c.repeat(40);
   const github = http.createServer((req, res) => {
-    calls.push({ url: req.url ?? "", method: req.method ?? "", auth: String(req.headers.authorization) });
-    res.writeHead(200, { "Content-Type": "application/json" }).end(JSON.stringify({ ok: true }));
+    let body = "";
+    req.on("data", (c) => (body += c));
+    req.on("end", () => {
+      const url = req.url ?? "";
+      calls.push({ url, method: req.method ?? "", auth: String(req.headers.authorization), body });
+      const send = (status: number, data: unknown) => res.writeHead(status, { "Content-Type": "application/json" }).end(JSON.stringify(data));
+      if (url.endsWith("/git/ref/heads/reviews-inbox")) return inboxExists ? send(200, { object: { sha: sha("c") } }) : send(404, { message: "Not Found" });
+      if (url.endsWith("/git/ref/heads/main")) return send(200, { object: { sha: sha("a") } });
+      if (url.endsWith("/git/refs") && req.method === "POST") return (inboxExists = true), send(201, {});
+      if (url.includes("/git/commits/")) return send(200, { tree: { sha: sha("b") } });
+      if (url.endsWith("/git/blobs")) return send(201, { sha: sha("d") });
+      if (url.endsWith("/git/trees")) return send(201, { sha: sha("e") });
+      if (url.endsWith("/git/commits")) return send(201, { sha: sha("f") });
+      send(200, { ok: true });
+    });
   });
   await new Promise<void>((r) => github.listen(0, r));
   const port = await freePort();
@@ -97,7 +113,7 @@ test("right password → a session that opens the GitHub calls, with the server'
   const auth = { Authorization: `Bearer ${session}` };
   expect((await s.call("/me", { headers: auth })).status).toBe(200);
   expect((await s.call("/github/contents/content/products.json?ref=main", { headers: auth })).status).toBe(200);
-  expect(s.calls.at(-1)).toEqual({ url: "/repos/shop/site/contents/content/products.json?ref=main", method: "GET", auth: "Bearer ghp_secret" });
+  expect(s.calls.at(-1)).toMatchObject({ url: "/repos/shop/site/contents/content/products.json?ref=main", method: "GET", auth: "Bearer ghp_secret" });
   // the GitHub key never comes back to the browser
   expect(JSON.stringify(await (await s.login("correct horse")).json())).not.toContain("ghp_secret");
   s.close();
@@ -133,4 +149,51 @@ test("wrong passwords count down, then lock out for a while", async () => {
   // locked even with the right password, until the wait is over
   expect((await s.login("correct horse")).status).toBe(429);
   s.close();
+});
+
+const JPEG = Buffer.from([0xff, 0xd8, 0xff, 0xe0, 1, 2, 3, 4]).toString("base64");
+const review = (extra: Record<string, unknown> = {}) => ({
+  name: "Asha",
+  city: "Pune",
+  product: "vortex-vase",
+  rating: 5,
+  text: "Lovely finish, looks even better in person.",
+  photo: JPEG,
+  ...extra,
+});
+
+test("reviews: checked, then filed on the inbox branch (created the first time) for the owner to approve", async () => {
+  const s = await start({ GITHUB_TOKEN: "ghp_secret" });
+  const send = (body: unknown) => s.call("/review/", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+  expect((await send(review({ name: "" }))).status).toBe(400);
+  expect((await send(review({ rating: 7 }))).status).toBe(400);
+  expect((await send(review({ text: "ok" }))).status).toBe(400);
+  expect((await send(review({ photo: Buffer.from("<svg/>").toString("base64") }))).status).toBe(400);
+  // the hidden field only bots fill in: "accepted", but nothing is filed
+  const before = s.calls.length;
+  expect((await send(review({ website: "http://spam" }))).status).toBe(200);
+  expect(s.calls.length).toBe(before);
+
+  expect((await send(review())).status).toBe(200);
+  expect(s.calls.some((c) => c.method === "POST" && c.url.endsWith("/git/refs") && c.body!.includes("refs/heads/reviews-inbox"))).toBe(true);
+  const tree = JSON.parse(s.calls.find((c) => c.url.endsWith("/git/trees"))!.body!).tree as { path: string }[];
+  expect(tree.map((t) => t.path)).toEqual([expect.stringMatching(/^inbox\/\w+\.json$/), expect.stringMatching(/^inbox\/\w+\.jpg$/)]);
+  const entry = JSON.parse(Buffer.from(JSON.parse(s.calls.find((c) => c.url.endsWith("/git/blobs"))!.body!).content, "base64").toString());
+  expect(entry).toMatchObject({ name: "Asha", city: "Pune", product: "vortex-vase", rating: 5, photo: true });
+  expect(s.calls.some((c) => c.method === "PATCH" && c.url.endsWith("/git/refs/heads/reviews-inbox"))).toBe(true);
+  // nothing touches the live site's branch
+  expect(s.calls.some((c) => c.method !== "GET" && c.url.includes("heads/main"))).toBe(false);
+  s.close();
+});
+
+test("reviews: limited per person, and refused politely without the GitHub key", async () => {
+  const s = await start({ GITHUB_TOKEN: "ghp_secret" });
+  const send = () => s.call("/review/", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(review()) });
+  for (let i = 0; i < 3; i++) expect((await send()).status).toBe(200);
+  expect((await send()).status).toBe(429);
+  s.close();
+  const t = await start({});
+  const res = await t.call("/review/", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(review()) });
+  expect(res.status).toBe(503);
+  t.close();
 });

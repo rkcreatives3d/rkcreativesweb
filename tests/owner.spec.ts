@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import { expect, test } from "@playwright/test";
 import { prepare } from "./helpers";
-import { bigSTL, cubeSTL, mockGitHub } from "./github-mock";
+import { bigSTL, cubeSTL, mockGitHub, TINY_JPEG } from "./github-mock";
 
 // The owner's shop manager, against a pretend GitHub (tests/github-mock.ts).
 
@@ -231,4 +231,41 @@ test("password set but no GitHub key on the host: signs in and edits; Publish ex
   await dialog.getByRole("button", { name: "Publish" }).click();
   await expect(dialog.getByRole("alert")).toContainText("add GITHUB_TOKEN");
   expect(gh.rec.refUpdated).toBe(false);
+});
+
+test("owner approves one waiting review (with its photo) and rejects another; publishing puts it live and clears the inbox", async ({ page }) => {
+  await prepare(page, { lite: true });
+  page.on("dialog", (d) => d.accept());
+  const gh = await mockGitHub(page, {
+    password: "open sesame",
+    inbox: [
+      { id: "r1", name: "Asha", city: "Pune", rating: 5, text: "Lovely finish, looks even better in person.", product: "vortex-vase", date: "2026-10-20", photo: TINY_JPEG },
+      { id: "r2", name: "Spam Bot", rating: 1, text: "buy cheap followers here now", date: "2026-10-21" },
+    ],
+  });
+  await page.goto("/owner/");
+  await page.getByLabel("Password").fill("open sesame");
+  await page.getByRole("button", { name: "Sign in", exact: true }).click();
+  await page.getByRole("button", { name: "Reviews" }).click();
+  const waiting = page.getByRole("list", { name: "Waiting reviews" });
+  await expect(waiting.getByRole("listitem")).toHaveCount(2);
+  await expect(waiting.getByAltText("Asha's photo")).toBeVisible();
+  await waiting.getByRole("listitem").filter({ hasText: "Asha" }).getByRole("button", { name: "Approve" }).click();
+  await waiting.getByRole("listitem").filter({ hasText: "Spam Bot" }).getByRole("button", { name: "Reject" }).click();
+  await expect(page.getByRole("list", { name: "Published reviews" })).toContainText("Lovely finish");
+
+  await page.getByRole("button", { name: "Publish changes" }).click();
+  const dialog = page.getByRole("dialog", { name: "Publish to the website" });
+  await expect(dialog).toContainText("1 review approved");
+  await dialog.getByRole("button", { name: "Publish" }).click();
+  await expect(dialog).toContainText("Published", { timeout: 30_000 });
+
+  const reviews = JSON.parse(gh.written("content/reviews.json")!);
+  expect(reviews).toEqual([
+    { id: "r1", name: "Asha", city: "Pune", product: "vortex-vase", rating: 5, text: "Lovely finish, looks even better in person.", date: "2026-10-20", image: "/reviews/r1.jpg" },
+  ]);
+  expect(gh.raw("public/reviews/r1.jpg")!.equals(TINY_JPEG)).toBe(true);
+  // both decided reviews leave the inbox, on the inbox branch
+  expect(gh.rec.branches).toEqual(["main", "reviews-inbox"]);
+  for (const p of ["inbox/r1.json", "inbox/r1.jpg", "inbox/r2.json"]) expect(gh.rec.tree.some((t) => t.path === p && t.sha === null)).toBe(true);
 });

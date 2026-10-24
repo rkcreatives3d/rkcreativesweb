@@ -4,6 +4,7 @@ import { ProductDetail } from "@/components/ProductDetail";
 import { getProduct, products } from "@/lib/products";
 import { site } from "@/lib/site";
 import { faqFor } from "@/lib/faq";
+import { reviewsFor } from "@/lib/content";
 import { renderFor } from "@/lib/renders";
 
 export const dynamicParams = false;
@@ -58,6 +59,25 @@ export default async function ProductPage({ params }: Props) {
       availability: "https://schema.org/InStock",
       url: `${site.url}/shop/${p.slug}/`,
     },
+    // real customer reviews only (approved in the shop manager)
+    ...(reviewsFor(p.slug).length
+      ? {
+          aggregateRating: {
+            "@type": "AggregateRating",
+            ratingValue: (reviewsFor(p.slug).reduce((n, r) => n + r.rating, 0) / reviewsFor(p.slug).length).toFixed(1),
+            reviewCount: reviewsFor(p.slug).length,
+          },
+          review: reviewsFor(p.slug)
+            .slice(0, 5)
+            .map((r) => ({
+              "@type": "Review",
+              reviewRating: { "@type": "Rating", ratingValue: r.rating },
+              author: { "@type": "Person", name: r.name },
+              reviewBody: r.text,
+              ...(r.date ? { datePublished: r.date } : {}),
+            })),
+        }
+      : {}),
   };
   const breadcrumbs = {
     "@context": "https://schema.org",

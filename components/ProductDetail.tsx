@@ -21,6 +21,8 @@ import { PinCheck } from "./Delivery";
 import { ProductFaq, SizeGuide, sizeCm } from "./ProductInfo";
 import { ArView } from "./ArView";
 import { TrustBadges } from "./TrustBadges";
+import { ReviewCard, Stars, average } from "./Reviews";
+import { reviewsFor } from "@/lib/content";
 import { WhatsAppIcon } from "./CheckoutForm";
 import { ShareIcon, SpinIcon } from "./Icons";
 import { SaveButton } from "./SaveButton";
@@ -225,7 +227,10 @@ export function ProductDetail({ product: p }: { product: Product }) {
               <Link href="/shop/" className="inline-block py-2 hover:text-fg">
                 Shop
               </Link>{" "}
-              / {p.category}
+              /{" "}
+              <Link href={`/shop/?c=${encodeURIComponent(p.category)}`} className="inline-block py-2 hover:text-fg">
+                {p.category}
+              </Link>
             </nav>
             <div className="flex items-center gap-2">
               <button
@@ -424,6 +429,7 @@ export function ProductDetail({ product: p }: { product: Product }) {
           </div>
           {sizeInfo && <SizeGuide product={p} size={sizeInfo} />}
           <ProductFaq product={p} />
+          <ProductReviews slug={p.slug} />
         </div>
       </section>
 
@@ -484,5 +490,40 @@ function Toggle({ on, onClick, children }: { on: boolean; onClick: () => void; c
     >
       {children}
     </button>
+  );
+}
+
+/** Reviews of this product (approved by the owner), and a way to add one. */
+function ProductReviews({ slug }: { slug: string }) {
+  const list = reviewsFor(slug);
+  const avg = average(list);
+  return (
+    <div className="mt-10">
+      <div className="flex items-end justify-between gap-3">
+        <h2 className="text-xs font-semibold uppercase tracking-[0.12em] text-muted">Reviews</h2>
+        <Link href={`/reviews/?product=${slug}#write`} className="py-1 text-sm font-semibold text-accent hover:underline">
+          Write a review →
+        </Link>
+      </div>
+      {list.length ? (
+        <>
+          <p className="mt-2 flex items-center gap-2 text-sm text-muted">
+            <Stars rating={Math.round(avg)} /> {avg.toFixed(1)} from {list.length} {list.length === 1 ? "review" : "reviews"}
+          </p>
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            {list.slice(0, 4).map((r, i) => (
+              <ReviewCard key={r.id ?? i} review={r} showProduct={false} />
+            ))}
+          </div>
+          {list.length > 4 && (
+            <Link href="/reviews/" className="mt-3 inline-block text-sm font-semibold text-accent hover:underline">
+              All {list.length} reviews →
+            </Link>
+          )}
+        </>
+      ) : (
+        <p className="mt-2 text-sm text-muted">No reviews yet. Bought it? Tell others what you think, with a photo.</p>
+      )}
+    </div>
   );
 }

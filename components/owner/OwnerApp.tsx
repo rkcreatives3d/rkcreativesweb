@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import type { Finish, Product } from "@/lib/products";
+import type { Review } from "@/lib/content";
 import type { Content, Shop } from "@/lib/owner/edit";
 import { GitHubError, ping, readJSON, verify } from "@/lib/owner/github";
 import { PATHS, REPO } from "@/lib/owner/repo";
@@ -11,9 +12,10 @@ import { ProductsTab } from "./ProductsTab";
 import { ProductEditor } from "./ProductEditor";
 import { ColoursTab } from "./ColoursTab";
 import { SettingsTab } from "./SettingsTab";
+import { ReviewsTab } from "./ReviewsTab";
 import { PublishPanel } from "./PublishPanel";
 
-type Tab = "products" | "colours" | "settings";
+type Tab = "products" | "colours" | "reviews" | "settings";
 
 /**
  * The owner's shop manager (/owner/). Reads the shop's content files from
@@ -30,6 +32,7 @@ export function OwnerApp() {
   // re-render when photos or 3D files are added (they count as changes)
   useOwner((s) => s.uploads);
   useOwner((s) => s.models);
+  useOwner((s) => s.inboxDone);
   const dirty = isDirty();
 
   // signed in on this device before?
@@ -61,9 +64,10 @@ export function OwnerApp() {
       readJSON<Finish[]>(token, PATHS.finishes),
       readJSON<Shop>(token, PATHS.shop),
       readJSON<Record<string, string[]>>(token, PATHS.renders),
+      readJSON<Review[]>(token, PATHS.reviews).catch(() => ({ data: [] as Review[], sha: "" })),
     ])
-      .then(([products, finishes, shop, renders]) => {
-        const content: Content = { products: products.data, finishes: finishes.data, shop: shop.data, renders: renders.data };
+      .then(([products, finishes, shop, renders, reviews]) => {
+        const content: Content = { products: products.data, finishes: finishes.data, shop: shop.data, renders: renders.data, reviews: reviews.data };
         useOwner.getState().loaded(content, { [PATHS.products]: products.sha, [PATHS.finishes]: finishes.sha, [PATHS.shop]: shop.sha });
       })
       .catch(() => setError("Couldn't load the shop's products from GitHub. Reload to try again."));
@@ -111,11 +115,12 @@ export function OwnerApp() {
               </button>
             </div>
             {!editing && draft && (
-              <nav className="mx-auto mt-3 flex max-w-4xl gap-1" aria-label="Sections">
+              <nav className="-mx-4 mt-3 flex max-w-4xl gap-1 overflow-x-auto px-4 [scrollbar-width:none] sm:mx-auto sm:px-0" aria-label="Sections">
                 {(
                   [
                     ["products", `Products (${draft.products.length})`],
                     ["colours", "Colours"],
+                    ["reviews", "Reviews"],
                     ["settings", "Shop settings"],
                   ] as const
                 ).map(([id, label]) => (
@@ -123,7 +128,7 @@ export function OwnerApp() {
                     key={id}
                     onClick={() => setTab(id)}
                     aria-current={tab === id ? "page" : undefined}
-                    className={`rounded-full px-4 py-2 text-sm font-semibold ${tab === id ? "bg-fg text-page" : "text-muted hover:text-fg"}`}
+                    className={`shrink-0 rounded-full px-4 py-2 text-sm font-semibold ${tab === id ? "bg-fg text-page" : "text-muted hover:text-fg"}`}
                   >
                     {label}
                   </button>
@@ -159,6 +164,8 @@ export function OwnerApp() {
               <ProductsTab onEdit={setEditing} />
             ) : tab === "colours" ? (
               <ColoursTab />
+            ) : tab === "reviews" ? (
+              <ReviewsTab />
             ) : (
               <SettingsTab />
             )}

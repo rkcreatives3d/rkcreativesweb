@@ -28,13 +28,20 @@ export function ProductsTab({ onEdit }: { onEdit: (slug: string) => void }) {
   const { setProduct, addProduct, removeProduct, moveProduct } = useOwner.getState();
   const [q, setQ] = useState("");
   const [name, setName] = useState("");
-  const list = draft.products.filter((p) => !q.trim() || `${p.name} ${p.category}`.toLowerCase().includes(q.trim().toLowerCase()));
+  const [dom, setDom] = useState("All");
+  const list = draft.products
+    .filter((p) => dom === "All" || p.category === dom)
+    .filter((p) => !q.trim() || `${p.name} ${p.category}`.toLowerCase().includes(q.trim().toLowerCase()));
+  const domains = draft.shop.categories;
+  // the full list shows each domain under its own heading, like the shop does
+  const grouped = dom === "All" && !q.trim();
+  const sameDomain = (p: Product) => draft.products.filter((x) => x.category === p.category);
   const slugs = draft.products.map((p) => p.slug);
 
   const create = (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) return;
-    const p = newProduct(name.trim(), slugs, draft.finishes, draft.shop.categories[0] ?? "Decor");
+    const p = newProduct(name.trim(), slugs, draft.finishes, dom !== "All" ? dom : (draft.shop.categories[0] ?? "Decor"));
     addProduct(p);
     setName("");
     onEdit(p.slug);
@@ -73,74 +80,127 @@ export function ProductsTab({ onEdit }: { onEdit: (slug: string) => void }) {
         </p>
       </div>
 
-      <ul className="space-y-2" aria-label="Products">
-        {list.map((p) => {
-          const i = draft.products.indexOf(p);
+      <div className="flex flex-wrap gap-2" role="group" aria-label="Domain">
+        {["All", ...domains].map((d) => {
+          const n = d === "All" ? draft.products.length : draft.products.filter((p) => p.category === d).length;
           return (
-            <li key={p.slug} className={`rounded-2xl border border-line bg-surface p-3 ${p.hidden ? "opacity-70" : ""}`}>
-              <div className="flex items-center gap-3">
-                <Thumb p={p} />
-                <div className="min-w-0 flex-1">
-                  <p className="truncate font-semibold">
-                    {p.name}{" "}
-                    {p.hidden && <span className="ml-1 rounded-full bg-fg/10 px-2 py-0.5 text-xs font-semibold text-muted">Hidden</span>}
-                  </p>
-                  <p className="truncate text-xs text-muted">
-                    {p.category} · {p.finishes.length} colours · {p.sizes.length} sizes
-                  </p>
-                </div>
-                <label className="shrink-0 text-right">
-                  <span className="sr-only">Price of {p.name}</span>
-                  <span className="relative block">
-                    <span className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-sm text-muted">₹</span>
-                    <input
-                      type="number"
-                      inputMode="numeric"
-                      min={0}
-                      value={p.price}
-                      onChange={(e) => setProduct(p.slug, { ...p, price: Math.max(0, Math.round(Number(e.target.value) || 0)) })}
-                      className="w-24 rounded-xl border border-fg/15 bg-raised py-2 pl-6 pr-2 text-right tabular-nums outline-none focus:border-accent-2"
-                    />
-                  </span>
-                </label>
-              </div>
-              <div className="mt-3 flex flex-wrap gap-2">
-                <button onClick={() => onEdit(p.slug)} className={`${smallBtn} border-fg bg-fg text-page hover:border-fg`}>
-                  Edit
-                </button>
-                <button onClick={() => setProduct(p.slug, { ...p, hidden: !p.hidden })} className={smallBtn}>
-                  {p.hidden ? "Show in shop" : "Hide"}
-                </button>
-                <button onClick={() => moveProduct(p.slug, -1)} disabled={i === 0} className={smallBtn} aria-label={`Move ${p.name} up`}>
-                  ↑
-                </button>
-                <button onClick={() => moveProduct(p.slug, 1)} disabled={i === draft.products.length - 1} className={smallBtn} aria-label={`Move ${p.name} down`}>
-                  ↓
-                </button>
-                <button
-                  onClick={() => {
-                    const copy: Product = { ...structuredClone(p), slug: uniqueId(`${p.slug}-copy`, slugs), name: `${p.name} (copy)`, hidden: true, images: [], model: undefined };
-                    addProduct(copy);
-                    onEdit(copy.slug);
-                  }}
-                  className={smallBtn}
-                >
-                  Duplicate
-                </button>
-                <button
-                  onClick={() => confirm(`Delete “${p.name}”? Its photos and 3D file are removed from the website when you publish.`) && removeProduct(p.slug)}
-                  className={`${dangerBtn} ml-auto`}
-                >
-                  Delete
-                </button>
-              </div>
-              <p className="mt-2 text-xs text-muted">
-                From {formatPrice(p.price)} · <span className="font-mono">/shop/{p.slug}/</span>
-              </p>
-            </li>
+            <button
+              key={d}
+              onClick={() => setDom(d)}
+              aria-pressed={dom === d}
+              className={`rounded-full border px-3.5 py-1.5 text-sm ${dom === d ? "border-fg bg-fg text-page" : "border-fg/15 hover:border-fg/40"}`}
+            >
+              {d} <span className="tabular-nums opacity-60">{n}</span>
+            </button>
           );
         })}
-      </ul>
+      </div>
+
+      {(grouped ? [...domains, ...new Set(list.map((p) => p.category).filter((c) => !domains.includes(c)))] : [null]).map((d) => {
+        const items = d === null ? list : list.filter((p) => p.category === d);
+        if (d !== null && !items.length)
+          return (
+            <section key={d}>
+              <h3 className="text-xs font-semibold uppercase tracking-[0.12em] text-pop">{d}</h3>
+              <p className="mt-2 rounded-2xl border border-dashed border-line p-3 text-sm text-muted">
+                Nothing here yet: add a product and choose “{d}” as its domain.
+              </p>
+            </section>
+          );
+        return (
+          <section key={d ?? "list"}>
+            {d !== null && (
+              <h3 className="mb-2 text-xs font-semibold uppercase tracking-[0.12em] text-pop">
+                {d} <span className="text-muted">· {items.length}</span>
+              </h3>
+            )}
+            <ul className="space-y-2" aria-label={d ?? "Products"}>
+              {items.map((p) => {
+                const group = sameDomain(p);
+                const i = group.indexOf(p);
+                return (
+                  <li key={p.slug} className={`rounded-2xl border border-line bg-surface p-3 ${p.hidden ? "opacity-70" : ""}`}>
+                    <div className="flex items-center gap-3">
+                      <Thumb p={p} />
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate font-semibold">
+                          {p.name}{" "}
+                          {p.hidden && <span className="ml-1 rounded-full bg-fg/10 px-2 py-0.5 text-xs font-semibold text-muted">Hidden</span>}
+                        </p>
+                        <p className="truncate text-xs text-muted">
+                          {p.category} · {p.finishes.length} colours · {p.sizes.length} sizes
+                        </p>
+                      </div>
+                      <label className="shrink-0 text-right">
+                        <span className="sr-only">Price of {p.name}</span>
+                        <span className="relative block">
+                          <span className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-sm text-muted">₹</span>
+                          <input
+                            type="number"
+                            inputMode="numeric"
+                            min={0}
+                            value={p.price}
+                            onChange={(e) => setProduct(p.slug, { ...p, price: Math.max(0, Math.round(Number(e.target.value) || 0)) })}
+                            className="w-24 rounded-xl border border-fg/15 bg-raised py-2 pl-6 pr-2 text-right tabular-nums outline-none focus:border-accent-2"
+                          />
+                        </span>
+                      </label>
+                    </div>
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      <button onClick={() => onEdit(p.slug)} className={`${smallBtn} border-fg bg-fg text-page hover:border-fg`}>
+                        Edit
+                      </button>
+                      <button onClick={() => setProduct(p.slug, { ...p, hidden: !p.hidden })} className={smallBtn}>
+                        {p.hidden ? "Show in shop" : "Hide"}
+                      </button>
+                      <button onClick={() => moveProduct(p.slug, -1)} disabled={i === 0} className={smallBtn} aria-label={`Move ${p.name} up`}>
+                        ↑
+                      </button>
+                      <button
+                        onClick={() => moveProduct(p.slug, 1)}
+                        disabled={i === group.length - 1}
+                        className={smallBtn}
+                        aria-label={`Move ${p.name} down`}
+                      >
+                        ↓
+                      </button>
+                      <button
+                        onClick={() => {
+                          const copy: Product = {
+                            ...structuredClone(p),
+                            slug: uniqueId(`${p.slug}-copy`, slugs),
+                            name: `${p.name} (copy)`,
+                            hidden: true,
+                            images: [],
+                            model: undefined,
+                          };
+                          addProduct(copy);
+                          onEdit(copy.slug);
+                        }}
+                        className={smallBtn}
+                      >
+                        Duplicate
+                      </button>
+                      <button
+                        onClick={() =>
+                          confirm(`Delete “${p.name}”? Its photos and 3D file are removed from the website when you publish.`) &&
+                          removeProduct(p.slug)
+                        }
+                        className={`${dangerBtn} ml-auto`}
+                      >
+                        Delete
+                      </button>
+                    </div>
+                    <p className="mt-2 text-xs text-muted">
+                      From {formatPrice(p.price)} · <span className="font-mono">/shop/{p.slug}/</span>
+                    </p>
+                  </li>
+                );
+              })}
+            </ul>
+          </section>
+        );
+      })}
     </div>
   );
 }

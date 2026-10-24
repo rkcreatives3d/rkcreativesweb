@@ -104,9 +104,9 @@ export async function verify(token: string): Promise<{ login: string; canWrite: 
 
 const decode = (b64: string) => new TextDecoder().decode(Uint8Array.from(atob(b64.replace(/\n/g, "")), (c) => c.charCodeAt(0)));
 
-/** A JSON file from the branch, with its blob sha (to notice changes made elsewhere). */
-export async function readJSON<T>(token: string, path: string): Promise<{ data: T; sha: string }> {
-  const f = await call<{ content: string; sha: string }>(token, `${repoBase(token)}/contents/${path}?ref=${REPO.branch}&t=${Date.now()}`);
+/** A JSON file from a branch, with its blob sha (to notice changes made elsewhere). */
+export async function readJSON<T>(token: string, path: string, ref: string = REPO.branch): Promise<{ data: T; sha: string }> {
+  const f = await call<{ content: string; sha: string }>(token, `${repoBase(token)}/contents/${path}?ref=${ref}&t=${Date.now()}`);
   return { data: JSON.parse(decode(f.content)) as T, sha: f.sha };
 }
 
@@ -128,20 +128,37 @@ function toBase64(bytes: Uint8Array) {
 
 export type FileChange = { path: string; content: string | Uint8Array } | { path: string; delete: true };
 
-/** Every file path under these folders on the branch (used to delete a product's files). */
-export async function listFiles(token: string, prefixes: string[]): Promise<string[]> {
-  const ref = await call<{ object: { sha: string } }>(token, `${repoBase(token)}/git/ref/heads/${REPO.branch}`);
+/** Every file under these folders on a branch, with its blob sha. */
+export async function listTree(token: string, prefixes: string[], branch: string = REPO.branch): Promise<{ path: string; sha: string }[]> {
+  const ref = await call<{ object: { sha: string } }>(token, `${repoBase(token)}/git/ref/heads/${branch}`);
   const commit = await call<{ tree: { sha: string } }>(token, `${repoBase(token)}/git/commits/${ref.object.sha}`);
-  const tree = await call<{ tree: { path: string; type: string }[] }>(token, `${repoBase(token)}/git/trees/${commit.tree.sha}?recursive=1`);
-  return tree.tree.filter((e) => e.type === "blob" && prefixes.some((p) => e.path.startsWith(p))).map((e) => e.path);
+  const tree = await call<{ tree: { path: string; type: string; sha: string }[] }>(token, `${repoBase(token)}/git/trees/${commit.tree.sha}?recursive=1`);
+  return tree.tree.filter((e) => e.type === "blob" && prefixes.some((p) => e.path.startsWith(p))).map(({ path, sha }) => ({ path, sha }));
+}
+
+/** Every file path under these folders on the branch (used to delete a product's files). */
+export async function listFiles(token: string, prefixes: string[], branch: string = REPO.branch): Promise<string[]> {
+  return (await listTree(token, prefixes, branch)).map((e) => e.path);
+}
+
+/** A file's bytes by its blob sha (works for files over GitHub's 1 MB contents limit). */
+export async function readBlob(token: string, sha: string): Promise<Uint8Array<ArrayBuffer>> {
+  const b = await call<{ content: string }>(token, `${repoBase(token)}/git/blobs/${sha}`);
+  return Uint8Array.from(atob(b.content.replace(/\n/g, "")), (c) => c.charCodeAt(0));
 }
 
 /**
  * All changes as ONE commit on the branch (files written and deleted together,
  * so the site never sees half a change). Returns the new commit's sha.
  */
-export async function commit(token: string, message: string, changes: FileChange[], onProgress?: (done: number, total: number) => void) {
-  const ref = await call<{ object: { sha: string } }>(token, `${repoBase(token)}/git/ref/heads/${REPO.branch}`);
+export async function commit(
+  token: string,
+  message: string,
+  changes: FileChange[],
+  onProgress?: (done: number, total: number) => void,
+  branch: string = REPO.branch,
+) {
+  const ref = await call<{ object: { sha: string } }>(token, `${repoBase(token)}/git/ref/heads/${branch}`);
   const head = ref.object.sha;
   const parent = await call<{ tree: { sha: string } }>(token, `${repoBase(token)}/git/commits/${head}`);
   const entries: { path: string; mode: "100644"; type: "blob"; sha: string | null }[] = [];
@@ -166,6 +183,6 @@ export async function commit(token: string, message: string, changes: FileChange
     method: "POST",
     body: JSON.stringify({ message, tree: tree.sha, parents: [head] }),
   });
-  await call(token, `${repoBase(token)}/git/refs/heads/${REPO.branch}`, { method: "PATCH", body: JSON.stringify({ sha: made.sha, force: false }) });
+  await call(token, `${repoBase(token)}/git/refs/heads/${branch}`, { method: "PATCH", body: JSON.stringify({ sha: made.sha, force: false }) });
   return made.sha;
 }

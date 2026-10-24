@@ -1,7 +1,7 @@
 import type { Photo, Review } from "@/lib/content";
-import { getProduct } from "@/lib/products";
 import { site } from "@/lib/site";
-import { Reveal, SectionLabel } from "./ui";
+import { ButtonLink, Reveal, SectionLabel } from "./ui";
+import { ReviewCard, Stars, average } from "./Reviews";
 
 // Trust sections built from lib/content.ts. Each one renders nothing until it
 // has real content, so the site never shows placeholder reviews or photos.
@@ -33,7 +33,7 @@ export function PhotoGrid({ photos, label, title, highlight }: { photos: Photo[]
 
 export function Reviews({ reviews }: { reviews: Review[] }) {
   if (!reviews.length) return null;
-  const avg = reviews.reduce((n, r) => n + r.rating, 0) / reviews.length;
+  const avg = average(reviews);
   return (
     <section className="mx-auto max-w-7xl px-5 py-20 sm:px-8">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
@@ -45,28 +45,20 @@ export function Reviews({ reviews }: { reviews: Review[] }) {
             </h2>
           </Reveal>
         </div>
-        <p className="tabular-nums text-sm text-muted">
-          <span className="text-pop">{"★".repeat(Math.round(avg))}</span> {avg.toFixed(1)} from {reviews.length}{" "}
-          {reviews.length === 1 ? "review" : "reviews"}
+        <p className="flex items-center gap-2 tabular-nums text-sm text-muted">
+          <Stars rating={Math.round(avg)} /> {avg.toFixed(1)} from {reviews.length} {reviews.length === 1 ? "review" : "reviews"}
         </p>
       </div>
       <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {reviews.map((r, i) => (
-          <Reveal key={i} delay={(i % 3) * 0.08}>
-            <figure className="h-full rounded-3xl border border-line bg-surface p-6">
-              <p className="text-pop" aria-label={`${r.rating} out of 5 stars`}>
-                {"★".repeat(r.rating)}
-                <span className="text-muted">{"☆".repeat(5 - r.rating)}</span>
-              </p>
-              <blockquote className="mt-3 leading-relaxed text-fg/85">“{r.text}”</blockquote>
-              <figcaption className="mt-4 text-sm text-muted">
-                {r.name}
-                {r.city && `, ${r.city}`}
-                {r.product && getProduct(r.product) && <span className="text-pop"> · {getProduct(r.product)!.name}</span>}
-              </figcaption>
-            </figure>
+        {reviews.slice(0, 6).map((r, i) => (
+          <Reveal key={r.id ?? i} delay={(i % 3) * 0.08}>
+            <ReviewCard review={r} />
           </Reveal>
         ))}
+      </div>
+      <div className="mt-8 flex flex-wrap gap-3">
+        <ButtonLink href="/reviews/">All reviews →</ButtonLink>
+        <ButtonLink href="/reviews/#write">Write a review</ButtonLink>
       </div>
     </section>
   );

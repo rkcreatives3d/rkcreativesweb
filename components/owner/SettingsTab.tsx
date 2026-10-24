@@ -92,7 +92,10 @@ export function SettingsTab() {
         <Text label="Review link" value={s.reviewUrl} onChange={(v) => set({ reviewUrl: v.trim() })} hint="Where happy customers can leave a review, e.g. your Google Business link." />
       </Card>
 
-      <Card title="Categories">
+      <Card title="Domains">
+        <p className="text-sm text-muted">
+          Every product sits in one domain. Customers see them as the shop&apos;s collections, in this order (empty ones are hidden from them).
+        </p>
         <ul className="space-y-2">
           {s.categories.map((c, i) => {
             const used = draft.products.filter((p) => p.category === c).length;
@@ -100,7 +103,7 @@ export function SettingsTab() {
               <li key={i} className="flex items-center gap-2">
                 <input
                   value={c}
-                  aria-label={`Category ${i + 1}`}
+                  aria-label={`Domain ${i + 1}`}
                   onChange={(e) => {
                     const name = e.target.value;
                     // renaming moves its products along with it
@@ -112,9 +115,9 @@ export function SettingsTab() {
                 />
                 <span className="w-20 text-xs text-muted">{used} items</span>
                 <button
-                  onClick={() => (used ? alert(`Move its ${used} product(s) to another category first.`) : set({ categories: s.categories.filter((_, j) => j !== i) }))}
+                  onClick={() => (used ? alert(`Move its ${used} product(s) to another domain first.`) : set({ categories: s.categories.filter((_, j) => j !== i) }))}
                   className="h-10 rounded-full border border-fg/15 px-3 text-sm"
-                  aria-label={`Remove category ${c}`}
+                  aria-label={`Remove domain ${c}`}
                 >
                   ✕
                 </button>
@@ -122,8 +125,8 @@ export function SettingsTab() {
             );
           })}
         </ul>
-        <button onClick={() => set({ categories: [...s.categories, "New category"] })} className={smallBtn}>
-          + Add category
+        <button onClick={() => set({ categories: [...s.categories, "New domain"] })} className={smallBtn}>
+          + Add domain
         </button>
       </Card>
     </div>

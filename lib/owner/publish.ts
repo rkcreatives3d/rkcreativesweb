@@ -83,18 +83,22 @@ export async function buildChanges(
   }
 
   // photos: new ones still in use are written; owner-uploaded ones no longer used are deleted
-  const used = new Set(draft.products.flatMap(photosOf));
+  const used = new Set([...draft.products.flatMap(photosOf), ...draft.reviews.flatMap((r) => (r.image ? [r.image] : []))]);
   for (const [path, u] of Object.entries(uploads)) if (used.has(path)) changes.push({ path: `public${path}`, content: u.bytes });
   for (const p of original.products) {
     if (!live.has(p.slug)) continue;
     for (const path of photosOf(p)) if (!used.has(path) && path.startsWith(`/products/${p.slug}/`)) changes.push({ path: `public${path}`, delete: true });
   }
 
+  // reviews taken off the site: their photos go too
+  for (const r of original.reviews) if (r.image && !used.has(r.image) && r.image.startsWith("/reviews/")) changes.push({ path: `public${r.image}`, delete: true });
+
   const content: Content = { ...draft, renders };
   if (!same(original.products, content.products)) changes.push({ path: PATHS.products, content: json(content.products) });
   if (!same(original.finishes, content.finishes)) changes.push({ path: PATHS.finishes, content: json(content.finishes) });
   if (!same(original.shop, content.shop)) changes.push({ path: PATHS.shop, content: json(content.shop) });
   if (!same(original.renders, content.renders)) changes.push({ path: PATHS.renders, content: json(content.renders) });
+  if (!same(original.reviews, content.reviews)) changes.push({ path: PATHS.reviews, content: json(content.reviews) });
 
   // a path written and deleted in the same commit: the write wins
   const written = new Set(changes.filter((c) => !("delete" in c)).map((c) => c.path));

@@ -9,7 +9,7 @@ export const occasions: Occasion[] = [
   { id: "bestseller", label: "Bestsellers", blurb: "What everyone's ordering", test: (p) => !!p.tags?.includes("bestseller") },
   { id: "birthday", label: "Birthday gifts", blurb: "Names, keepsakes, wow-gifts", test: (p) => !!p.tags?.includes("birthday") },
   { id: "festive", label: "Diwali & festive", blurb: "Lamps, decor and gifting", test: (p) => !!p.tags?.includes("festive") },
-  { id: "desk", label: "For the desk", blurb: "Stands, nameplates, fidgets", test: (p) => p.category === "Desk" || !!p.tags?.includes("desk") },
+  { id: "desk", label: "For the desk", blurb: "Stands, nameplates, fidgets", test: (p) => p.category === "Desk & office" || !!p.tags?.includes("desk") },
   { id: "car", label: "Car & keys", blurb: "Keychains and car bits", test: (p) => !!p.tags?.includes("car") },
   { id: "under499", label: "Under ₹499", blurb: "Small price, big smile", test: (p) => p.price <= 499 },
 ];

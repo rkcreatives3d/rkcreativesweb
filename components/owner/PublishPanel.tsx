@@ -2,10 +2,10 @@
 
 import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { modelFor } from "@/lib/models";
-import { commit, GitHubError, passwordLogin, shaOf } from "@/lib/owner/github";
+import { commit, GitHubError, listFiles, passwordLogin, shaOf } from "@/lib/owner/github";
 import { summarize } from "@/lib/owner/edit";
 import { buildChanges, renderJobs, type ShotFiles } from "@/lib/owner/publish";
-import { PATHS } from "@/lib/owner/repo";
+import { PATHS, REVIEWS_BRANCH } from "@/lib/owner/repo";
 import { TOKEN_KEY, useOwner } from "@/lib/owner/store";
 const StudioCapture = lazy(() => import("./Studio3D").then((m) => ({ default: m.StudioCapture })));
 
@@ -68,6 +68,16 @@ export function PublishPanel({ onClose }: { onClose: () => void }) {
       if (!changes.length) return setPhase({ k: "error", message: "Nothing to publish." });
       const message = `Owner: ${lines.slice(0, 3).join("; ")}${lines.length > 3 ? ` and ${lines.length - 3} more` : ""}\n\n${lines.map((l) => `- ${l}`).join("\n")}`;
       const sha = await commit(s.token, message, changes, (done, total) => setPhase({ k: "upload", done, total }));
+      // reviews approved or rejected leave the inbox (a separate branch; the site isn't rebuilt for it)
+      if (s.inboxDone.length) {
+        try {
+          const files = await listFiles(s.token, s.inboxDone.map((id) => `inbox/${id}.`), REVIEWS_BRANCH);
+          if (files.length)
+            await commit(s.token, `Owner: ${s.inboxDone.length} review(s) decided`, files.map((path) => ({ path, delete: true as const })), undefined, REVIEWS_BRANCH);
+        } catch {
+          // the reviews are live either way; tidying the inbox can wait for the next publish
+        }
+      }
       useOwner.setState({ draft: content });
       useOwner.getState().published();
       const shas: Record<string, string> = {};

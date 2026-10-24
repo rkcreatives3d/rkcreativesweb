@@ -80,7 +80,7 @@
     "tagline": "A trefoil loop with no beginning and no end.",
     "description": "A mathematically perfect (2,3) torus knot. It looks impossible on a shelf and feels unreal in the hand. Sanded and clear-coated for a glass-smooth finish.",
     "price": 649,
-    "category": "Decor",
+    "category": "Giftables",
     "shape": "knot",
     "finishes": [
       "gold",
@@ -121,7 +121,7 @@
     "tagline": "A glowing lattice that casts star-shadows.",
     "description": "An 80-face geodesic cage around a warm LED core. Switch it on and it throws a web of shadows across the whole room. USB-C powered, LED module included.",
     "price": 1299,
-    "category": "Lighting",
+    "category": "Aesthetic",
     "shape": "lattice",
     "finishes": [
       "frost",
@@ -163,7 +163,7 @@
     "tagline": "Fidget-grade spin, machine-shop looks.",
     "description": "A twelve-tooth desk fidget with a press-fit steel bearing. Flick it and it spins for ages. Lightening holes keep it balanced.",
     "price": 399,
-    "category": "Desk",
+    "category": "Giftables",
     "shape": "gear",
     "finishes": [
       "silver",
@@ -244,7 +244,7 @@
     "tagline": "One surface. One edge. Infinite vibes.",
     "description": "Trace it with your finger and you visit both 'sides' without ever crossing an edge. A sculpture and a maths lesson in one.",
     "price": 749,
-    "category": "Decor",
+    "category": "Aesthetic",
     "shape": "mobius",
     "finishes": [
       "copper",
@@ -282,7 +282,7 @@
     "tagline": "Articulated. Wiggly. Printed in one piece.",
     "description": "Comes off the printer fully jointed. No assembly, no glue. Every segment moves, so it wriggles in your hand like it's alive.",
     "price": 999,
-    "category": "Toys",
+    "category": "Giftables",
     "shape": "serpent",
     "finishes": [
       "onyx",
@@ -325,7 +325,7 @@
     "tagline": "Geode energy without the mining.",
     "description": "A cluster of hexagonal crystal points on a rough base. Looks wild in Holo Chrome under RGB light. Makes a good bookend or paperweight.",
     "price": 699,
-    "category": "Decor",
+    "category": "Aesthetic",
     "shape": "crystal",
     "finishes": [
       "frost",
@@ -366,7 +366,7 @@
     "tagline": "A ringed planet for your bedside.",
     "description": "A diffused planet globe wrapped in a floating ring. Warm white LED with a touch dimmer. Sits on a hidden base so the ring looks like it's hovering.",
     "price": 1499,
-    "category": "Lighting",
+    "category": "Aesthetic",
     "shape": "saturn",
     "finishes": [
       "gold",
@@ -408,7 +408,7 @@
     "tagline": "Cantilevered. Minimal. Holds up to tablets.",
     "description": "A single-piece cantilever stand angled at 65° for video calls and recipes. The cable slot fits any charger. Rubber feet included.",
     "price": 449,
-    "category": "Desk",
+    "category": "Desk & office",
     "shape": "stand",
     "finishes": [
       "onyx",
@@ -449,7 +449,7 @@
     "tagline": "Your name, raised in gold, on your keys.",
     "description": "Any name or short word (up to 14 letters) printed as raised 3D letters on a sturdy backing plate, with a metal key ring. A tiny gift that always lands. Try your name live in 3D on the Personalise page.",
     "price": 249,
-    "category": "Personalised",
+    "category": "Keychains",
     "shape": "keychain",
     "finishes": [
       "gold",
@@ -496,7 +496,7 @@
     "tagline": "Claim your desk in brushed gold letters.",
     "description": "A weighted, angled nameplate with your name in bold raised letters. Great for offices, study tables and gifting to new joiners. Up to 14 letters. Try it live in 3D on the Personalise page.",
     "price": 499,
-    "category": "Personalised",
+    "category": "Desk & office",
     "shape": "nameplate",
     "finishes": [
       "gold",

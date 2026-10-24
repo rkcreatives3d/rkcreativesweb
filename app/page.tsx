@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Hero } from "@/components/home/Hero";
 import { MarqueeStrip } from "@/components/home/MarqueeStrip";
-import { ShopByOccasion } from "@/components/home/ShopByOccasion";
+import { ShopByCollection } from "@/components/home/ShopByCollection";
 import { CustomCta } from "@/components/home/CustomCta";
 import { NameTeaser } from "@/components/home/NameTeaser";
 import { InstagramGrid, PhotoGrid, Reviews } from "@/components/Proof";
@@ -20,7 +20,7 @@ export default function Home() {
       <Hero />
       <MarqueeStrip />
       {/* straight into the shop: ways in, then the pieces themselves */}
-      <ShopByOccasion />
+      <ShopByCollection />
 
       <section className="mx-auto max-w-7xl px-5 pb-24 pt-14 sm:px-8 sm:pt-16">
         <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">

@@ -12,7 +12,8 @@ export type TrackEvent =
   | "ar_view"
   | "pin_check"
   | "save"
-  | "share";
+  | "share"
+  | "review_sent";
 
 type Props = Record<string, string | number | boolean | undefined>;
 

@@ -1,11 +1,15 @@
 import type { Finish, FinishKind, Product, Size } from "@/lib/products";
 import type shopData from "@/content/shop.json";
+import type { Review } from "@/lib/content";
 
 // Pure helpers for the owner page: the editable content, new ids, colour
 // materials, photo resizing, and a plain-English list of what changed.
 
 export type Shop = typeof shopData;
-export type Content = { products: Product[]; finishes: Finish[]; shop: Shop; renders: Record<string, string[]> };
+export type Content = { products: Product[]; finishes: Finish[]; shop: Shop; renders: Record<string, string[]>; reviews: Review[] };
+
+/** A review waiting on the inbox branch for the owner's decision. */
+export type InboxReview = Review & { id: string; photo?: boolean; photoUrl?: string; photoBytes?: Uint8Array<ArrayBuffer> };
 
 export const slugify = (s: string) =>
   s
@@ -92,20 +96,7 @@ export function makeFinish(id: string, name: string, color: string, kind: Finish
 
 // ── photos ──
 
-/** A photo, scaled down to at most `max` px on its longest side, as JPEG bytes (phones take huge photos). */
-export async function resizePhoto(file: File, max = 1600): Promise<Uint8Array<ArrayBuffer>> {
-  const bitmap = await createImageBitmap(file);
-  const k = Math.min(1, max / Math.max(bitmap.width, bitmap.height));
-  const c = document.createElement("canvas");
-  c.width = Math.round(bitmap.width * k);
-  c.height = Math.round(bitmap.height * k);
-  const g = c.getContext("2d")!;
-  g.fillStyle = "#ffffff"; // transparent PNGs get a white background, not black
-  g.fillRect(0, 0, c.width, c.height);
-  g.drawImage(bitmap, 0, 0, c.width, c.height);
-  const blob = await new Promise<Blob>((res) => c.toBlob((b) => res(b!), "image/jpeg", 0.85));
-  return new Uint8Array(await blob.arrayBuffer());
-}
+export { resizePhoto } from "@/lib/photo";
 
 // ── what changed ──
 
@@ -139,6 +130,12 @@ export function summarize(before: Content, after: Content, uploads: { path: stri
   if (order(before) !== order(after)) out.push("Shop order changed");
   if (JSON.stringify(before.finishes) !== JSON.stringify(after.finishes)) out.push("Colours updated");
   if (JSON.stringify(before.shop) !== JSON.stringify(after.shop)) out.push("Shop settings updated");
+  const oldIds = new Set(before.reviews.map((r) => r.id));
+  const newIds = new Set(after.reviews.map((r) => r.id));
+  const added = after.reviews.filter((r) => !oldIds.has(r.id)).length;
+  const removed = before.reviews.filter((r) => !newIds.has(r.id)).length;
+  if (added) out.push(`${added} review${added === 1 ? "" : "s"} approved`);
+  if (removed) out.push(`${removed} review${removed === 1 ? "" : "s"} removed`);
   const photos = uploads.filter((u) => u.path.startsWith("public/products/")).length;
   if (photos) out.push(`${photos} new photo${photos === 1 ? "" : "s"}`);
   return out;

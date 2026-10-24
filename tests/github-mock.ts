@@ -4,7 +4,16 @@ import type { Page } from "@playwright/test";
 // A pretend GitHub for the owner-page tests: reads come from this checkout,
 // writes are recorded instead of sent, so tests never touch the real repo.
 
-export type Recorded = { blobs: string[]; tree: { path: string; sha: string | null }[]; message: string; refUpdated: boolean };
+export type Recorded = {
+  blobs: string[];
+  /** every tree entry written, across all commits */
+  tree: { path: string; sha: string | null }[];
+  message: string;
+  refUpdated: boolean;
+  /** branches moved, in order */
+  branches: string[];
+};
+export type InboxItem = { id: string; name: string; rating: number; text: string; product?: string; city?: string; date: string; photo?: Buffer };
 
 /**
  * `password`: also play the owner sign-in server (scripts/owner-api.mjs) at
@@ -13,9 +22,23 @@ export type Recorded = { blobs: string[]; tree: { path: string; sha: string | nu
  */
 export async function mockGitHub(
   page: Page,
-  { canWrite = true, files = ["models/vortex-vase.stl", "public/renders/vortex-vase/amber.webp"], password = "", canPublish = true } = {},
+  {
+    canWrite = true,
+    files = ["models/vortex-vase.stl", "public/renders/vortex-vase/amber.webp"],
+    password = "",
+    canPublish = true,
+    inbox = [] as InboxItem[],
+  } = {},
 ) {
-  const rec: Recorded = { blobs: [], tree: [], message: "", refUpdated: false };
+  const rec: Recorded = { blobs: [], tree: [], message: "", refUpdated: false, branches: [] };
+  // the reviews inbox branch: inbox/<id>.json (+ .jpg)
+  const inboxFiles = inbox.flatMap((r, i) => {
+    const { photo, ...entry } = r;
+    return [
+      { path: `inbox/${r.id}.json`, sha: `inbox-json-${i}`, bytes: Buffer.from(JSON.stringify({ ...entry, photo: !!photo })) },
+      ...(photo ? [{ path: `inbox/${r.id}.jpg`, sha: `inbox-jpg-${i}`, bytes: photo }] : []),
+    ];
+  });
   const blobs = new Map<string, string>();
   let tries = 5;
   await page.route("**/api/owner/**", async (route) => {
@@ -52,8 +75,14 @@ export async function mockGitHub(
       return json({ content: fs.readFileSync(file).toString("base64"), sha: `sha-${file}` });
     }
     if (path === "/git/ref/heads/main") return json({ object: { sha: "head-1" } });
-    if (path.startsWith("/git/commits/")) return json({ tree: { sha: "tree-1" } });
-    if (path.startsWith("/git/trees/") && req.method() === "GET") return json({ tree: [...files, "content/products.json"].map((p) => ({ path: p, type: "blob" })) });
+    if (path === "/git/ref/heads/reviews-inbox") return inbox.length ? json({ object: { sha: "inbox-head" } }) : json({ message: "Not Found" }, 404);
+    if (path.startsWith("/git/commits/")) return json({ tree: { sha: path.endsWith("inbox-head") ? "inbox-tree" : "tree-1" } });
+    if (path.startsWith("/git/trees/inbox-tree")) return json({ tree: inboxFiles.map((f) => ({ path: f.path, type: "blob", sha: f.sha })) });
+    if (path.startsWith("/git/trees/") && req.method() === "GET") return json({ tree: [...files, "content/products.json"].map((p) => ({ path: p, type: "blob", sha: "x" })) });
+    if (path.startsWith("/git/blobs/") && req.method() === "GET") {
+      const f = inboxFiles.find((x) => x.sha === path.slice("/git/blobs/".length));
+      return f ? json({ content: f.bytes.toString("base64"), encoding: "base64" }) : json({ message: "Not Found" }, 404);
+    }
     if (path === "/git/blobs") {
       const sha = `blob-${blobs.size + 1}`;
       blobs.set(sha, (req.postDataJSON() as { content: string }).content);
@@ -61,27 +90,28 @@ export async function mockGitHub(
       return json({ sha });
     }
     if (path === "/git/trees") {
-      rec.tree = (req.postDataJSON() as { tree: Recorded["tree"] }).tree;
+      rec.tree.push(...(req.postDataJSON() as { tree: Recorded["tree"] }).tree);
       return json({ sha: "tree-2" });
     }
     if (path === "/git/commits") {
       rec.message = (req.postDataJSON() as { message: string }).message;
       return json({ sha: "commit-2abcdef" });
     }
-    if (path === "/git/refs/heads/main") {
-      rec.refUpdated = true;
+    if (path.startsWith("/git/refs/heads/")) {
+      rec.branches.push(path.slice("/git/refs/heads/".length));
+      if (path.endsWith("/main")) rec.refUpdated = true;
       return json({});
     }
     return json({ message: `unmocked ${req.method()} ${path}` }, 500);
   }
   /** What was committed to a path (decoded text), or null if it wasn't written. */
   const written = (p: string) => {
-    const e = rec.tree.find((t) => t.path === p && t.sha);
+    const e = rec.tree.findLast((t) => t.path === p && t.sha);
     return e ? Buffer.from(blobs.get(e.sha!)!, "base64").toString("utf8") : null;
   };
   /** Raw bytes committed to a path. */
   const raw = (p: string) => {
-    const e = rec.tree.find((t) => t.path === p && t.sha);
+    const e = rec.tree.findLast((t) => t.path === p && t.sha);
     return e ? Buffer.from(blobs.get(e.sha!)!, "base64") : null;
   };
   return { rec, written, raw };
@@ -109,3 +139,9 @@ export function cubeSTL() {
   const body = faces.map((f) => `facet normal 0 0 0\nouter loop\n${f.map((i) => `vertex ${v[i].join(" ")}`).join("\n")}\nendloop\nendfacet`).join("\n");
   return Buffer.from(`solid cube\n${body}\nendsolid cube\n`);
 }
+
+/** A tiny valid JPEG (1×1 px). */
+export const TINY_JPEG = Buffer.from(
+  "/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/wAALCAABAAEBAREA/8QAFAABAAAAAAAAAAAAAAAAAAAACf/EABQQAQAAAAAAAAAAAAAAAAAAAAD/2gAIAQEAAD8AKp//2Q==",
+  "base64",
+);
