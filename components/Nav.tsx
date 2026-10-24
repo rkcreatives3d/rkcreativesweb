@@ -2,12 +2,13 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "motion/react";
 import { useCart, cartCount } from "@/lib/cart";
 import { useShelf } from "@/lib/shelf";
 import { site, whatsappUrl } from "@/lib/site";
 import { HeartIcon, MenuIcon } from "./Icons";
+import { ownerTap } from "@/lib/ownerTap";
 
 const links = [
   { href: "/shop/", label: "Shop" },
@@ -27,6 +28,7 @@ const more = [
 
 export function Nav() {
   const pathname = usePathname();
+  const router = useRouter();
   const count = useCart((s) => cartCount(s.items));
   const setOpen = useCart((s) => s.setOpen);
   const saved = useShelf((s) => s.saved.length);
@@ -58,7 +60,17 @@ export function Nav() {
   return (
     <header className="fixed inset-x-0 top-0 z-40 px-[max(0.75rem,env(safe-area-inset-left))] pt-[max(0.75rem,env(safe-area-inset-top))] sm:px-6 sm:pt-5">
       <nav aria-label="Main" className="mx-auto flex max-w-7xl items-center justify-between gap-1 nav-glass rounded-full border border-line bg-page/50 px-1.5 py-2 backdrop-blur-xl min-[380px]:gap-3 min-[380px]:px-2">
-        <Link href="/" className="flex shrink-0 items-center gap-3" aria-label={`${site.name} home`}>
+        <Link
+          href="/"
+          // on the home page, 5 taps here open the owner page too (like the big logo)
+          onClick={(e) => {
+            if (pathname !== "/" || !ownerTap()) return;
+            e.preventDefault(); // instead of the link's own "go home"
+            router.push("/owner/");
+          }}
+          className="flex shrink-0 touch-manipulation items-center gap-3"
+          aria-label={`${site.name} home`}
+        >
           {/* the logo's emblem (printer, RK, spool): the full logo is unreadable this small */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img

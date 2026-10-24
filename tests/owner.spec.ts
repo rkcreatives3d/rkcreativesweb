@@ -7,14 +7,36 @@ import { cubeSTL, mockGitHub } from "./github-mock";
 
 test.describe.configure({ mode: "serial" });
 
-test("5 taps on the home page logo open the shop manager, which asks for the owner key", async ({ page }) => {
+for (const mode of ["3D", "Lite"] as const) {
+  test(`5 taps on the home page logo open the shop manager (${mode})`, async ({ page }) => {
+    await prepare(page, { lite: mode === "Lite" });
+    await page.addInitScript(() => localStorage.setItem("rk-gpu", "ok"));
+    await page.goto("/");
+    if (mode === "3D") await expect(page.locator("canvas")).toHaveCount(1, { timeout: 15_000 });
+    // a real tap in the middle of the logo, whatever is drawn over it
+    const box = (await page.locator("#cover-logo").boundingBox())!;
+    for (let i = 0; i < 5; i++) await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
+    await expect(page).toHaveURL(/\/owner\/$/);
+    await expect(page.getByRole("heading", { name: "Shop manager" })).toBeVisible();
+    await expect(page.getByLabel("Owner key")).toBeVisible();
+  });
+}
+
+test("5 taps on the small logo in the top bar work too, on the home page only", async ({ page }) => {
   await prepare(page, { lite: true });
   await page.goto("/");
-  const logo = page.locator("#cover-logo");
-  for (let i = 0; i < 5; i++) await logo.click({ force: true });
+  const logo = page.getByRole("link", { name: /home$/ }).first();
+  for (let i = 0; i < 5; i++) await logo.click();
   await expect(page).toHaveURL(/\/owner\/$/);
-  await expect(page.getByRole("heading", { name: "Shop manager" })).toBeVisible();
-  await expect(page.getByLabel("Owner key")).toBeVisible();
+});
+
+test("fewer than 5 taps don't open it", async ({ page }) => {
+  await prepare(page, { lite: true });
+  await page.goto("/");
+  const box = (await page.locator("#cover-logo").boundingBox())!;
+  for (let i = 0; i < 4; i++) await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
+  await page.waitForTimeout(500);
+  await expect(page).not.toHaveURL(/owner/);
 });
 
 test("a key that can't write to the repo is refused", async ({ page }) => {

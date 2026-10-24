@@ -8,6 +8,7 @@ import { ButtonLink } from "../ui";
 import { products } from "@/lib/products";
 import { dispatchLabel, formatPrice, site } from "@/lib/site";
 import { useFull3D } from "@/lib/lite";
+import { ownerTap } from "@/lib/ownerTap";
 
 // the logo cut out of its black square (the browser's pick doubles as the 3D texture)
 const LOGO_SRCSET = "/brand/logo-cut-480.webp 480w, /brand/logo-cut-720.webp 720w, /brand/logo-cut-1080.webp 1080w";
@@ -28,16 +29,8 @@ export function Hero() {
   const full3D = useFull3D();
   const router = useRouter();
   const section = useRef<HTMLElement>(null);
-  // the owner's way in: tap the logo 5 times within 3 seconds
-  const taps = useRef<number[]>([]);
-  const tap = () => {
-    const now = Date.now();
-    taps.current = [...taps.current.filter((t) => now - t < 3000), now];
-    if (taps.current.length >= 5) {
-      taps.current = [];
-      router.push("/owner/");
-    }
-  };
+  // the owner's way in: tap the logo 5 times within 3 seconds (lib/ownerTap.ts)
+  const tap = () => ownerTap() && router.push("/owner/");
   const img = useRef<HTMLImageElement>(null);
   const [logoSrc, setLogoSrc] = useState<string | null>(null);
   const [frame, setFrame] = useState<CoverFrame | null>(null);
@@ -143,7 +136,8 @@ export function Hero() {
       </div>
 
       {full3D && logoSrc && frame && (
-        <View3D className="absolute inset-0">
+        // taps go through to the logo underneath (the 3D follows the pointer on its own)
+        <View3D className="pointer-events-none absolute inset-0">
           <LogoScene url={logoSrc} frame={frame} onShown={() => setShown3D(true)} />
         </View3D>
       )}
