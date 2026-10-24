@@ -33,11 +33,17 @@ npm run check      # typecheck + build + tests, the same as GitHub runs
 
 Tap the **logo on the home page 5 times** (within 3 seconds) to open the shop manager (`/owner/`). It isn't linked anywhere and search engines are told to skip it.
 
-**Signing in.** The secret tap only finds the page; what protects it is the **owner key**, a GitHub access token that can write to this repository. Without one nobody can change anything, even if they find the page. Make it once (the sign-in page has a link and the steps):
+**Signing in.** The secret tap only finds the page; the **password** is what protects it. The website runs in the visitor's browser and its code is public, so it can't check a password or keep a GitHub key itself. A tiny **owner sign-in server** (`scripts/owner-api.mjs`, no dependencies) does both: it checks the password, holds the GitHub key in secret, and passes on only the few GitHub calls the owner page needs. Wrong passwords are limited: 5 per device every 15 minutes (and each try is slowed down), 30 per hour in total. Sign-ins last 12 hours, or 30 days with "Keep me signed in".
 
-1. Signed in to GitHub as `rkcreatives3d`, create a **fine-grained personal access token**.
-2. Repository access: only `rkcreativesweb`. Permissions: **Contents → Read and write**.
-3. Paste it on the sign-in page. Tick "Keep me signed in" on your own phone or computer only. Anyone with the key can change the shop; if it leaks, delete it on GitHub and make a new one.
+Set it up once:
+
+1. **Make the GitHub key** the server uses: signed in to GitHub as `rkcreatives3d`, create a **fine-grained personal access token** with repository access to `rkcreativesweb` only and **Contents → Read and write**. (The owner page's sign-in has a link under "Sign in with a GitHub key instead".)
+2. **Run the server on Render:**
+   - *If the website is a Render **Web Service*** (start command `npm start`): open it → **Environment** and add `OWNER_PASSWORD` and `GITHUB_TOKEN`. That's all: it then answers at `/api/owner` on the same address.
+   - *If the website is a Render **Static Site***: create a **New → Web Service** from the same repository: name e.g. `rk-owner`, runtime Node, build command `echo ok`, start command `node scripts/owner-api.mjs`, free instance. Add the environment variables `OWNER_PASSWORD` and `GITHUB_TOKEN`. Then open the **Static Site → Environment**, add `NEXT_PUBLIC_OWNER_API` = `https://rk-owner.onrender.com/api/owner` (your new service's address + `/api/owner`), and redeploy it. Optional: under the Web Service's **Build Filters**, include only `scripts/owner-api.mjs`, so product updates don't restart it.
+3. **Pick a strong password.** Anyone can try passwords, and the limit only slows guessing down. Don't use anything shown publicly, like your GitHub or Instagram name: whoever gets in can change the UPI ID and WhatsApp number your customers pay and order on.
+
+A free Render Web Service sleeps when idle; the first sign-in after a while can take up to a minute while it wakes (the page says so). To change the password, change `OWNER_PASSWORD` on Render: that also signs out every device. If the server isn't set up, the page falls back to signing in with a GitHub key directly (on your own devices only: anyone with the key can change the shop).
 
 **What you can do:**
 - **Products:** add, edit, duplicate, hide/show, delete, reorder (the shop shows them in this order), and change prices straight from the list.

@@ -6,15 +6,41 @@ import type { Page } from "@playwright/test";
 
 export type Recorded = { blobs: string[]; tree: { path: string; sha: string | null }[]; message: string; refUpdated: boolean };
 
-export async function mockGitHub(page: Page, { canWrite = true, files = ["models/vortex-vase.stl", "public/renders/vortex-vase/amber.webp"] } = {}) {
+/**
+ * `password`: also play the owner sign-in server (scripts/owner-api.mjs) at
+ * /api/owner with this password; otherwise it's "not set up" there, and the
+ * page offers the GitHub key.
+ */
+export async function mockGitHub(
+  page: Page,
+  { canWrite = true, files = ["models/vortex-vase.stl", "public/renders/vortex-vase/amber.webp"], password = "" } = {},
+) {
   const rec: Recorded = { blobs: [], tree: [], message: "", refUpdated: false };
   const blobs = new Map<string, string>();
-  await page.route("https://api.github.com/**", async (route) => {
+  let tries = 5;
+  await page.route("**/api/owner/**", async (route) => {
     const req = route.request();
-    const url = new URL(req.url());
-    const path = url.pathname.replace(/^\/repos\/[^/]+\/[^/]+/, "");
     const json = (body: unknown, status = 200) => route.fulfill({ status, contentType: "application/json", body: JSON.stringify(body) });
-    if (url.pathname === "/user") return json({ login: "rkcreatives3d" });
+    const rest = new URL(req.url()).pathname.replace(/^.*\/api\/owner\/?/, "");
+    if (!password) return json({ error: "not-set-up" }, 503);
+    if (rest === "") return json({ ok: true });
+    if (rest === "login") {
+      if ((req.postDataJSON() as { password: string }).password === password) return json({ session: "test-session" });
+      return json({ error: "wrong-password", left: --tries }, 401);
+    }
+    if (req.headers().authorization !== "Bearer test-session") return json({ error: "signed-out" }, 401);
+    if (rest === "me") return json({ login: "owner", canWrite: true });
+    if (rest.startsWith("github")) return repo(route, `/${rest.slice("github".length).replace(/^\//, "")}`.replace(/\/$/, ""));
+    return json({}, 404);
+  });
+  await page.route("https://api.github.com/**", async (route) => {
+    const url = new URL(route.request().url());
+    if (url.pathname === "/user") return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ login: "rkcreatives3d" }) });
+    return repo(route, url.pathname.replace(/^\/repos\/[^/]+\/[^/]+/, ""));
+  });
+  async function repo(route: import("@playwright/test").Route, path: string) {
+    const req = route.request();
+    const json = (body: unknown, status = 200) => route.fulfill({ status, contentType: "application/json", body: JSON.stringify(body) });
     if (path === "" && req.method() === "GET") return json({ permissions: { push: canWrite } });
     if (path.startsWith("/contents/")) {
       const file = decodeURIComponent(path.slice("/contents/".length));
@@ -43,7 +69,7 @@ export async function mockGitHub(page: Page, { canWrite = true, files = ["models
       return json({});
     }
     return json({ message: `unmocked ${req.method()} ${path}` }, 500);
-  });
+  }
   /** What was committed to a path (decoded text), or null if it wasn't written. */
   const written = (p: string) => {
     const e = rec.tree.find((t) => t.path === p && t.sha);

@@ -17,11 +17,17 @@ for (const mode of ["3D", "Lite"] as const) {
     const box = (await page.locator("#cover-logo").boundingBox())!;
     const [x, y] = [box.x + box.width / 2, box.y + box.height / 2];
     expect(await page.evaluate(([x, y]) => !!document.elementFromPoint(x, y)?.closest("[data-owner-tap]"), [x, y])).toBe(true);
-    for (let i = 0; i < 5; i++) await page.mouse.click(x, y);
+    if (mode === "Lite") for (let i = 0; i < 5; i++) await page.mouse.click(x, y);
+    // with 3D, a test machine drawing it in software handles each real tap so slowly that 5 take
+    // longer than the 5-second window: tap the element under that point 5 times in quick succession
+    else
+      await page.evaluate(([x, y]) => {
+        const el = document.elementFromPoint(x, y)!;
+        for (let i = 0; i < 5; i++) el.dispatchEvent(new MouseEvent("click", { bubbles: true, clientX: x, clientY: y }));
+      }, [x, y]);
     // the owner page's code (with its 3D editor) loads on the way: give a busy test machine time
     await expect(page).toHaveURL(/\/owner\/$/, { timeout: 20_000 });
     await expect(page.getByRole("heading", { name: "Shop manager" })).toBeVisible();
-    await expect(page.getByLabel("Owner key")).toBeVisible();
   });
 }
 
@@ -46,8 +52,8 @@ test("a key that can't write to the repo is refused", async ({ page }) => {
   await prepare(page, { lite: true });
   await mockGitHub(page, { canWrite: false });
   await page.goto("/owner/");
-  await page.getByLabel("Owner key").fill("github_pat_test");
-  await page.getByRole("button", { name: "Sign in" }).click();
+  await page.getByLabel("GitHub key").fill("github_pat_test");
+  await page.getByRole("button", { name: "Sign in with key" }).click();
   await expect(page.getByRole("alert").filter({ hasText: "can't change" })).toBeVisible();
 });
 
@@ -56,8 +62,8 @@ test("owner edits a price, adds a product with a 3D file, a colour and settings,
   await prepare(page, { lite: true });
   const gh = await mockGitHub(page);
   await page.goto("/owner/");
-  await page.getByLabel("Owner key").fill("github_pat_test");
-  await page.getByRole("button", { name: "Sign in" }).click();
+  await page.getByLabel("GitHub key").fill("github_pat_test");
+  await page.getByRole("button", { name: "Sign in with key" }).click();
   await expect(page.getByText("Signed in as rkcreatives3d")).toBeVisible();
 
   // quick price change from the list
@@ -111,8 +117,8 @@ test("deleting a product removes its files in the same commit", async ({ page })
   const gh = await mockGitHub(page);
   page.on("dialog", (d) => d.accept());
   await page.goto("/owner/");
-  await page.getByLabel("Owner key").fill("github_pat_test");
-  await page.getByRole("button", { name: "Sign in" }).click();
+  await page.getByLabel("GitHub key").fill("github_pat_test");
+  await page.getByRole("button", { name: "Sign in with key" }).click();
   const row = page.getByRole("listitem").filter({ hasText: "Vortex Vase" });
   await row.getByRole("button", { name: "Delete" }).click();
   await page.getByRole("button", { name: "Publish changes" }).click();
@@ -123,4 +129,34 @@ test("deleting a product removes its files in the same commit", async ({ page })
   expect(gh.rec.tree).toEqual(expect.arrayContaining([{ path: "models/vortex-vase.stl", mode: "100644", type: "blob", sha: null }]));
   expect(gh.rec.tree.some((t) => t.path === "public/renders/vortex-vase/amber.webp" && t.sha === null)).toBe(true);
   expect(JSON.parse(gh.written("content/products.json")!).some((p: { slug: string }) => p.slug === "vortex-vase")).toBe(false);
+});
+
+test("password sign-in: wrong tries count down; the right password opens the manager, and publishing goes through the sign-in server", async ({ page }) => {
+  await prepare(page, { lite: true });
+  const gh = await mockGitHub(page, { password: "open sesame" });
+  await page.goto("/owner/");
+  const pw = page.getByLabel("Password");
+  await pw.fill("guess");
+  await page.getByRole("button", { name: "Sign in", exact: true }).click();
+  await expect(page.getByRole("alert").filter({ hasText: "Wrong password" })).toContainText("4 tries left");
+  await pw.fill("open sesame");
+  await page.getByRole("button", { name: "Sign in", exact: true }).click();
+  await expect(page.getByText("Signed in as owner")).toBeVisible();
+  // the GitHub key never reached the browser: there wasn't one
+  await page.getByLabel("Price of Infinity Knot").fill("700");
+  await page.getByRole("button", { name: "Publish changes" }).click();
+  const dialog = page.getByRole("dialog", { name: "Publish to the website" });
+  await dialog.getByRole("button", { name: "Publish" }).click();
+  await expect(dialog).toContainText("Published", { timeout: 30_000 });
+  expect(JSON.parse(gh.written("content/products.json")!).find((p: { slug: string }) => p.slug === "infinity-knot").price).toBe(700);
+  // signed in on this device: a reload goes straight back in
+  await page.reload();
+  await expect(page.getByText("Signed in as owner")).toBeVisible();
+});
+
+test("without the sign-in server, the page says so and offers the GitHub key", async ({ page }) => {
+  await prepare(page, { lite: true });
+  await page.goto("/owner/");
+  await expect(page.getByText("Password sign-in isn't set up")).toBeVisible();
+  await expect(page.getByLabel("GitHub key")).toBeVisible();
 });

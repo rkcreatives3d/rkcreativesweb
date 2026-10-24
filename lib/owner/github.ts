@@ -1,16 +1,26 @@
 import { REPO } from "./repo";
 
-// A small GitHub REST client for the owner page. Every call carries the
-// owner's personal access token: without one that can write to the repo,
-// nothing can be changed, whatever page someone manages to open.
+// A small GitHub REST client for the owner page. Two ways in:
+//  - password: the owner signs in to the owner sign-in server
+//    (scripts/owner-api.mjs), which holds the GitHub key and passes the calls
+//    on. The "token" is then "session:<signed session>".
+//  - GitHub key: the owner's own fine-grained token, straight to GitHub.
+// Either way, nothing can be changed without the password or the key,
+// whatever page someone manages to open.
 
 const API = "https://api.github.com";
-const base = `${API}/repos/${REPO.owner}/${REPO.name}`;
+/** The owner sign-in server: NEXT_PUBLIC_OWNER_API at build time, else this site's own /api/owner. */
+export const OWNER_API = (process.env.NEXT_PUBLIC_OWNER_API || "/api/owner").replace(/\/$/, "");
+const SESSION = "session:";
+const isSession = (t: string) => t.startsWith(SESSION);
+const repoBase = (t: string) => (isSession(t) ? `${OWNER_API}/github` : `${API}/repos/${REPO.owner}/${REPO.name}`);
 
 export class GitHubError extends Error {
   constructor(
     message: string,
     public status: number,
+    /** password tries left before a 15-minute wait */
+    public left?: number,
   ) {
     super(message);
   }
@@ -21,7 +31,7 @@ async function call<T>(token: string, url: string, init: RequestInit = {}): Prom
     ...init,
     headers: {
       Accept: "application/vnd.github+json",
-      Authorization: `Bearer ${token}`,
+      Authorization: `Bearer ${isSession(token) ? token.slice(SESSION.length) : token}`,
       "X-GitHub-Api-Version": "2022-11-28",
       ...(init.body ? { "Content-Type": "application/json" } : {}),
     },
@@ -37,9 +47,34 @@ async function call<T>(token: string, url: string, init: RequestInit = {}): Prom
   return res.status === 204 ? (undefined as T) : ((await res.json()) as T);
 }
 
+/** Is the owner sign-in server there (and awake: free hosts sleep when idle)? */
+export async function ping(): Promise<"ok" | "not-set-up" | "unreachable"> {
+  try {
+    const res = await fetch(`${OWNER_API}/`, { cache: "no-store" });
+    if (res.ok) return "ok";
+    return res.status === 503 || res.status === 404 ? "not-set-up" : "unreachable";
+  } catch {
+    return "unreachable";
+  }
+}
+
+/** Password sign-in: a session "token" for the other calls. Errors carry the server's reason. */
+export async function passwordLogin(password: string, remember: boolean): Promise<string> {
+  const res = await fetch(`${OWNER_API}/login`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ password, remember }),
+    cache: "no-store",
+  });
+  const body = (await res.json().catch(() => ({}))) as { session?: string; error?: string; left?: number };
+  if (!res.ok || !body.session) throw new GitHubError(body.error ?? "failed", res.status, body.left);
+  return SESSION + body.session;
+}
+
 /** Checks the token: who it belongs to, and whether it can write to the repo. */
 export async function verify(token: string): Promise<{ login: string; canWrite: boolean }> {
-  const repo = await call<{ permissions?: { push?: boolean } }>(token, base);
+  if (isSession(token)) return call<{ login: string; canWrite: boolean }>(token, `${OWNER_API}/me`);
+  const repo = await call<{ permissions?: { push?: boolean } }>(token, repoBase(token));
   let login = "";
   try {
     login = (await call<{ login: string }>(token, `${API}/user`)).login;
@@ -53,14 +88,14 @@ const decode = (b64: string) => new TextDecoder().decode(Uint8Array.from(atob(b6
 
 /** A JSON file from the branch, with its blob sha (to notice changes made elsewhere). */
 export async function readJSON<T>(token: string, path: string): Promise<{ data: T; sha: string }> {
-  const f = await call<{ content: string; sha: string }>(token, `${base}/contents/${path}?ref=${REPO.branch}&t=${Date.now()}`);
+  const f = await call<{ content: string; sha: string }>(token, `${repoBase(token)}/contents/${path}?ref=${REPO.branch}&t=${Date.now()}`);
   return { data: JSON.parse(decode(f.content)) as T, sha: f.sha };
 }
 
 /** Blob sha of a file on the branch right now (null if it doesn't exist). */
 export async function shaOf(token: string, path: string): Promise<string | null> {
   try {
-    return (await call<{ sha: string }>(token, `${base}/contents/${path}?ref=${REPO.branch}&t=${Date.now()}`)).sha;
+    return (await call<{ sha: string }>(token, `${repoBase(token)}/contents/${path}?ref=${REPO.branch}&t=${Date.now()}`)).sha;
   } catch (e) {
     if (e instanceof GitHubError && e.status === 404) return null;
     throw e;
@@ -77,9 +112,9 @@ export type FileChange = { path: string; content: string | Uint8Array } | { path
 
 /** Every file path under these folders on the branch (used to delete a product's files). */
 export async function listFiles(token: string, prefixes: string[]): Promise<string[]> {
-  const ref = await call<{ object: { sha: string } }>(token, `${base}/git/ref/heads/${REPO.branch}`);
-  const commit = await call<{ tree: { sha: string } }>(token, `${base}/git/commits/${ref.object.sha}`);
-  const tree = await call<{ tree: { path: string; type: string }[] }>(token, `${base}/git/trees/${commit.tree.sha}?recursive=1`);
+  const ref = await call<{ object: { sha: string } }>(token, `${repoBase(token)}/git/ref/heads/${REPO.branch}`);
+  const commit = await call<{ tree: { sha: string } }>(token, `${repoBase(token)}/git/commits/${ref.object.sha}`);
+  const tree = await call<{ tree: { path: string; type: string }[] }>(token, `${repoBase(token)}/git/trees/${commit.tree.sha}?recursive=1`);
   return tree.tree.filter((e) => e.type === "blob" && prefixes.some((p) => e.path.startsWith(p))).map((e) => e.path);
 }
 
@@ -88,16 +123,16 @@ export async function listFiles(token: string, prefixes: string[]): Promise<stri
  * so the site never sees half a change). Returns the new commit's sha.
  */
 export async function commit(token: string, message: string, changes: FileChange[], onProgress?: (done: number, total: number) => void) {
-  const ref = await call<{ object: { sha: string } }>(token, `${base}/git/ref/heads/${REPO.branch}`);
+  const ref = await call<{ object: { sha: string } }>(token, `${repoBase(token)}/git/ref/heads/${REPO.branch}`);
   const head = ref.object.sha;
-  const parent = await call<{ tree: { sha: string } }>(token, `${base}/git/commits/${head}`);
+  const parent = await call<{ tree: { sha: string } }>(token, `${repoBase(token)}/git/commits/${head}`);
   const entries: { path: string; mode: "100644"; type: "blob"; sha: string | null }[] = [];
   let done = 0;
   for (const c of changes) {
     if ("delete" in c) entries.push({ path: c.path, mode: "100644", type: "blob", sha: null });
     else {
       const bytes = typeof c.content === "string" ? new TextEncoder().encode(c.content) : c.content;
-      const blob = await call<{ sha: string }>(token, `${base}/git/blobs`, {
+      const blob = await call<{ sha: string }>(token, `${repoBase(token)}/git/blobs`, {
         method: "POST",
         body: JSON.stringify({ content: toBase64(bytes), encoding: "base64" }),
       });
@@ -105,14 +140,14 @@ export async function commit(token: string, message: string, changes: FileChange
     }
     onProgress?.(++done, changes.length);
   }
-  const tree = await call<{ sha: string }>(token, `${base}/git/trees`, {
+  const tree = await call<{ sha: string }>(token, `${repoBase(token)}/git/trees`, {
     method: "POST",
     body: JSON.stringify({ base_tree: parent.tree.sha, tree: entries }),
   });
-  const made = await call<{ sha: string }>(token, `${base}/git/commits`, {
+  const made = await call<{ sha: string }>(token, `${repoBase(token)}/git/commits`, {
     method: "POST",
     body: JSON.stringify({ message, tree: tree.sha, parents: [head] }),
   });
-  await call(token, `${base}/git/refs/heads/${REPO.branch}`, { method: "PATCH", body: JSON.stringify({ sha: made.sha, force: false }) });
+  await call(token, `${repoBase(token)}/git/refs/heads/${REPO.branch}`, { method: "PATCH", body: JSON.stringify({ sha: made.sha, force: false }) });
   return made.sha;
 }

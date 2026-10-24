@@ -9,6 +9,7 @@ import http from "node:http";
 import fs from "node:fs";
 import path from "node:path";
 import zlib from "node:zlib";
+import { createOwnerApi } from "./owner-api.mjs";
 
 const root = path.resolve("out");
 const port = Number(process.argv[2] || process.env.PORT || 3000);
@@ -50,8 +51,12 @@ if (!fs.existsSync(root)) {
   process.exit(1);
 }
 
+// owner page password sign-in at /api/owner, when its two secrets are set (see owner-api.mjs)
+const ownerApi = process.env.OWNER_PASSWORD && process.env.GITHUB_TOKEN ? createOwnerApi() : null;
+
 http
-  .createServer((req, res) => {
+  .createServer(async (req, res) => {
+    if (ownerApi && (await ownerApi(req, res))) return;
     const url = decodeURIComponent((req.url || "/").split("?")[0]);
     let file = path.join(root, url);
     if (!file.startsWith(root)) return res.writeHead(403, security).end();

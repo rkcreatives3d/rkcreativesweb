@@ -2,11 +2,11 @@
 
 import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { modelFor } from "@/lib/models";
-import { commit, shaOf } from "@/lib/owner/github";
+import { commit, GitHubError, passwordLogin, shaOf } from "@/lib/owner/github";
 import { summarize } from "@/lib/owner/edit";
 import { buildChanges, renderJobs, type ShotFiles } from "@/lib/owner/publish";
 import { PATHS } from "@/lib/owner/repo";
-import { useOwner } from "@/lib/owner/store";
+import { TOKEN_KEY, useOwner } from "@/lib/owner/store";
 const StudioCapture = lazy(() => import("./Studio3D").then((m) => ({ default: m.StudioCapture })));
 
 type Phase =
@@ -15,7 +15,8 @@ type Phase =
   | { k: "pictures"; job: number }
   | { k: "upload"; done: number; total: number }
   | { k: "done"; sha: string }
-  | { k: "error"; message: string };
+  | { k: "error"; message: string }
+  | { k: "expired" };
 
 /** Review the changes, make any studio pictures, save everything as one commit, then watch for it to go live. */
 export function PublishPanel({ onClose }: { onClose: () => void }) {
@@ -49,7 +50,8 @@ export function PublishPanel({ onClose }: { onClose: () => void }) {
       shots.current = {};
       if (jobs.length) setPhase({ k: "pictures", job: 0 });
       else upload();
-    } catch {
+    } catch (e) {
+      if (e instanceof GitHubError && e.status === 401) return setPhase({ k: "expired" });
       setPhase({ k: "error", message: "Couldn't reach GitHub. Check your connection and try again." });
     }
   };
@@ -68,6 +70,7 @@ export function PublishPanel({ onClose }: { onClose: () => void }) {
       useOwner.setState({ shas });
       setPhase({ k: "done", sha });
     } catch (e) {
+      if (e instanceof GitHubError && e.status === 401) return setPhase({ k: "expired" });
       setPhase({ k: "error", message: e instanceof Error ? `Publishing failed: ${e.message}` : "Publishing failed." });
     }
   };
@@ -171,6 +174,8 @@ export function PublishPanel({ onClose }: { onClose: () => void }) {
 
         {phase.k === "done" && <Live sha={phase.sha} onClose={onClose} />}
 
+        {phase.k === "expired" && <SignInAgain onDone={() => setPhase({ k: "review" })} />}
+
         {phase.k === "error" && (
           <>
             <p role="alert" className="mt-4 rounded-xl border border-danger/30 bg-danger/5 p-3 text-sm text-danger">
@@ -249,5 +254,56 @@ function Live({ sha, onClose }: { sha: string; onClose: () => void }) {
         </button>
       </div>
     </>
+  );
+}
+
+/** The sign-in ran out mid-session: sign in again here, without losing the changes. */
+function SignInAgain({ onDone }: { onDone: () => void }) {
+  const token = useOwner((s) => s.token);
+  const [pw, setPw] = useState("");
+  const [error, setError] = useState("");
+  if (!token.startsWith("session:"))
+    return (
+      <p role="alert" className="mt-4 rounded-xl border border-danger/30 bg-danger/5 p-3 text-sm text-danger">
+        GitHub no longer accepts your key (it may have expired or been deleted). Make a new key, then sign out and sign back in with it. Signing out discards these unpublished changes.
+      </p>
+    );
+  return (
+    <form
+      className="mt-4 space-y-3"
+      onSubmit={async (e) => {
+        e.preventDefault();
+        try {
+          const session = await passwordLogin(pw, true);
+          try {
+            localStorage.setItem(TOKEN_KEY, session);
+          } catch {}
+          useOwner.setState({ token: session });
+          onDone();
+        } catch (err) {
+          setError(err instanceof GitHubError && err.status === 401 ? "Wrong password." : "Couldn't sign in. Try again.");
+        }
+      }}
+    >
+      <p className="text-sm">Your sign-in has run out. Sign in again to publish: your changes are still here.</p>
+      <label htmlFor="again-password" className="block text-sm font-semibold">
+        Password
+      </label>
+      <input
+        id="again-password"
+        type="password"
+        value={pw}
+        onChange={(e) => setPw(e.target.value)}
+        className="w-full rounded-xl border border-fg/15 bg-raised px-3.5 py-3 outline-none focus:border-accent-2"
+      />
+      {error && (
+        <p role="alert" className="text-sm text-danger">
+          {error}
+        </p>
+      )}
+      <button type="submit" disabled={!pw} className="btn btn-primary w-full disabled:opacity-50">
+        Sign in and continue
+      </button>
+    </form>
   );
 }
