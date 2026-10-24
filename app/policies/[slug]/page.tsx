@@ -31,7 +31,7 @@ export default async function PolicyPage({ params }: Props) {
                 href={`/policies/${p.slug}/`}
                 aria-current={p.slug === policy.slug ? "page" : undefined}
                 className={`block rounded-full px-4 py-2 text-sm transition-colors lg:rounded-xl ${
-                  p.slug === policy.slug ? "bg-fg text-page" : "text-fg/70 hover:bg-fg/5 hover:text-fg"
+                  p.slug === policy.slug ? "bg-fg/10 text-fg" : "text-fg/70 hover:bg-fg/5 hover:text-fg"
                 }`}
               >
                 {p.title}

@@ -45,7 +45,7 @@ export type Shot = { finish: string; large: Uint8Array; small: Uint8Array; cover
 
 const SIZE = 720;
 
-/** The 3D picture on the card's light stage and floor shadow (lib/owner/stage.ts). */
+/** The 3D picture on the card's dark stage and floor shadow (lib/owner/stage.ts). */
 function composite(src: HTMLCanvasElement, size: number, type: string, quality: number): Promise<Uint8Array> {
   const c = document.createElement("canvas");
   c.width = c.height = size;

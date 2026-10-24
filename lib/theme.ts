@@ -1,5 +1,5 @@
 // 3D side of the brand palette, taken from the RK Creative Builds logo:
-// black, molten amber filament, brushed gold, on a beige page.
+// black, molten amber filament, brushed gold, on a charcoal page.
 // DOM colours live in app/globals.css.
 
 type Panel = [color: string, intensity: number];
@@ -35,6 +35,8 @@ export const theme = {
     ] as Panel[],
   },
   light: { ambient: 0.15, key: 0.7 },
+  /** product rim lights (from behind), so prints stand out from the dark stage */
+  rim: { warm: "#ffb867", cool: "#e8eefc" },
   amber: "#ff9a1a",
   gold: "#d4973f",
   sparkles: ["#e8891a", "#b8741f"],

@@ -8,6 +8,8 @@ import { canvasBytes, drawShadow, drawStage } from "./stage";
 const MODEL = "/vendor/u2netp.onnx";
 const WASM = "https://cdn.jsdelivr.net/npm/onnxruntime-web@1.30.0/dist/";
 const IN = 320; // the model's input size
+const WORK = 1600; // working size for the cut-out
+const LOW = 160; // size of the coarse colour maps in refineEdges
 
 type Ort = typeof import("onnxruntime-web/wasm");
 let loading: Promise<{ ort: Ort; session: import("onnxruntime-web/wasm").InferenceSession }> | null = null;
@@ -79,14 +81,23 @@ export async function cleanBackground(photo: Blob, size = 1200): Promise<Uint8Ar
   const share = covered / (IN * IN);
   if (share < 0.02 || share > 0.92) throw new Error(`no clear product in this photo (covers ${Math.round(share * 100)}%)`);
   mg.putImageData(md, 0, 0);
-  const cut = canvas(W, H);
+  // worked on at up to 1600 px: plenty for the 1200 px result, and quick on a phone
+  const ks = Math.min(1, WORK / Math.max(W, H));
+  const WW = Math.round(W * ks);
+  const HH = Math.round(H * ks);
+  const cut = canvas(WW, HH);
   const cg = cut.getContext("2d", { willReadFrequently: true })!;
-  cg.drawImage(bmp, 0, 0);
-  cg.globalCompositeOperation = "destination-in";
   cg.imageSmoothingQuality = "high";
-  cg.drawImage(m, 0, 0, W, H);
+  cg.drawImage(bmp, 0, 0, WW, HH);
+  const big = canvas(WW, HH);
+  const bgx = big.getContext("2d", { willReadFrequently: true })!;
+  bgx.imageSmoothingQuality = "high";
+  bgx.drawImage(m, 0, 0, WW, HH);
+  const photoPx = cg.getImageData(0, 0, WW, HH);
+  refineEdges(photoPx, bgx.getImageData(0, 0, WW, HH).data, cut, m);
+  cg.putImageData(photoPx, 0, 0);
 
-  // 4. the product's bounds (from the mask, in photo pixels)
+  // 4. the product's bounds (from the mask, in working pixels)
   let x0 = IN, y0 = IN, x1 = 0, y1 = 0;
   for (let y = 0; y < IN; y++)
     for (let x = 0; x < IN; x++)
@@ -96,7 +107,7 @@ export async function cleanBackground(photo: Blob, size = 1200): Promise<Uint8Ar
         y0 = Math.min(y0, y);
         y1 = Math.max(y1, y);
       }
-  const bx = (x0 / IN) * W, by = (y0 / IN) * H, bw = ((x1 - x0 + 1) / IN) * W, bh = ((y1 - y0 + 1) / IN) * H;
+  const bx = (x0 / IN) * WW, by = (y0 / IN) * HH, bw = ((x1 - x0 + 1) / IN) * WW, bh = ((y1 - y0 + 1) / IN) * HH;
 
   // 5. on the stage: fitted to 76% of the frame, standing on a soft shadow
   const sq = canvas(size, size);
@@ -110,6 +121,105 @@ export async function cleanBackground(photo: Blob, size = 1200): Promise<Uint8Ar
   g.imageSmoothingQuality = "high";
   g.drawImage(cut, bx, by, bw, bh, dx, dy, dw, dh);
   return canvasBytes(sq, "image/jpeg", 0.88);
+}
+
+/**
+ * Sharpens the model's soft mask with the photo's own colours (a simple local
+ * matting step), and writes the result into `px` as its alpha:
+ * - near every pixel, the typical background colour (from pixels the mask
+ *   calls background) and product colour (from pixels it calls product)
+ * - where those two clearly differ, pixels that look like the background go:
+ *   bits of wall seen through gaps (between arms, under handles), which the
+ *   coarse mask covers over. Where they don't differ (a black base on a dark
+ *   counter), the mask is trusted as it is.
+ * - soft edge pixels have the background's colour taken out of them, so no
+ *   light (or dark) fringe from the old background shows on the stage.
+ */
+function refineEdges(px: ImageData, maskPx: Uint8ClampedArray, photo: HTMLCanvasElement, mask: HTMLCanvasElement) {
+  const { width: W, height: H, data } = px;
+  // coarse maps, LOW px on the long side
+  const lw = W >= H ? LOW : Math.max(1, Math.round((LOW * W) / H));
+  const lh = W >= H ? Math.max(1, Math.round((LOW * H) / W)) : LOW;
+  const read = (src: HTMLCanvasElement) => {
+    const c = canvas(lw, lh);
+    const g = c.getContext("2d", { willReadFrequently: true })!;
+    g.imageSmoothingQuality = "high";
+    g.drawImage(src, 0, 0, lw, lh);
+    return g.getImageData(0, 0, lw, lh).data;
+  };
+  const cs = read(photo);
+  const as = read(mask);
+  const n = lw * lh;
+  // weighted colour sums for "background" and "product" pixels, then blurred: local averages
+  const bw = new Float32Array(n), fw = new Float32Array(n);
+  const bc = [new Float32Array(n), new Float32Array(n), new Float32Array(n)];
+  const fc = [new Float32Array(n), new Float32Array(n), new Float32Array(n)];
+  for (let i = 0; i < n; i++) {
+    const a = as[i * 4 + 3] / 255;
+    const isB = a < 0.03 ? 1 : 0, isF = a > 0.97 ? 1 : 0;
+    bw[i] = isB;
+    fw[i] = isF;
+    for (let c = 0; c < 3; c++) {
+      bc[c][i] = cs[i * 4 + c] * isB;
+      fc[c][i] = cs[i * 4 + c] * isF;
+    }
+  }
+  for (const [arr, r] of [[bw, 10], ...bc.map((x) => [x, 10] as const), [fw, 4], ...fc.map((x) => [x, 4] as const)] as const)
+    for (let pass = 0; pass < 3; pass++) boxBlur(arr, lw, lh, r);
+
+  // per full-size pixel, sampled bilinearly from the coarse maps
+  const sx = lw / W, sy = lh / H;
+  for (let y = 0; y < H; y++) {
+    const fy = Math.min(lh - 1, Math.max(0, (y + 0.5) * sy - 0.5));
+    const y0 = Math.floor(fy), y1 = Math.min(lh - 1, y0 + 1), ty = fy - y0;
+    for (let x = 0; x < W; x++) {
+      const i = y * W + x;
+      const A = maskPx[i * 4 + 3] / 255;
+      if (A === 0) {
+        data[i * 4 + 3] = 0;
+        continue;
+      }
+      const fx = Math.min(lw - 1, Math.max(0, (x + 0.5) * sx - 0.5));
+      const x0 = Math.floor(fx), x1 = Math.min(lw - 1, x0 + 1), tx = fx - x0;
+      const k00 = y0 * lw + x0, k01 = y0 * lw + x1, k10 = y1 * lw + x0, k11 = y1 * lw + x1;
+      const at = (arr: Float32Array) =>
+        (arr[k00] * (1 - tx) + arr[k01] * tx) * (1 - ty) + (arr[k10] * (1 - tx) + arr[k11] * tx) * ty;
+      const wb = at(bw), wf = at(fw);
+      const B = [0, 0, 0], F = [0, 0, 0];
+      let dd = 0, dot = 0;
+      for (let c = 0; c < 3; c++) {
+        B[c] = at(bc[c]) / Math.max(wb, 1e-6);
+        F[c] = at(fc[c]) / Math.max(wf, 1e-6);
+        const d = B[c] - F[c];
+        dd += d * d;
+        dot += (data[i * 4 + c] - F[c]) * d;
+      }
+      // how far from the product's colour towards the background's (0 = product, 1 = background)
+      const t = dot / Math.max(dd, 1);
+      const trust = smooth(50, 90, Math.sqrt(dd)) * smooth(0.003, 0.02, wb) * smooth(0.02, 0.08, wf);
+      const a = A * (1 - trust + trust * (1 - smooth(0.5, 0.85, t)));
+      // take the background's colour out of soft edge pixels
+      if (a > 0.02 && a < 0.98 && wb > 0.02)
+        for (let c = 0; c < 3; c++) data[i * 4 + c] = (data[i * 4 + c] - (1 - a) * B[c]) / a;
+      data[i * 4 + 3] = Math.round(a * 255);
+    }
+  }
+}
+
+/** In-place box blur of radius r (three passes come close to a Gaussian). */
+function boxBlur(a: Float32Array, w: number, h: number, r: number) {
+  const tmp = new Float32Array(Math.max(w, h));
+  const run = (len: number, get: (i: number) => number, set: (i: number, v: number) => void) => {
+    let sum = 0;
+    for (let i = -r; i <= r; i++) sum += get(Math.min(len - 1, Math.max(0, i)));
+    for (let i = 0; i < len; i++) {
+      tmp[i] = sum / (2 * r + 1);
+      sum += get(Math.min(len - 1, i + r + 1)) - get(Math.max(0, i - r));
+    }
+    for (let i = 0; i < len; i++) set(i, tmp[i]);
+  };
+  for (let y = 0; y < h; y++) run(w, (i) => a[y * w + i], (i, v) => (a[y * w + i] = v));
+  for (let x = 0; x < w; x++) run(h, (i) => a[i * w + x], (i, v) => (a[i * w + x] = v));
 }
 
 /** Pixels of the largest connected region (alpha > 0.5), grown by 2 px so soft edges stay. */

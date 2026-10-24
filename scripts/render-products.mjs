@@ -7,12 +7,18 @@
 //   npm run dev            (in another terminal)
 //   npm run renders        (or: node scripts/render-products.mjs http://localhost:3000)
 
-import { mkdir, writeFile } from "node:fs/promises";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { chromium } from "@playwright/test";
 
 const base = (process.argv[2] || "http://localhost:3000").replace(/\/$/, "");
 const out = "public/renders";
+// products with real photos show those everywhere instead, so they get no studio pictures
+const photographed = new Set(
+  JSON.parse(await readFile("content/products.json", "utf8"))
+    .filter((p) => p.images?.length)
+    .map((p) => p.slug),
+);
 
 const browser = await chromium.launch({ args: ["--enable-unsafe-swiftshader", "--use-angle=swiftshader", "--ignore-gpu-blocklist"] });
 // reduced motion: models appear already printed and colour changes simply fade
@@ -27,7 +33,7 @@ const page = await ctx.newPage();
 await page.goto(`${base}/shop/`, { waitUntil: "networkidle" });
 // only the stage itself: no badges, no hover light, nothing fixed over the card
 await page.addStyleTag({
-  content: `article .stage > span:not(.stage-shadow), [aria-label="Chat with us on WhatsApp"], header, #intro { display: none !important; }`,
+  content: `article .stage > span:not(.stage-shadow), article [data-save], [aria-label="Chat with us on WhatsApp"], header, #intro { display: none !important; }`,
 });
 
 // encode in the browser (Chromium writes WebP and JPEG), so this needs no image libraries
@@ -56,6 +62,7 @@ for (let i = 0; i < count; i++) {
   const card = cards.nth(i);
   const href = await card.locator("a[href^='/shop/']").first().getAttribute("href");
   const slug = href.replace(/^\/shop\/|\/$/g, "");
+  if (photographed.has(slug)) continue;
   const stage = card.locator(".stage");
   await stage.scrollIntoViewIfNeeded();
   await page.mouse.move(5, 5); // keep the cursor off the card (hover lifts the model)

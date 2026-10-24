@@ -6,16 +6,17 @@
     "onyx",
     "copper"
   ],
+  "hex-planter": [
+    "graphite",
+    "frost",
+    "onyx",
+    "amber"
+  ],
   "infinity-knot": [
     "gold",
     "silver",
     "copper",
     "onyx"
-  ],
-  "geodesic-orb-lamp": [
-    "frost",
-    "onyx",
-    "gold"
   ],
   "gear-spinner": [
     "silver",
@@ -23,23 +24,22 @@
     "amber",
     "graphite"
   ],
-  "hex-planter": [
-    "graphite",
+  "flexi-serpent": [
+    "onyx",
+    "amber",
+    "silver",
+    "graphite"
+  ],
+  "geodesic-orb-lamp": [
     "frost",
     "onyx",
-    "amber"
+    "gold"
   ],
   "mobius-loop": [
     "copper",
     "gold",
     "silver",
     "onyx"
-  ],
-  "flexi-serpent": [
-    "onyx",
-    "amber",
-    "silver",
-    "graphite"
   ],
   "crystal-cluster": [
     "frost",
@@ -52,18 +52,18 @@
     "frost",
     "amber"
   ],
-  "wedge-phone-stand": [
-    "onyx",
-    "graphite",
-    "frost",
-    "silver"
-  ],
   "name-keychain": [
     "gold",
     "silver",
     "amber",
     "onyx",
     "frost"
+  ],
+  "wedge-phone-stand": [
+    "onyx",
+    "graphite",
+    "frost",
+    "silver"
   ],
   "desk-nameplate": [
     "gold",

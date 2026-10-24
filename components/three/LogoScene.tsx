@@ -16,8 +16,8 @@ export const HERO_FOV = 35;
 export type CoverFrame = { x: number; y: number; size: number };
 
 /**
- * Cover page: the logo, cut out of its black square so it sits on the beige
- * page, floating gently over its own soft shadow and turning a little toward
+ * Cover page: the logo, cut out of its black square so it sits on the charcoal
+ * page and its amber glow, floating gently over its own soft shadow and turning a little toward
  * the pointer. One calm movement; nothing orbits or sparkles.
  */
 export function LogoScene({ url = LOGO_CUT_URL, frame, onShown }: { url?: string; frame: CoverFrame; onShown?: () => void }) {
@@ -94,15 +94,15 @@ const shadowFragment = /* glsl */ `
     // the logo's own outline, read from a small mip level: a soft blur for free
     float a = texture2D(map, vUv, 4.5).a;
     a = smoothstep(0.15, 0.9, a); // thin strokes (the script) cast next to nothing
-    gl_FragColor = vec4(0.165, 0.13, 0.098, a * opacity);
+    gl_FragColor = vec4(0.0, 0.0, 0.0, a * opacity);
   }
 `;
 
-/** Soft shadow in the logo's shape, cast on the beige backdrop behind it. */
+/** Soft shadow in the logo's shape, cast on the dark backdrop behind it. */
 function LogoShadow({ url, size, x, lift }: { url: string; size: number; x: number; lift: number }) {
   const map = useLogoTexture(url);
   const ref = useRef<THREE.Mesh>(null!);
-  const uniforms = useMemo(() => ({ map: { value: map }, opacity: { value: 0.22 } }), [map]);
+  const uniforms = useMemo(() => ({ map: { value: map }, opacity: { value: 0.5 } }), [map]);
   const y = lift - size * 0.03;
   useFrame(() => {
     const scroll = Math.min(window.scrollY / window.innerHeight, 1.5);

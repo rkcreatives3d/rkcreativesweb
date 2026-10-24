@@ -5,34 +5,35 @@
   --font-sans: var(--font-manrope), ui-sans-serif, system-ui, sans-serif;
 }
 
-/* Beige palette: warm paper, espresso ink, ONE accent (the logo's amber).
+/* "Workshop at night": the logo's own world. Warm charcoal, molten amber,
+   brushed gold, warm white text.
    Colour roles (keep to them):
-     amber       = the only accent: solid buttons (accent-fill, the bright one),
-                   links, badges, accent words (accent / pop, the deep one)
-     espresso    = text; warm greys = secondary text
-     surfaces    = beige page; white cards and panels lifted by a soft shadow;
-                   page-2 = the one darker band, for alternate sections
+     amber       = the only accent: solid buttons (accent-fill), links and small
+                   actions (accent), badges, labels and stars (pop, a touch more gold)
+     warm white  = text; warm greys = secondary text
+     surfaces    = charcoal page; cards and panels a step lighter with a fine
+                   top highlight; page-2 = the band for alternate sections and the
+                   footer, with faint print-layer lines
      danger / ok = errors and confirmations
-     deep amber  = keyboard focus only
-   Every text colour here passes WCAG AA (4.5:1) on page, page-2 and surface. */
+     pale amber  = keyboard focus only
+   Every text colour here passes WCAG AA (4.5:1) on page, page-2, surface and raised. */
 @theme {
-  --color-page: #efe6d8; /* beige paper */
-  --color-surface: #fffdf9; /* cards and panels: warm white on the beige page */
-  --color-raised: #f7f2ea; /* inputs and wells inside white panels */
-  --color-line: #e2d5c1; /* borders */
-  --color-page-2: #e7dcca; /* the darker band for alternate sections */
-  --color-fg: #2a2119; /* espresso */
-  --color-muted: #66574a;
-  --color-accent: #9c4a08; /* burnt amber: links, small actions */
-  --color-accent-fill: #e8891a; /* molten amber from the logo: solid buttons */
-  --color-on-accent: #2a2119;
-  --color-accent-2: #7a3f08; /* deep amber: focus rings */
-  --color-gold: #c08a3e; /* brushed gold: soft background glows only */
-  /* decoration uses the same deep amber as links: one accent family, two lightnesses */
-  --color-pop: #9c4a08;
-  --color-on-pop: #fffdf9;
-  --color-danger: #a8231b;
-  --color-ok: #17683f;
+  --color-page: #13110f; /* warm charcoal */
+  --color-surface: #1d1a17; /* cards and panels */
+  --color-raised: #27231f; /* inputs, drawers and wells inside panels */
+  --color-line: #3a342d; /* borders */
+  --color-page-2: #191613; /* the band for alternate sections and the footer */
+  --color-fg: #f4ece1; /* warm white */
+  --color-muted: #ab9f90;
+  --color-accent: #f5a442; /* amber: links, small actions */
+  --color-accent-fill: #f39a1e; /* molten amber from the logo: solid buttons */
+  --color-on-accent: #1a1206;
+  --color-accent-2: #ffc46b; /* pale amber: focus rings */
+  --color-gold: #d4973f; /* brushed gold: glows only */
+  --color-pop: #ebb55c; /* badges, small labels, stars */
+  --color-on-pop: #1a1206;
+  --color-danger: #ff8a7a;
+  --color-ok: #6fd69a;
   /* readable minimums: body copy 15px, small labels 13px */
   --text-xs: 0.8125rem;
   --text-xs--line-height: 1.4;
@@ -41,14 +42,14 @@
 }
 
 :root {
-  color-scheme: light;
-  /* brushed-gold sheen for highlighted words, kept dark enough to read on beige */
+  color-scheme: dark;
+  /* headings: Saira ExtraBold, sentence case (the logo's squared letters, without shouting) */
   --display-weight: 800;
-  --display-case: uppercase;
-  --display-stretch: normal; /* the font file is already semi-condensed */
+  --display-case: none;
+  --display-stretch: normal;
   --holo-style: normal;
-  --glow-a: 14%;
-  --glow-b: 9%;
+  --glow-a: 10%;
+  --glow-b: 6%;
 }
 
 html {
@@ -57,9 +58,9 @@ html {
   scroll-padding-top: 6rem;
 }
 
-/* cover logo image: cut out of its black square, with a soft shadow in its own shape */
+/* cover logo image: cut out of its black square; a deep shadow under it, in its own shape */
 .logo-cut {
-  filter: drop-shadow(0 18px 22px rgb(42 33 25 / 0.24));
+  filter: drop-shadow(0 22px 28px rgb(0 0 0 / 0.55));
 }
 /* transform only, so it runs on the compositor (no layout or repaint per frame) */
 .logo-float {
@@ -362,7 +363,7 @@ html.intro-skipped #intro {
   right: 8%;
   top: 4px;
   height: 16px;
-  background: radial-gradient(closest-side, rgb(42 33 25 / 0.18), transparent);
+  background: radial-gradient(closest-side, rgb(255 154 26 / 0.16), transparent);
 }
 @keyframes intro-bed {
   to {
@@ -410,7 +411,7 @@ body {
   overflow-x: clip;
 }
 
-/* faint warm light behind everything (kept low so the products carry the colour) */
+/* faint amber light behind everything, like a lamp off to one side (kept low so the products carry the colour) */
 body::before {
   content: "";
   position: fixed;
@@ -422,32 +423,54 @@ body::before {
     radial-gradient(ellipse 60% 45% at 105% 95%, color-mix(in oklab, var(--color-gold) var(--glow-b), transparent), transparent 60%);
 }
 
-/* the cover: warm beige with the logo's amber glow, fading into the page */
+/* the cover: the workshop at night. Charcoal, the logo's amber glow, and faint
+   print-layer lines that fade out towards the edges, then into the page */
 .cover-bg {
+  position: relative;
   background:
-    linear-gradient(to bottom, transparent 82%, var(--color-page)),
-    radial-gradient(ellipse 70% 55% at 75% -5%, color-mix(in oklab, #e8891a 16%, transparent), transparent 60%),
-    radial-gradient(ellipse 55% 45% at -5% 45%, color-mix(in oklab, #c08a3e 14%, transparent), transparent 60%),
-    #f3ebdf;
+    linear-gradient(to bottom, transparent 80%, var(--color-page)),
+    radial-gradient(ellipse 60% 55% at 72% 42%, color-mix(in oklab, #f39a1e 16%, transparent), transparent 62%),
+    radial-gradient(ellipse 50% 40% at -5% 100%, color-mix(in oklab, #d4973f 9%, transparent), transparent 60%),
+    #100e0c;
+}
+.cover-bg::before,
+.layer-lines::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(to bottom, rgb(255 236 210 / 0.035) 0 1px, transparent 1px 5px);
+  -webkit-mask: radial-gradient(ellipse 75% 70% at 60% 45%, #000 20%, transparent 75%);
+  mask: radial-gradient(ellipse 75% 70% at 60% 45%, #000 20%, transparent 75%);
+}
+/* bands (page-2) carry the same lines, quieter */
+.layer-lines {
+  position: relative;
+  isolation: isolate;
+}
+.layer-lines::before {
+  z-index: -1;
+  -webkit-mask: linear-gradient(to bottom, transparent, #000 30%, #000 70%, transparent);
+  mask: linear-gradient(to bottom, transparent, #000 30%, #000 70%, transparent);
 }
 
-/* Two heading voices: page titles in Saira's heavy caps (the brand), section
-   titles in Manrope, sentence case, tight: calmer, so the page doesn't shout. */
+/* One heading face, Saira ExtraBold (squared like the logo's lettering), in
+   sentence case: page titles big, section titles smaller. */
 .section-title {
-  font-family: var(--font-sans);
+  font-family: var(--font-display);
   font-weight: 800;
-  letter-spacing: -0.035em;
-  line-height: 1.04;
+  letter-spacing: -0.02em;
+  line-height: 1.05;
   text-transform: none;
 }
 
-/* white cards lifted off the beige page */
+/* cards and panels: a step up from the charcoal, with a fine top highlight */
 .card-lift {
   background: var(--color-surface);
-  border: 1px solid color-mix(in oklab, var(--color-line) 70%, transparent);
+  border: 1px solid color-mix(in oklab, var(--color-line) 80%, transparent);
   box-shadow:
-    0 1px 2px rgb(42 33 25 / 0.05),
-    0 10px 28px -14px rgb(42 33 25 / 0.22);
+    inset 0 1px 0 rgb(255 240 220 / 0.05),
+    0 18px 40px -22px rgb(0 0 0 / 0.8);
 }
 
 /* headings wrap into even lines, never leaving one word alone at the end */
@@ -498,7 +521,7 @@ h3 {
 }
 
 /* ── highlighted text ─────────────────────────────── */
-/* accent words: the deep amber, still (no shimmer pulling the eye from the buttons) */
+/* accent words: amber, still (no shimmer pulling the eye from the buttons) */
 .holo-text {
   color: var(--color-accent);
   font-style: var(--holo-style);
@@ -536,15 +559,23 @@ h3 {
   background: var(--color-accent-fill);
   border-color: var(--color-accent-fill);
   color: var(--color-on-accent);
-  box-shadow: 0 6px 18px -8px rgb(156 74 8 / 0.55);
+  box-shadow: 0 8px 26px -10px rgb(243 154 30 / 0.65);
 }
 .btn-primary:hover {
-  background: #f09a32;
-  border-color: #f09a32;
+  background: #ffab3d;
+  border-color: #ffab3d;
 }
 .btn:disabled {
   opacity: 0.5;
   pointer-events: none;
+}
+
+/* the chosen option in a group (size, filter, lettering): amber outline on a warm tint */
+.pick-on {
+  border-color: var(--color-accent-fill);
+  background: color-mix(in oklab, var(--color-accent-fill) 14%, var(--color-surface));
+  color: var(--color-fg);
+  box-shadow: inset 0 0 0 1px var(--color-accent-fill);
 }
 
 /* ── surfaces ─────────────────────────────────────── */
@@ -567,17 +598,18 @@ h3 {
 
 .cta-card {
   background:
-    radial-gradient(ellipse 60% 80% at 100% 0%, color-mix(in oklab, var(--color-gold) 12%, transparent), transparent 60%),
+    radial-gradient(ellipse 60% 80% at 100% 0%, color-mix(in oklab, var(--color-accent-fill) 14%, transparent), transparent 60%),
     var(--color-surface);
   border: 1px solid var(--color-line);
 }
 
-/* light, near-neutral "photo studio" behind products: a soft warm white sweep,
-   so every colour (white included) reads true */
+/* a dark photo studio behind products: a soft spotlight on a warm grey sweep,
+   bright enough in the middle that black prints keep their outline (the 3D adds
+   a warm rim light too). Keep in step with lib/owner/stage.ts. */
 .stage,
 .viewer-bg {
   background:
-    radial-gradient(ellipse 70% 60% at 50% 40%, #fdfbf7, #efe9df 58%, #e2d9cb 100%);
+    radial-gradient(ellipse 70% 60% at 50% 40%, #4a4239, #2d2823 55%, #1a1714 100%);
 }
 /* a soft floor shadow under the model; it tightens as the model lifts */
 .stage-shadow {
@@ -588,7 +620,7 @@ h3 {
   height: 7%;
   translate: -50% 0;
   border-radius: 50%;
-  background: radial-gradient(closest-side, rgb(42 33 25 / 0.28), transparent);
+  background: radial-gradient(closest-side, rgb(0 0 0 / 0.6), transparent);
   transition:
     scale 0.6s cubic-bezier(0.16, 1, 0.3, 1),
     opacity 0.6s;

@@ -118,7 +118,7 @@ export function Heading({ children, className = "" }: { children: React.ReactNod
 export function Swatch({ css, size = 18, ring = false }: { css: string; size?: number; ring?: boolean }) {
   return (
     <span
-      className={`inline-block shrink-0 rounded-full border border-fg/25 ${ring ? "ring-2 ring-fg ring-offset-2 ring-offset-page" : ""}`}
+      className={`inline-block shrink-0 rounded-full border border-fg/40 ${ring ? "ring-2 ring-fg ring-offset-2 ring-offset-page" : ""}`}
       style={{ background: css, width: size, height: size }}
     />
   );

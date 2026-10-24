@@ -67,7 +67,7 @@ export function NameplateStudio() {
       {/* preview: stays in view while you type and pick options (phones: a shorter strip under the nav) */}
       <div
         ref={box}
-        className="sticky top-[4.5rem] z-10 aspect-[16/10] overflow-hidden rounded-3xl border border-fg/10 viewer-bg shadow-[0_14px_30px_-20px_rgba(42,33,25,0.6)] sm:top-24 sm:aspect-[4/3] lg:aspect-auto lg:h-[min(640px,calc(100svh-8rem))] lg:shadow-none"
+        className="sticky top-[4.5rem] z-10 aspect-[16/10] overflow-hidden rounded-3xl border border-fg/10 viewer-bg shadow-[0_14px_30px_-20px_rgba(0,0,0,0.8)] sm:top-24 sm:aspect-[4/3] lg:aspect-auto lg:h-[min(640px,calc(100svh-8rem))] lg:shadow-none"
       >
         <div className="grid-bg absolute inset-0" />
         {lite ? (
@@ -107,7 +107,7 @@ export function NameplateStudio() {
                 key={String(on)}
                 onClick={() => setContext(on as boolean)}
                 aria-pressed={context === on}
-                className={`rounded-full px-3.5 py-1.5 text-xs font-semibold transition-colors ${context === on ? "bg-fg text-page" : "text-muted hover:text-fg"}`}
+                className={`rounded-full px-3.5 py-1.5 text-xs font-semibold transition-colors ${context === on ? "bg-fg/15 text-fg" : "text-muted hover:text-fg"}`}
               >
                 {label as string}
               </button>
@@ -149,10 +149,10 @@ export function NameplateStudio() {
                 key={s.id}
                 onClick={() => setStyle(s.id)}
                 aria-pressed={style === s.id}
-                className={`rounded-xl border px-4 py-3 text-left transition-all ${style === s.id ? "border-fg bg-fg text-page" : "border-fg/15 hover:border-fg/40"}`}
+                className={`rounded-xl border px-4 py-3 text-left transition-all ${style === s.id ? "pick-on" : "border-fg/15 hover:border-fg/40"}`}
               >
                 <span className="block font-semibold">{s.label}</span>
-                <span className={`tabular-nums text-xs ${style === s.id ? "text-page/70" : "text-muted"}`}>from {formatPrice(p.price)}</span>
+                <span className={`tabular-nums text-xs ${style === s.id ? "text-fg/75" : "text-muted"}`}>from {formatPrice(p.price)}</span>
               </button>
             );
           })}
@@ -166,10 +166,10 @@ export function NameplateStudio() {
                 key={f.id}
                 onClick={() => setFont(f.id)}
                 aria-pressed={font === f.id}
-                className={`rounded-xl border px-3 py-2.5 text-left text-sm transition-all ${font === f.id ? "border-fg bg-fg text-page" : "border-fg/15 hover:border-fg/40"}`}
+                className={`rounded-xl border px-3 py-2.5 text-left text-sm transition-all ${font === f.id ? "pick-on" : "border-fg/15 hover:border-fg/40"}`}
               >
                 <span className="block font-semibold">{f.label}</span>
-                <span className={`block text-xs ${font === f.id ? "text-page/70" : "text-muted"}`}>{f.note}</span>
+                <span className={`block text-xs ${font === f.id ? "text-fg/75" : "text-muted"}`}>{f.note}</span>
               </button>
             ))}
           </div>
@@ -188,7 +188,7 @@ export function NameplateStudio() {
                 aria-pressed={icon === i.id}
                 aria-label={i.label}
                 title={i.label}
-                className={`grid h-11 w-11 place-items-center rounded-xl border transition-all ${icon === i.id ? "border-fg bg-fg text-page" : "border-fg/15 text-fg hover:border-fg/40"}`}
+                className={`grid h-11 w-11 place-items-center rounded-xl border transition-all ${icon === i.id ? "pick-on" : "border-fg/15 text-fg hover:border-fg/40"}`}
               >
                 <IconGlyph icon={i.id} />
               </button>
@@ -224,10 +224,10 @@ export function NameplateStudio() {
                 key={s.id}
                 onClick={() => setSize(s.id)}
                 aria-pressed={size === s.id}
-                className={`rounded-xl border px-3 py-2.5 text-left text-sm transition-all ${size === s.id ? "border-fg bg-fg text-page" : "border-fg/15 hover:border-fg/40"}`}
+                className={`rounded-xl border px-3 py-2.5 text-left text-sm transition-all ${size === s.id ? "pick-on" : "border-fg/15 hover:border-fg/40"}`}
               >
                 <span className="block font-semibold">{s.label}</span>
-                <span className={`block text-xs ${size === s.id ? "text-page/70" : "text-muted"}`}>{s.dims}</span>
+                <span className={`block text-xs ${size === s.id ? "text-fg/75" : "text-muted"}`}>{s.dims}</span>
               </button>
             ))}
           </div>

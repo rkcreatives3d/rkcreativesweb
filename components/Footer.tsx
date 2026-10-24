@@ -6,7 +6,7 @@ import { LiteToggle } from "./LiteToggle";
 export function Footer() {
   const b = site.business;
   return (
-    <footer className="relative overflow-hidden border-t border-line bg-page-2 px-5 pb-[max(2rem,env(safe-area-inset-bottom))] pt-14 sm:px-10 sm:pt-20">
+    <footer className="layer-lines relative overflow-hidden border-t border-line bg-page-2 px-5 pb-[max(2rem,env(safe-area-inset-bottom))] pt-14 sm:px-10 sm:pt-20">
       {/* phones: two columns of links under the tagline */}
       <div className="mx-auto grid max-w-7xl grid-cols-2 gap-x-6 gap-y-10 md:grid-cols-[1.6fr_1fr_1fr_1fr_1fr] md:gap-12">
         <div className="col-span-2 md:col-span-1">

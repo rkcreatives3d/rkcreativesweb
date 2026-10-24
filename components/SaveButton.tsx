@@ -13,6 +13,7 @@ export function SaveButton({ slug, name, className = "" }: { slug: string; name:
   return (
     <button
       type="button"
+      data-save
       aria-pressed={saved}
       aria-label={saved ? `Remove ${name} from saved` : `Save ${name}`}
       onClick={(e) => {

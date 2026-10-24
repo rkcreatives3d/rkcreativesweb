@@ -1,4 +1,4 @@
-"""Cut the black square out of the RK logo so it sits on the beige page.
+"""Cut the black square out of the RK logo so it sits on the dark page and its glow.
 
 - background = near-black pixels (and warm glows) connected to the edge, plus
   enclosed pure-black pockets (inside the filament arc, letter counters)
@@ -6,8 +6,8 @@
 - near-black neutral edge pixels keep their dark colour with partial alpha
   (no white fringe)
 - the spool is protected (its hub is black on purpose)
-- the small grey tagline is recoloured espresso; the gold script becomes one
-  clean bronze, so both read on beige
+- the small tagline and the gold script keep their own colours: they're
+  un-multiplied from black, so on a dark page they look exactly as in the logo
 
 Writes public/brand/logo-cut-{480,720,1080}.webp. Needs numpy, scipy, Pillow:
   python3 scripts/cutout-logo.py
@@ -75,27 +75,12 @@ near = np.clip(ndimage.gaussian_filter((~region).astype(np.float32), 1.2) * 2.5,
 a[neutral] = (np.clip((ndimage.median_filter(mx, 3) - 6) / 26.0, 0, 1) * near)[neutral]
 a[region & (mxd < 8)] = 0
 
-# tagline (small caps, grey on black) -> espresso, alpha from smoothed brightness
-band = (yy > 975) & (yy < 1025)
-smx = ndimage.gaussian_filter(mx, 0.7)
-light = band & (sat < 0.3) & (smx > 45)
-k = np.clip((smx - 45) / 120.0, 0, 1)
-rgb[light] = np.array([42, 33, 25], np.float32)
-a[light] = k[light]
-# no dark rims around the tagline letters
-a[band & ~light & (sat < 0.3) & (mx < 90)] = 0
-# dashes and dots beside the tagline: deepen so they hold up on beige
-dash = band & (a > 0) & ~light
-rgb[dash] *= 0.78
-# the script "Bring Ideas to Life": one clean bronze, opacity from brightness
-# (its dark bevel was invisible on black but reads as dirt on beige)
-script = (yy >= 1025) & (yy < 1250)
-t = np.clip((mx - 25) / 150.0, 0, 1)
-sa = t * t * (3 - 2 * t)
-shade = np.clip((mx - 90) / 165.0, 0, 1)[..., None]
-lo, hi = np.array([118, 70, 18], np.float32), np.array([196, 134, 52], np.float32)
-rgb[script] = (lo + (hi - lo) * shade)[script]
-a[script] = sa[script]
+# tagline, its dashes and dots, and the script "Bring Ideas to Life": light on
+# black, so un-multiply them from black (colour / brightness, opacity = brightness)
+lettering = (yy > 975) & (yy < 1250)
+la = np.clip((mx - 8) / 247.0, 0, 1)
+a[lettering] = la[lettering]
+rgb[lettering] = np.clip(im[lettering] / np.maximum(la[lettering][:, None], 1e-3), 0, 255)
 
 # clean dark edges: drop ragged specks of near-black noise along cut edges
 # (anything dark that a 7 px disc can't fit inside), then soften by a pixel

@@ -299,12 +299,12 @@ export function ProductDetail({ product: p }: { product: Product }) {
                   onClick={() => setSize(s.id)}
                   aria-pressed={size === s.id}
                   className={`rounded-xl border px-3 py-3 text-left transition-all ${
-                    size === s.id ? "border-fg bg-fg text-page" : "border-fg/15 hover:border-fg/40"
+                    size === s.id ? "pick-on" : "border-fg/15 hover:border-fg/40"
                   }`}
                 >
                   <span className="block font-semibold">{s.label}</span>
-                  <span className={`block text-xs ${size === s.id ? "text-page/70" : "text-muted"}`}>{s.dims}</span>
-                  <span className={`mt-1 block tabular-nums text-xs ${size === s.id ? "text-page/70" : "text-muted"}`}>
+                  <span className={`block text-xs ${size === s.id ? "text-fg/75" : "text-muted"}`}>{s.dims}</span>
+                  <span className={`mt-1 block tabular-nums text-xs ${size === s.id ? "text-fg/75" : "text-muted"}`}>
                     {s.priceDelta ? `+${formatPrice(s.priceDelta)}` : "base"}
                   </span>
                 </button>
@@ -450,7 +450,7 @@ export function ProductDetail({ product: p }: { product: Product }) {
 
       {/* phones: price and "Add to cart" always one tap away (hidden while the main button is in view) */}
       <div
-        className={`fixed inset-x-0 bottom-0 z-40 border-t border-line bg-page/95 px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 shadow-[0_-10px_30px_-18px_rgba(42,33,25,0.5)] transition-transform duration-300 lg:hidden ${
+        className={`fixed inset-x-0 bottom-0 z-40 border-t border-line bg-page/95 px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 shadow-[0_-10px_30px_-18px_rgba(0,0,0,0.7)] transition-transform duration-300 lg:hidden ${
           barOn ? "translate-y-0" : "pointer-events-none translate-y-full"
         }`}
         aria-hidden={!barOn}
@@ -488,7 +488,7 @@ function Toggle({ on, onClick, children }: { on: boolean; onClick: () => void; c
       onClick={onClick}
       aria-pressed={on}
       className={`rounded-full border px-4 py-1.5 tabular-nums text-xs uppercase tracking-widest transition-all ${
-        on ? "border-fg bg-fg text-page" : "border-fg/15 text-muted hover:text-fg"
+        on ? "pick-on" : "border-fg/15 text-muted hover:text-fg"
       }`}
     >
       {children}

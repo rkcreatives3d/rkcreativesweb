@@ -94,8 +94,14 @@ export function ViewRig({
       <Environment map={env} />
       <ambientLight intensity={light.ambient} />
       <directionalLight position={[3, 5, 4]} intensity={light.key} />
-      {/* soft rim light from behind: gives every print a clean outline against the light stage */}
-      {look === "neutral" && <directionalLight position={[-4, 3, -6]} intensity={0.9} />}
+      {/* rim lights from behind, warm on one side and white on the other: every print, black
+          ones too, gets a clean outline against the dark stage (the warm one is the logo's amber) */}
+      {look === "neutral" && (
+        <>
+          <directionalLight position={[-4, 3, -6]} intensity={1.5} color={theme.rim.warm} />
+          <directionalLight position={[5, 2, -5]} intensity={0.9} color={theme.rim.cool} />
+        </>
+      )}
     </>
   );
 }

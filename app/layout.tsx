@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Manrope, Saira_Semi_Condensed } from "next/font/google";
+import { Manrope, Saira } from "next/font/google";
 import "lenis/dist/lenis.css";
 import "./globals.css";
 import { Providers } from "@/components/Providers";
@@ -14,10 +14,10 @@ import { routeGuardScript } from "@/lib/routeGuard";
 import { bootScript } from "@/lib/lite";
 import { launchProblems } from "@/lib/launch";
 
-// Two families: Saira's squared caps (close to the logo wordmark) for
-// headings, Manrope for everything else. Headings only ever use Saira Semi
-// Condensed ExtraBold, so just that one ~20 KB file is loaded.
-const saira = Saira_Semi_Condensed({ subsets: ["latin"], weight: "800", variable: "--font-saira" });
+// Two families: Saira's squared letters (close to the logo's lettering, and
+// the same face as the 3D name lettering) for headings, Manrope for everything
+// else. Headings only ever use Saira ExtraBold, so just that one file is loaded.
+const saira = Saira({ subsets: ["latin"], weight: "800", variable: "--font-saira" });
 const manrope = Manrope({ subsets: ["latin"], variable: "--font-manrope" });
 
 // Until the real WhatsApp number, email and UPI ID are in lib/site.ts, ask
@@ -67,7 +67,7 @@ const storeJsonLd = {
   sameAs: [site.instagram],
 };
 
-export const viewport: Viewport = { themeColor: "#efe6d8", viewportFit: "cover" };
+export const viewport: Viewport = { themeColor: "#13110f", viewportFit: "cover", colorScheme: "dark" };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (

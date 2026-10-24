@@ -33,7 +33,7 @@ export function ToastHost() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 24 }}
             transition={{ duration: 0.25 }}
-            className="pointer-events-auto flex w-full max-w-md items-center gap-3 rounded-2xl border border-fg bg-fg p-2.5 pr-3 text-page shadow-[0_16px_40px_-12px_rgba(42,33,25,0.6)]"
+            className="pointer-events-auto flex w-full max-w-md items-center gap-3 rounded-2xl border border-fg bg-fg p-2.5 pr-3 text-page shadow-[0_16px_40px_-12px_rgba(0,0,0,0.8)]"
           >
             {toast.image ? (
               // eslint-disable-next-line @next/next/no-img-element

@@ -5,7 +5,7 @@ import * as THREE from "three";
 import { useFrame, type ThreeElements } from "@react-three/fiber";
 import { useTexture } from "@react-three/drei";
 
-/** The logo cut out of its square, for the beige cover (made by scripts/cutout-logo.py). */
+/** The logo cut out of its square, for the dark cover (made by scripts/cutout-logo.py). */
 export const LOGO_CUT_URL = "/brand/logo-cut-1080.webp";
 
 const vertexShader = /* glsl */ `

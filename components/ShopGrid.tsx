@@ -16,7 +16,7 @@ const sorts = {
 
 const chip = (on: boolean) =>
   `shrink-0 whitespace-nowrap rounded-full border px-4 py-2 text-sm font-medium transition-all ${
-    on ? "border-fg bg-fg text-page" : "border-fg/15 text-fg/75 hover:border-fg/40 hover:text-fg"
+    on ? "pick-on" : "border-fg/15 text-fg/75 hover:border-fg/40 hover:text-fg"
   }`;
 // phones: one sideways-scrolling row (edge to edge); wider screens: wrapped
 const chipRow =

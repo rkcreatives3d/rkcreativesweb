@@ -23,13 +23,13 @@ export async function GET(_: Request, { params }: { params: Promise<{ file: stri
   const coverFile = p.images?.[0] ?? renderCoverFor(p);
   const cover = coverFile ? `data:image/jpeg;base64,${(await readFile(join(process.cwd(), "public", coverFile))).toString("base64")}` : null;
   const f = getFinish(p.finishes[0]);
-  const saira = await readFile(join(process.cwd(), "lib/fonts/SairaSemiCondensed-ExtraBold.ttf"));
+  const saira = await readFile(join(process.cwd(), "lib/fonts/Saira-ExtraBold.ttf"));
   // Saira has no ₹ glyph; Geist (bundled with next/og) does
   const geist = await readFile(join(process.cwd(), "node_modules/next/dist/compiled/@vercel/og/Geist-Regular.ttf"));
 
   return new ImageResponse(
     (
-      <div style={{ width: "100%", height: "100%", display: "flex", background: "#efe6d8", color: "#2a2119", fontFamily: "sans-serif" }}>
+      <div style={{ width: "100%", height: "100%", display: "flex", background: "#13110f", color: "#f4ece1", fontFamily: "sans-serif" }}>
         <div style={{ width: 630, height: 630, display: "flex", alignItems: "center", justifyContent: "center", position: "relative" }}>
           {cover ? (
             // eslint-disable-next-line @next/next/no-img-element
@@ -62,12 +62,12 @@ export async function GET(_: Request, { params }: { params: Promise<{ file: stri
           <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={logo} width={64} height={64} style={{ borderRadius: 999 }} alt="" />
-            <span style={{ fontSize: 24, letterSpacing: 4, color: "#765524", textTransform: "uppercase" }}>{site.name}</span>
+            <span style={{ fontSize: 24, letterSpacing: 4, color: "#ebb55c", textTransform: "uppercase" }}>{site.name}</span>
           </div>
-          <div style={{ fontSize: 84, fontFamily: "Saira", lineHeight: 1, marginTop: 36, textTransform: "uppercase" }}>{p.name}</div>
-          <div style={{ fontSize: 28, color: "#66574a", marginTop: 18 }}>{p.tagline}</div>
+          <div style={{ fontSize: 80, fontFamily: "Saira", lineHeight: 1.02, marginTop: 36 }}>{p.name}</div>
+          <div style={{ fontSize: 28, color: "#ab9f90", marginTop: 18 }}>{p.tagline}</div>
           <div style={{ display: "flex", marginTop: 40 }}>
-            <div style={{ fontSize: 40, fontFamily: "Geist", padding: "12px 28px", borderRadius: 999, background: "#e8891a", color: "#2a2119" }}>
+            <div style={{ fontSize: 40, fontFamily: "Geist", padding: "12px 28px", borderRadius: 999, background: "#f39a1e", color: "#1a1206" }}>
               {`from ${formatPrice(p.price)}`}
             </div>
           </div>

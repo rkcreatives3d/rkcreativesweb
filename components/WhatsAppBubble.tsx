@@ -64,7 +64,7 @@ export function WhatsAppBubble() {
           initial={{ scale: 0, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0, opacity: 0 }}
-          className="fixed bottom-[max(1rem,env(safe-area-inset-bottom))] left-[max(1rem,env(safe-area-inset-left))] z-[45] sm:left-auto sm:right-[max(1rem,env(safe-area-inset-right))] grid h-11 w-11 place-items-center rounded-full border border-fg bg-fg text-[#25D366] shadow-[0_8px_24px_-6px_rgba(42,33,25,0.45)] transition-colors hover:border-[#25D366]/60 sm:bottom-7 sm:right-7"
+          className="fixed bottom-[max(1rem,env(safe-area-inset-bottom))] left-[max(1rem,env(safe-area-inset-left))] z-[45] sm:left-auto sm:right-[max(1rem,env(safe-area-inset-right))] grid h-11 w-11 place-items-center rounded-full border border-line bg-raised text-[#25D366] shadow-[0_8px_24px_-6px_rgba(0,0,0,0.7)] transition-colors hover:border-[#25D366]/60 sm:bottom-7 sm:right-7"
         >
           <span className="relative scale-125">
             <WhatsAppIcon />

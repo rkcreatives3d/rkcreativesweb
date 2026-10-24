@@ -97,7 +97,7 @@ export function Nav() {
                 href={l.href}
                 aria-current={active ? "page" : undefined}
                 className={`whitespace-nowrap rounded-full px-1.5 py-2 text-sm font-medium transition-colors min-[380px]:px-2.5 md:px-4 ${
-                  active ? "bg-fg text-page" : "text-fg/75 hover:text-fg"
+                  active ? "bg-fg/10 text-fg" : "text-fg/75 hover:text-fg"
                 } ${l.wide ? "hidden min-[430px]:inline-block" : ""}`}
               >
                 {l.short ? (
@@ -115,7 +115,7 @@ export function Nav() {
             data-cart-target
             onClick={() => setOpen(true)}
             className={`relative ml-0.5 flex shrink-0 items-center gap-2 rounded-full border px-2.5 py-2 text-sm font-semibold transition-all min-[380px]:ml-1 min-[380px]:px-3 sm:px-4 hover:scale-105 active:scale-95 ${
-              count ? "border-fg bg-fg text-page" : "border-fg/20 text-fg hover:border-fg/40"
+              count ? "border-accent-fill bg-accent-fill text-on-accent" : "border-fg/20 text-fg hover:border-fg/40"
             }`}
           >
             <CartIcon />
@@ -127,7 +127,7 @@ export function Nav() {
                 initial={{ y: -12, opacity: 0, scale: 0.6 }}
                 animate={{ y: 0, opacity: 1, scale: 1 }}
                 exit={{ y: 12, opacity: 0 }}
-                className={`h-5 min-w-5 place-items-center rounded-full px-1 tabular-nums text-xs ${count ? "grid bg-accent-fill text-on-accent" : "hidden bg-fg/10 text-muted min-[380px]:grid"}`}
+                className={`h-5 min-w-5 place-items-center rounded-full px-1 tabular-nums text-xs ${count ? "grid bg-on-accent text-accent-fill" : "hidden bg-fg/10 text-muted min-[380px]:grid"}`}
               >
                 {count}
               </motion.span>
@@ -159,7 +159,7 @@ export function Nav() {
             transition={{ duration: 0.18 }}
             className="mx-auto mt-2 max-w-7xl"
           >
-            <nav aria-label="More" className="ml-auto w-full rounded-3xl border border-line bg-raised p-2 shadow-[0_20px_50px_-20px_rgba(42,33,25,0.5)] sm:w-72">
+            <nav aria-label="More" className="ml-auto w-full rounded-3xl border border-line bg-raised p-2 shadow-[0_20px_50px_-20px_rgba(0,0,0,0.7)] sm:w-72">
               <Link href="/saved/" className="flex items-center justify-between rounded-2xl px-4 py-3 font-semibold hover:bg-fg/5">
                 <span className="flex items-center gap-2.5">
                   <span className="text-danger">

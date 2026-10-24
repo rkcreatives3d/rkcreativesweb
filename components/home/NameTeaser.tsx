@@ -10,8 +10,8 @@ export function NameTeaser() {
   const router = useRouter();
   const [name, setName] = useState("");
   return (
-    // the home page's darker beige band: one deliberate change of tone in the scroll
-    <section className="bg-page-2 px-5 py-20 sm:px-8 sm:py-24">
+    // the home page's band (page-2, with faint layer lines): one deliberate change of tone in the scroll
+    <section className="layer-lines bg-page-2 px-5 py-20 sm:px-8 sm:py-24">
       <div className="mx-auto grid max-w-7xl items-center gap-10 lg:grid-cols-[1.1fr_1fr]">
         <div>
           <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.12em] text-accent">
