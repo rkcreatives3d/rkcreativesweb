@@ -14,9 +14,11 @@
 //    GITHUB_REPO      optional, default "rkcreatives3d/rkcreativesweb"
 //    PORT             set by the host
 //
-//  Run on its own:   node scripts/owner-api.mjs      (e.g. a Render Web Service)
-//  Or inside scripts/serve.mjs, which mounts it at /api/owner when the two
-//  secrets are set.
+//  Where it runs (all at /api/owner on the site's own address):
+//    Vercel       app/api/owner/[[...path]]/route.ts, written at build time
+//                 by scripts/setup-host.mjs (the rest of the site stays static)
+//    Node hosts   inside scripts/serve.mjs when the two secrets are set
+//    on its own   node scripts/owner-api.mjs  (then set NEXT_PUBLIC_OWNER_API)
 // ─────────────────────────────────────────────────────────────
 import http from "node:http";
 import crypto from "node:crypto";
@@ -45,8 +47,10 @@ const sha256 = (s) => crypto.createHash("sha256").update(s).digest();
 const b64url = (buf) => Buffer.from(buf).toString("base64url");
 
 /**
- * A request handler for /api/owner/*. Returns true if it handled the request.
- * `env` defaults to process.env; `fetchImpl` lets tests point it at a fake GitHub.
+ * The owner API as a web-standard handler: (Request, client ip) → Response,
+ * or null when the path isn't under `prefix`. Wrong-password counts live in
+ * this closure, so create it once per server (or per warm serverless instance).
+ * `env` defaults to process.env; `fetchImpl` / `githubApi` let tests use a fake GitHub.
  */
 export function createOwnerApi({ env = process.env, prefix = "/api/owner", fetchImpl = fetch, githubApi = env.GITHUB_API || "https://api.github.com" } = {}) {
   const password = env.OWNER_PASSWORD || "";
@@ -74,54 +78,40 @@ export function createOwnerApi({ env = process.env, prefix = "/api/owner", fetch
       return false;
     }
   };
-  const ipOf = (req) => String(req.headers["x-forwarded-for"] || req.socket.remoteAddress || "").split(",")[0].trim();
-  const send = (res, status, body, extra = {}) => {
-    res.writeHead(status, {
-      "Content-Type": "application/json",
-      "Cache-Control": "no-store",
-      // sessions travel in a header, never in cookies, so any origin may call
-      "Access-Control-Allow-Origin": "*",
-      "Access-Control-Allow-Headers": "Authorization, Content-Type",
-      "Access-Control-Allow-Methods": "GET, POST, PATCH, OPTIONS",
-      ...extra,
-    });
-    res.end(typeof body === "string" ? body : JSON.stringify(body));
-  };
-  const readBody = (req) =>
-    new Promise((resolve, reject) => {
-      const chunks = [];
-      let size = 0;
-      req.on("data", (c) => {
-        size += c.length;
-        if (size > MAX_BODY) {
-          reject(new Error("too large"));
-          req.destroy();
-        } else chunks.push(c);
-      });
-      req.on("end", () => resolve(Buffer.concat(chunks)));
-      req.on("error", reject);
+  const reply = (status, body, extra = {}) =>
+    new Response(status === 204 ? null : typeof body === "string" ? body : JSON.stringify(body), {
+      status,
+      headers: {
+        "Content-Type": "application/json",
+        "Cache-Control": "no-store",
+        // sessions travel in a header, never in cookies, so any origin may call
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Headers": "Authorization, Content-Type",
+        "Access-Control-Allow-Methods": "GET, POST, PATCH, OPTIONS",
+        ...extra,
+      },
     });
 
-  return async function handle(req, res) {
-    const url = new URL(req.url || "/", "http://x");
-    if (url.pathname !== prefix && !url.pathname.startsWith(`${prefix}/`)) return false;
-    const route = url.pathname.slice(prefix.length).replace(/^\//, "");
-    if (req.method === "OPTIONS") return send(res, 204, ""), true;
-    if (!ready) return send(res, 503, { error: "not-set-up" }), true;
+  return async function handle(request, ip = "") {
+    const url = new URL(request.url);
+    if (url.pathname !== prefix && !url.pathname.startsWith(`${prefix}/`)) return null;
+    // trailing slashes are optional (the site adds them to every address)
+    const route = url.pathname.slice(prefix.length).replace(/^\/+|\/+$/g, "");
+    const method = request.method;
+    if (method === "OPTIONS") return reply(204, "");
+    if (!ready) return reply(503, { error: "not-set-up" });
 
-    // wake-up / health check (free hosts sleep when idle)
-    if (route === "" && req.method === "GET") return send(res, 200, { ok: true }), true;
+    // wake-up / health check (some hosts sleep when idle)
+    if (route === "" && method === "GET") return reply(200, { ok: true });
 
-    if (route === "login" && req.method === "POST") {
+    if (route === "login" && method === "POST") {
       const now = Date.now();
-      const ip = ipOf(req);
       const mine = (fails.get(ip) || []).filter((t) => now - t < 15 * 60_000);
       allFails = allFails.filter((t) => now - t < 60 * 60_000);
-      if (mine.length >= MAX_FAILS_PER_IP || allFails.length >= MAX_FAILS_TOTAL)
-        return send(res, 429, { error: "too-many-tries" }, { "Retry-After": "900" }), true;
+      if (mine.length >= MAX_FAILS_PER_IP || allFails.length >= MAX_FAILS_TOTAL) return reply(429, { error: "too-many-tries" }, { "Retry-After": "900" });
       let body = {};
       try {
-        body = JSON.parse((await readBody(req)).toString() || "{}");
+        body = JSON.parse((await request.text()) || "{}");
       } catch {}
       // compare hashes: same length, constant time
       const ok = crypto.timingSafeEqual(sha256(String(body.password ?? "")), sha256(password));
@@ -131,32 +121,29 @@ export function createOwnerApi({ env = process.env, prefix = "/api/owner", fetch
         allFails.push(now);
         // a little wait on every wrong try, so guessing is slow even within the limit
         await new Promise((r) => setTimeout(r, 800));
-        return send(res, 401, { error: "wrong-password", left: Math.max(0, MAX_FAILS_PER_IP - mine.length) }), true;
+        return reply(401, { error: "wrong-password", left: Math.max(0, MAX_FAILS_PER_IP - mine.length) });
       }
       fails.delete(ip);
       const exp = now + (body.remember ? REMEMBER_DAYS * 24 : SESSION_HOURS) * 3600_000;
-      return send(res, 200, { session: sign({ exp }), expiresAt: exp }), true;
+      return reply(200, { session: sign({ exp }), expiresAt: exp });
     }
 
-    const auth = String(req.headers.authorization || "").replace(/^Bearer\s+/i, "");
-    if (!check(auth)) return send(res, 401, { error: "signed-out" }), true;
+    const auth = String(request.headers.get("authorization") || "").replace(/^Bearer\s+/i, "");
+    if (!check(auth)) return reply(401, { error: "signed-out" });
 
-    if (route === "me" && req.method === "GET") return send(res, 200, { login: "owner", canWrite: true }), true;
+    if (route === "me" && method === "GET") return reply(200, { login: "owner", canWrite: true });
 
     if (route === "github" || route.startsWith("github/")) {
       const path = route.slice("github".length).replace(/^\//, "");
-      if (!ALLOWED.some(([m, re]) => m === req.method && re.test(path))) return send(res, 403, { error: "not-allowed" }), true;
+      if (!ALLOWED.some(([m, re]) => m === method && re.test(path))) return reply(403, { error: "not-allowed" });
       let body;
-      if (req.method !== "GET") {
-        try {
-          body = await readBody(req);
-        } catch {
-          return send(res, 413, { error: "too-large" }), true;
-        }
+      if (method !== "GET") {
+        body = await request.arrayBuffer();
+        if (body.byteLength > MAX_BODY) return reply(413, { error: "too-large" });
       }
       try {
         const gh = await fetchImpl(`${githubApi}/repos/${repo}${path ? `/${path}` : ""}${url.search}`, {
-          method: req.method,
+          method,
           headers: {
             Accept: "application/vnd.github+json",
             Authorization: `Bearer ${token}`,
@@ -166,18 +153,43 @@ export function createOwnerApi({ env = process.env, prefix = "/api/owner", fetch
           },
           body,
         });
-        return send(res, gh.status, (await gh.text()) || "{}"), true;
+        return reply(gh.status, (await gh.text()) || "{}");
       } catch {
-        return send(res, 502, { error: "github-unreachable" }), true;
+        return reply(502, { error: "github-unreachable" });
       }
     }
-    return send(res, 404, { error: "not-found" }), true;
+    return reply(404, { error: "not-found" });
+  };
+}
+
+/** The same API for a plain Node http server: (req, res) → true if it handled the request. */
+export function toNodeHandler(handle) {
+  return async function (req, res) {
+    if (!String(req.url || "").startsWith("/api/owner")) return false;
+    const chunks = [];
+    let size = 0;
+    for await (const c of req) {
+      size += c.length;
+      if (size > MAX_BODY) {
+        res.writeHead(413).end();
+        return true;
+      }
+      chunks.push(c);
+    }
+    const hasBody = !["GET", "HEAD"].includes(req.method || "GET");
+    const request = new Request(`http://localhost${req.url}`, { method: req.method, headers: req.headers, body: hasBody ? Buffer.concat(chunks) : undefined });
+    const ip = String(req.headers["x-forwarded-for"] || req.socket.remoteAddress || "").split(",")[0].trim();
+    const response = await handle(request, ip);
+    if (!response) return false;
+    res.writeHead(response.status, Object.fromEntries(response.headers));
+    res.end(Buffer.from(await response.arrayBuffer()));
+    return true;
   };
 }
 
 // run on its own
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
-  const handle = createOwnerApi();
+  const handle = toNodeHandler(createOwnerApi());
   const port = Number(process.env.PORT || 8787);
   http
     .createServer(async (req, res) => {

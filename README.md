@@ -38,12 +38,13 @@ Tap the **logo on the home page 5 times** (within 3 seconds) to open the shop ma
 Set it up once:
 
 1. **Make the GitHub key** the server uses: signed in to GitHub as `rkcreatives3d`, create a **fine-grained personal access token** with repository access to `rkcreativesweb` only and **Contents → Read and write**. (The owner page's sign-in has a link under "Sign in with a GitHub key instead".)
-2. **Run the server on Render:**
-   - *If the website is a Render **Web Service*** (start command `npm start`): open it → **Environment** and add `OWNER_PASSWORD` and `GITHUB_TOKEN`. That's all: it then answers at `/api/owner` on the same address.
-   - *If the website is a Render **Static Site***: create a **New → Web Service** from the same repository: name e.g. `rk-owner`, runtime Node, build command `echo ok`, start command `node scripts/owner-api.mjs`, free instance. Add the environment variables `OWNER_PASSWORD` and `GITHUB_TOKEN`. Then open the **Static Site → Environment**, add `NEXT_PUBLIC_OWNER_API` = `https://rk-owner.onrender.com/api/owner` (your new service's address + `/api/owner`), and redeploy it. Optional: under the Web Service's **Build Filters**, include only `scripts/owner-api.mjs`, so product updates don't restart it.
+2. **Give the server its two secrets**, on the host:
+   - **Vercel** (where this site runs): Project → **Settings → Environment Variables**, add `OWNER_PASSWORD` (the password) and `GITHUB_TOKEN` (the key), for Production. Then **Deployments → ⋯ → Redeploy**. On Vercel the server runs inside the site itself as a function at `/api/owner` (`scripts/setup-host.mjs` adds it on Vercel builds; every page stays static).
+   - *Render Web Service* (start command `npm start`): **Environment** → the same two variables.
+   - *A static-only host* (Render Static Site, Netlify, Pages): run `node scripts/owner-api.mjs` as a separate small Node service with the two variables, and set `NEXT_PUBLIC_OWNER_API` on the site to its address + `/api/owner`.
 3. **Pick a strong password.** Anyone can try passwords, and the limit only slows guessing down. Don't use anything shown publicly, like your GitHub or Instagram name: whoever gets in can change the UPI ID and WhatsApp number your customers pay and order on.
 
-A free Render Web Service sleeps when idle; the first sign-in after a while can take up to a minute while it wakes (the page says so). To change the password, change `OWNER_PASSWORD` on Render: that also signs out every device. If the server isn't set up, the page falls back to signing in with a GitHub key directly (on your own devices only: anyone with the key can change the shop).
+To change the password, change `OWNER_PASSWORD` and redeploy: that also signs out every device. If the server isn't set up, the sign-in page says so and offers signing in with a GitHub key directly (on your own devices only: anyone with the key can change the shop). Big 3D files are sent in pieces of up to 3 MB (Vercel functions take at most 4.5 MB per request) and joined back together by the build. On Vercel the wrong-password count lives in the running function, so it resets when Vercel starts a fresh one; the slowdown on every wrong try still applies.
 
 **What you can do:**
 - **Products:** add, edit, duplicate, hide/show, delete, reorder (the shop shows them in this order), and change prices straight from the list.
@@ -53,11 +54,11 @@ A free Render Web Service sleeps when idle; the first sign-in after a while can 
 - **Colours:** add a filament colour (name, colour, matte / silk / glossy), edit or remove one.
 - **Shop settings:** WhatsApp number, order email, Instagram, city and PIN code, website address, UPI ID and name, card payment link, cash on delivery (fee, order limit), shipping fee and free-shipping amount, days to print and pack, name/message price, courier and tracking page, business details, review link, categories.
 
-**Publishing.** Nothing changes on the website until you press **Publish changes**. You see a list of what changed first. The page then makes the studio pictures for any new or changed product on your device (keep it open), and saves everything as one commit to GitHub. Render rebuilds the site from it automatically, and the page tells you when it's live, usually 3–5 minutes later. New products start **hidden**: switch "Visible to customers" on when they're ready.
+**Publishing.** Nothing changes on the website until you press **Publish changes**. You see a list of what changed first. The page then makes the studio pictures for any new or changed product on your device (keep it open), and saves everything as one commit to GitHub. The host (Vercel) rebuilds the site from it automatically, and the page tells you when it's live, usually 3–5 minutes later. New products start **hidden**: switch "Visible to customers" on when they're ready.
 
 Under the hood, products, colours and settings live in `content/products.json`, `content/finishes.json` and `content/shop.json` (you can still edit them by hand), 3D files go to `models/`, photos to `public/products/<product>/`, studio pictures to `public/renders/<product>/`. If two people publish at once, the second is warned before anything is overwritten. GitHub's automatic code tests skip these "Owner:" commits.
 
-**Render needs:** auto-deploy on every push to `main` (Render's default).
+**The host needs:** to rebuild on every push to `main` (Vercel's and Render's default).
 
 ## Where things live
 

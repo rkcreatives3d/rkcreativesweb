@@ -27,14 +27,34 @@ const MAX_TRIANGLES = 100_000; // plenty of detail for a phone screen, still a l
 
 // ── main ──
 
+// Big files uploaded from the owner page arrive in pieces: name.ext.part1, .part2 …
+// Join them back into name.ext (in a temp folder) before converting.
+const pieces = {};
+for (const f of fs.existsSync(SRC) ? fs.readdirSync(SRC) : []) {
+  const m = f.match(/^(.+\.(?:stl|3mf|obj|glb|gltf))\.part(\d+)$/i);
+  if (m) (pieces[m[1]] ??= []).push([Number(m[2]), f]);
+}
+const joined = {};
+for (const [name, parts] of Object.entries(pieces)) {
+  const out = path.join(os.tmpdir(), `rk-joined-${process.pid}-${name}`);
+  fs.writeFileSync(out, Buffer.concat(parts.sort((a, b) => a[0] - b[0]).map(([, f]) => fs.readFileSync(path.join(SRC, f)))));
+  // keep the newest piece's time, so unchanged files are still skipped
+  const newest = Math.max(...parts.map(([, f]) => fs.statSync(path.join(SRC, f)).mtimeMs)) / 1000;
+  fs.utimesSync(out, newest, newest);
+  joined[name] = out;
+}
+
 fs.mkdirSync(OUT, { recursive: true });
-const sources = fs.existsSync(SRC) ? fs.readdirSync(SRC).filter((f) => /\.(stl|3mf|obj|glb|gltf)$/i.test(f)) : [];
+const sources = [
+  ...(fs.existsSync(SRC) ? fs.readdirSync(SRC).filter((f) => /\.(stl|3mf|obj|glb|gltf)$/i.test(f)) : []),
+  ...Object.keys(joined),
+];
 const list = {};
 const kb = (n) => `${Math.round(n / 1024)} KB`;
 
 for (const name of sources) {
   const slug = path.parse(name).name.toLowerCase();
-  const src = path.join(SRC, name);
+  const src = joined[name] ?? path.join(SRC, name);
   const dst = path.join(OUT, `${slug}.glb`);
   const srcStat = fs.statSync(src);
   if (!fs.existsSync(dst) || fs.statSync(dst).mtimeMs < srcStat.mtimeMs) {
@@ -66,6 +86,8 @@ for (const name of sources) {
 
 // drop outputs whose source file was removed
 for (const f of fs.readdirSync(OUT)) if (f.endsWith(".glb") && !list[path.parse(f).name]) fs.rmSync(path.join(OUT, f));
+
+for (const f of Object.values(joined)) fs.rmSync(f, { force: true });
 
 fs.writeFileSync(LIST, JSON.stringify(list, null, 2) + "\n");
 console.log(`${Object.keys(list).length} model(s) ready${sources.length ? "" : " (put .stl / .3mf / .obj / .glb files in models/)"}.`);

@@ -11,6 +11,8 @@ export type RenderJob = { product: Product; modelUrl?: string; finishes: string[
 export type ShotFiles = { finish: string; large: Uint8Array; small: Uint8Array; cover?: Uint8Array };
 
 const json = (v: unknown) => JSON.stringify(v, null, 2) + "\n";
+/** Largest piece of a 3D file sent in one request (base64 makes it a third bigger: still under 4.5 MB). */
+export const PART_BYTES = 3_000_000;
 const same = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b);
 
 /** Products whose studio pictures are missing or out of date, and the colours to take. */
@@ -69,9 +71,15 @@ export async function buildChanges(
   const existing = prefixes.length ? await listFiles(token, prefixes) : [];
   for (const path of existing) changes.push({ path, delete: true });
 
-  // new or removed 3D files (the build turns models/<slug>.<ext> into the web model)
+  // new or removed 3D files (the build turns models/<slug>.<ext> into the web model).
+  // Big files go in pieces (<slug>.<ext>.part1, .part2 …) that the build joins back
+  // together: some hosts (Vercel) take at most 4.5 MB per request to the sign-in server.
   for (const [slug, m] of Object.entries(models)) {
-    if (m && live.has(slug)) changes.push({ path: `models/${slug}.${m.ext}`, content: m.bytes });
+    if (!m || !live.has(slug)) continue;
+    if (m.bytes.length <= PART_BYTES) changes.push({ path: `models/${slug}.${m.ext}`, content: m.bytes });
+    else
+      for (let i = 0, n = 1; i < m.bytes.length; i += PART_BYTES, n++)
+        changes.push({ path: `models/${slug}.${m.ext}.part${n}`, content: m.bytes.subarray(i, i + PART_BYTES) });
   }
 
   // photos: new ones still in use are written; owner-uploaded ones no longer used are deleted

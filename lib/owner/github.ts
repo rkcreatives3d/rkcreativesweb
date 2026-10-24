@@ -26,8 +26,21 @@ export class GitHubError extends Error {
   }
 }
 
+/**
+ * Owner-server addresses end in "/" like every address on the site, so the
+ * host never redirects them (a redirect can drop a POST's body). Addresses
+ * ending in a file name (…/products.json) are the exception: they never
+ * take a slash.
+ */
+function slashed(url: string) {
+  if (!url.startsWith(OWNER_API)) return url;
+  const [path, query] = url.split("?");
+  const file = /\.[a-z0-9]+$/i.test(path.split("/").pop() ?? "");
+  return `${path.endsWith("/") || file ? path : `${path}/`}${query ? `?${query}` : ""}`;
+}
+
 async function call<T>(token: string, url: string, init: RequestInit = {}): Promise<T> {
-  const res = await fetch(url, {
+  const res = await fetch(slashed(url), {
     ...init,
     headers: {
       Accept: "application/vnd.github+json",
@@ -60,7 +73,7 @@ export async function ping(): Promise<"ok" | "not-set-up" | "unreachable"> {
 
 /** Password sign-in: a session "token" for the other calls. Errors carry the server's reason. */
 export async function passwordLogin(password: string, remember: boolean): Promise<string> {
-  const res = await fetch(`${OWNER_API}/login`, {
+  const res = await fetch(`${OWNER_API}/login/`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ password, remember }),

@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import { expect, test } from "@playwright/test";
 import { prepare } from "./helpers";
-import { cubeSTL, mockGitHub } from "./github-mock";
+import { bigSTL, cubeSTL, mockGitHub } from "./github-mock";
 
 // The owner's shop manager, against a pretend GitHub (tests/github-mock.ts).
 
@@ -157,6 +157,28 @@ test("password sign-in: wrong tries count down; the right password opens the man
 test("without the sign-in server, the page says so and offers the GitHub key", async ({ page }) => {
   await prepare(page, { lite: true });
   await page.goto("/owner/");
-  await expect(page.getByText("Password sign-in isn't set up")).toBeVisible();
+  await expect(page.getByText("Password sign-in isn't switched on yet")).toBeVisible();
   await expect(page.getByLabel("GitHub key")).toBeVisible();
+});
+
+test("a big 3D file is sent in pieces under 4.5 MB each (the most a Vercel function takes)", async ({ page }) => {
+  test.setTimeout(240_000); // studio pictures of a big model, drawn in software on the test machine
+  await prepare(page, { lite: true });
+  const gh = await mockGitHub(page, { password: "open sesame" });
+  await page.goto("/owner/");
+  await page.getByLabel("Password").fill("open sesame");
+  await page.getByRole("button", { name: "Sign in", exact: true }).click();
+  await page.getByRole("listitem").filter({ hasText: "Gear Spinner" }).getByRole("button", { name: "Edit" }).click();
+  const file = bigSTL(70_000); // ~3.5 MB: two pieces
+  await page.locator('input[type="file"][accept=".stl,.3mf,.obj,.glb"]').setInputFiles({ name: "gear.stl", mimeType: "model/stl", buffer: file });
+  await expect(page.getByText("New file: gear.stl")).toBeVisible({ timeout: 30_000 });
+  await page.getByRole("button", { name: "Publish changes" }).click();
+  const dialog = page.getByRole("dialog", { name: "Publish to the website" });
+  await dialog.getByRole("button", { name: "Publish" }).click();
+  await expect(dialog).toContainText("Published", { timeout: 180_000 });
+  const parts = gh.rec.tree.filter((t) => t.path.startsWith("models/gear-spinner.stl.part") && t.sha).map((t) => t.path);
+  expect(parts).toEqual(["models/gear-spinner.stl.part1", "models/gear-spinner.stl.part2"]);
+  const joined = Buffer.concat(parts.map((p) => gh.raw(p)!));
+  expect(joined.equals(file)).toBe(true);
+  for (const p of parts) expect(gh.raw(p)!.length).toBeLessThanOrEqual(3_000_000);
 });

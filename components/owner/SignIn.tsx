@@ -161,7 +161,9 @@ export function SignIn() {
         <form onSubmit={withKey} className="mt-8 space-y-4">
           {server === "not-set-up" && (
             <p className="rounded-xl border border-pop/40 bg-pop/10 p-3 text-sm">
-              Password sign-in isn&apos;t set up on this website yet (see “Owner page” in the README). Sign in with your GitHub key meanwhile.
+              Password sign-in isn&apos;t switched on yet. In <b>Vercel → your project → Settings → Environment Variables</b>, add{" "}
+              <code className="font-mono">OWNER_PASSWORD</code> and <code className="font-mono">GITHUB_TOKEN</code>, then redeploy. Meanwhile you can
+              sign in with your GitHub key.
             </p>
           )}
           <div>

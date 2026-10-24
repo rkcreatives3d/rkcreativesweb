@@ -9,7 +9,7 @@
     "lint": "tsc --noEmit",
     "models": "node scripts/prepare-models.mjs",
     "renders": "node scripts/render-products.mjs",
-    "prebuild": "node scripts/prepare-models.mjs && node scripts/write-version.mjs && node scripts/launch-check.mjs",
+    "prebuild": "node scripts/setup-host.mjs && node scripts/prepare-models.mjs && node scripts/write-version.mjs && node scripts/launch-check.mjs",
     "test": "playwright test",
     "check": "tsc --noEmit && npm run build && playwright test"
   },

@@ -21,7 +21,7 @@ export async function mockGitHub(
   await page.route("**/api/owner/**", async (route) => {
     const req = route.request();
     const json = (body: unknown, status = 200) => route.fulfill({ status, contentType: "application/json", body: JSON.stringify(body) });
-    const rest = new URL(req.url()).pathname.replace(/^.*\/api\/owner\/?/, "");
+    const rest = new URL(req.url()).pathname.replace(/^.*\/api\/owner\/?/, "").replace(/\/+$/, "");
     if (!password) return json({ error: "not-set-up" }, 503);
     if (rest === "") return json({ ok: true });
     if (rest === "login") {
@@ -81,6 +81,18 @@ export async function mockGitHub(
     return e ? Buffer.from(blobs.get(e.sha!)!, "base64") : null;
   };
   return { rec, written, raw };
+}
+
+/** A binary STL with `n` small triangles (about 50 bytes each). */
+export function bigSTL(n: number) {
+  const buf = Buffer.alloc(84 + n * 50);
+  buf.writeUInt32LE(n, 80);
+  for (let i = 0; i < n; i++) {
+    const o = 84 + i * 50 + 12;
+    const x = (i % 300) / 10, y = Math.floor(i / 300) / 10;
+    [x, y, 0, x + 0.1, y, 0, x, y + 0.1, 0.05].forEach((v, k) => buf.writeFloatLE(v, o + k * 4));
+  }
+  return buf;
 }
 
 /** A tiny cube as an ASCII STL file. */
