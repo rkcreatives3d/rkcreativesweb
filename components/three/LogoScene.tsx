@@ -3,12 +3,9 @@
 import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
 import { useFrame, useThree } from "@react-three/fiber";
-import { Float, Sparkles } from "@react-three/drei";
-import type { Shape } from "@/lib/products";
+import { Float } from "@react-three/drei";
 import { pointer } from "@/lib/pointer";
-import { theme } from "@/lib/theme";
 import { ViewRig } from "./Studio";
-import { PrintModel } from "./PrintModel";
 import { step, useLive } from "./live";
 import { LOGO_CUT_URL, LogoPlaque, useLogoTexture } from "./LogoPlaque";
 
@@ -20,7 +17,8 @@ export type CoverFrame = { x: number; y: number; size: number };
 
 /**
  * Cover page: the logo, cut out of its black square so it sits on the beige
- * page, floating over its own soft shadow with printed objects orbiting it.
+ * page, floating gently over its own soft shadow and turning a little toward
+ * the pointer. One calm movement; nothing orbits or sparkles.
  */
 export function LogoScene({ url = LOGO_CUT_URL, frame, onShown }: { url?: string; frame: CoverFrame; onShown?: () => void }) {
   const size = useThree((s) => s.size);
@@ -62,22 +60,10 @@ export function LogoScene({ url = LOGO_CUT_URL, frame, onShown }: { url?: string
             {onShown && <Shown onShown={onShown} />}
           </Suspense>
         </Float>
-        {/* glowing filament orbit, partly hidden behind the logo */}
-        <mesh rotation={[1.25, 0.15, 0]} scale={[S * 0.66, S * 0.66, S * 0.66]}>
-          <torusGeometry args={[1, 0.004, 8, 200]} />
-          <meshBasicMaterial color={theme.amber} toneMapped={false} transparent opacity={0.55} />
-        </mesh>
-        <Orbiter shape="vase" finish="amber" radius={S * 0.66} speed={0.32} phase={0} size={S * 0.075} live={visible} />
-        <Orbiter shape="knot" finish="gold" radius={S * 0.66} speed={0.32} phase={2.1} size={S * 0.06} live={visible} />
-        <Orbiter shape="gear" finish="onyx" radius={S * 0.66} speed={0.32} phase={4.2} size={S * 0.065} live={visible} />
       </group>
       <Suspense fallback={null}>
         <LogoShadow url={url} size={S} x={cx} lift={lift} />
       </Suspense>
-      <group position={[cx, lift, 0]}>
-        <Sparkles count={60} scale={[S * 2.2, S * 1.4, 3]} size={2.6} speed={0.3} color={theme.sparkles[0]} />
-        <Sparkles count={35} scale={[S * 2.2, S * 1.4, 3]} size={1.8} speed={0.2} color={theme.sparkles[1]} />
-      </group>
     </>
   );
 }
@@ -91,39 +77,6 @@ function Shown({ onShown }: { onShown: () => void }) {
     requestAnimationFrame(onShown);
   });
   return null;
-}
-
-/** A printed object travelling the same tilted ellipse as the filament ring. */
-function Orbiter({
-  shape,
-  finish,
-  radius,
-  speed,
-  phase,
-  size,
-  live,
-}: {
-  shape: Shape;
-  finish: string;
-  radius: number;
-  speed: number;
-  phase: number;
-  size: number;
-  live: boolean;
-}) {
-  const ref = useRef<THREE.Group>(null!);
-  const ring = useMemo(() => new THREE.Euler(1.25, 0.15, 0), []);
-  const v = useMemo(() => new THREE.Vector3(), []);
-  useFrame(({ clock }) => {
-    const a = clock.elapsedTime * speed + phase;
-    v.set(Math.cos(a) * radius, Math.sin(a) * radius, 0).applyEuler(ring);
-    ref.current.position.copy(v);
-  });
-  return (
-    <group ref={ref}>
-      <PrintModel shape={shape} finish={finish} spin={live ? 0.8 : 0} scale={size} />
-    </group>
-  );
 }
 
 const shadowVertex = /* glsl */ `

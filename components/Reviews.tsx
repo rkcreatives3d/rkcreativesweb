@@ -20,7 +20,7 @@ const dateLabel = (iso?: string) => (iso ? new Date(iso).toLocaleDateString("en-
 export function ReviewCard({ review: r, showProduct = true }: { review: Review; showProduct?: boolean }) {
   const p = r.product ? getProduct(r.product) : undefined;
   return (
-    <figure className="flex h-full flex-col overflow-hidden rounded-3xl border border-line bg-surface">
+    <figure className="card-lift flex h-full flex-col overflow-hidden rounded-3xl">
       {r.image && (
         <a href={r.image} target="_blank" rel="noreferrer" className="block" aria-label={`Open ${r.name}'s photo`}>
           {/* eslint-disable-next-line @next/next/no-img-element */}

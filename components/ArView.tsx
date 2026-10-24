@@ -128,7 +128,7 @@ export function ArView({ model, name, slug, sizeCm, tint }: { model: string; nam
               )}
             </div>
             <div className="p-6 sm:p-8">
-              <h2 id="ar-title" className="font-display text-3xl font-extrabold display-case leading-none">
+              <h2 id="ar-title" className="section-title text-3xl">
                 See it in your room
               </h2>
               <p className="mt-3 text-sm text-muted">

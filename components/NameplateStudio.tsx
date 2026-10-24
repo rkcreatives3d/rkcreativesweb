@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { AnimatePresence, motion, useInView } from "motion/react";
 import { getFinish, getProduct, type Product } from "@/lib/products";
 import { itemPrice, useCart } from "@/lib/cart";
-import { flyToCart } from "@/lib/fly";
+import { bumpCart } from "@/lib/fly";
 import { useLiteMode } from "@/lib/lite";
 import { formatPrice, site, whatsappUrl } from "@/lib/site";
 import { MAX_NAME, plateFonts, plateIcons, type PlateFont, type PlateIcon, type PlateStyle } from "@/lib/personalise";
@@ -254,7 +254,8 @@ export function NameplateStudio() {
             if (!ready()) return;
             add(item);
             track("add_to_cart", { product: product.slug, finish, size, font, icon, value: price });
-            flyToCart(e.currentTarget, getFinish(finish).swatch).then(() => useCart.getState().setOpen(true));
+            bumpCart();
+            useCart.getState().setOpen(true);
           }}
         >
           Add to cart · {formatPrice(price)}

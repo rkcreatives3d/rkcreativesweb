@@ -42,11 +42,7 @@ export function ShopGrid() {
     return products
       .filter((p) => cat === "All" || p.category === cat)
       .filter((p) => !filter || !!getOccasion(filter)?.test(p))
-      .filter(
-        (p) =>
-          !needle ||
-          [p.name, p.tagline, p.category, p.material, ...(p.tags ?? [])].some((s) => s.toLowerCase().includes(needle)),
-      )
+      .filter((p) => !needle || [p.name, p.tagline, p.category, p.material, ...(p.tags ?? [])].some((s) => s.toLowerCase().includes(needle)))
       .sort(sorts[sort].fn);
   }, [cat, filter, sort, q]);
   // the unfiltered shop shows each collection under its own heading
@@ -57,7 +53,14 @@ export function ShopGrid() {
       <div className="flex items-center gap-2 sm:gap-3">
         <label className="relative min-w-0 flex-1">
           <span className="sr-only">Search products</span>
-          <svg className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+          <svg
+            className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            aria-hidden
+          >
             <circle cx="11" cy="11" r="7" />
             <path d="m20 20-3.5-3.5" strokeLinecap="round" />
           </svg>
@@ -87,7 +90,12 @@ export function ShopGrid() {
 
       <div className={`mt-4 ${chipRow}`} role="group" aria-label="Shop by occasion">
         {occasions.map((f) => (
-          <button key={f.id} aria-pressed={filter === f.id} onClick={() => setFilter(filter === f.id ? null : f.id)} className={chip(filter === f.id)}>
+          <button
+            key={f.id}
+            aria-pressed={filter === f.id}
+            onClick={() => setFilter(filter === f.id ? null : f.id)}
+            className={chip(filter === f.id)}
+          >
             {f.label}
           </button>
         ))}
@@ -111,27 +119,28 @@ export function ShopGrid() {
       {list.length && grouped ? (
         // everything, in its collections (the same groups the owner sorts products into)
         <div className="mt-4 space-y-14">
-          {categories.map((c) => {
-            const items = list.filter((p) => p.category === c);
-            if (!items.length) return null;
-            return (
-              <section key={c} aria-labelledby={`c-${c}`}>
-                <div className="flex items-end justify-between gap-3">
-                  <h2 id={`c-${c}`} className="font-display text-2xl font-extrabold display-case leading-none tracking-tight sm:text-3xl">
-                    {c}
-                  </h2>
-                  <button onClick={() => setCat(c)} className="-my-1.5 shrink-0 py-1.5 pl-2 text-sm font-semibold text-accent hover:underline">
-                    {items.length} {items.length === 1 ? "piece" : "pieces"} →
-                  </button>
-                </div>
-                <div className="mt-4 grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-3">
-                  {items.map((p, i) => (
-                    <ProductCard key={p.slug} product={p} index={i} />
-                  ))}
-                </div>
-              </section>
-            );
-          })}
+          {categories
+            .filter((c) => list.some((p) => p.category === c))
+            .map((c, si) => {
+              const items = list.filter((p) => p.category === c);
+              return (
+                <section key={c} aria-labelledby={`c-${c}`}>
+                  <div className="flex items-end justify-between gap-3">
+                    <h2 id={`c-${c}`} className="section-title text-2xl sm:text-3xl">
+                      {c}
+                    </h2>
+                    <button onClick={() => setCat(c)} className="-my-1.5 shrink-0 py-1.5 pl-2 text-sm font-semibold text-accent hover:underline">
+                      {items.length} {items.length === 1 ? "piece" : "pieces"} →
+                    </button>
+                  </div>
+                  <div className="mt-4 grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-3">
+                    {items.map((p, i) => (
+                      <ProductCard key={p.slug} product={p} index={i} printIn={si === 0 && i < 3} />
+                    ))}
+                  </div>
+                </section>
+              );
+            })}
         </div>
       ) : list.length ? (
         <div className="mt-4 grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-3">
@@ -141,7 +150,11 @@ export function ShopGrid() {
         </div>
       ) : (
         <AnimatePresence>
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mt-10 rounded-3xl border border-fg/10 p-10 text-center">
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mt-10 rounded-3xl border border-fg/10 p-10 text-center"
+          >
             <p className="font-display text-3xl display-case">Nothing matches that</p>
             <p className="mt-2 text-muted">Try another word, or ask us to print exactly what you have in mind.</p>
             <button

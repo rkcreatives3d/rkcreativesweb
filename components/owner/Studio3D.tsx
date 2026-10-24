@@ -6,6 +6,7 @@ import { OrbitControls } from "@react-three/drei";
 import type { Product } from "@/lib/products";
 import { MODEL_EXTENSIONS, parseModel, toGeometry, toGLB } from "@/lib/mesh-core.mjs";
 import { ViewRig } from "../three/Studio";
+import { canvasBytes, drawShadow, drawStage } from "@/lib/owner/stage";
 import { PrintModel } from "../three/PrintModel";
 
 // The owner page's own 3D: a turntable preview of a product (with an uploaded
@@ -44,35 +45,16 @@ export type Shot = { finish: string; large: Uint8Array; small: Uint8Array; cover
 
 const SIZE = 720;
 
-/** The card's light stage (globals.css .stage + .stage-shadow), drawn behind the 3D. */
+/** The 3D picture on the card's light stage and floor shadow (lib/owner/stage.ts). */
 function composite(src: HTMLCanvasElement, size: number, type: string, quality: number): Promise<Uint8Array> {
   const c = document.createElement("canvas");
   c.width = c.height = size;
   const g = c.getContext("2d")!;
-  g.save();
-  g.translate(size * 0.5, size * 0.4);
-  g.scale(0.7, 0.6);
-  const bg = g.createRadialGradient(0, 0, 0, 0, 0, size);
-  bg.addColorStop(0, "#fdfbf7");
-  bg.addColorStop(0.58, "#efe9df");
-  bg.addColorStop(1, "#e2d9cb");
-  g.fillStyle = bg;
-  g.fillRect(-size * 2, -size * 2, size * 4, size * 4);
-  g.restore();
-  g.save();
-  g.translate(size * 0.5, size * 0.835);
-  g.scale(0.23, 0.035);
-  const sh = g.createRadialGradient(0, 0, 0, 0, 0, size);
-  sh.addColorStop(0, "rgba(42,33,25,0.28)");
-  sh.addColorStop(1, "rgba(42,33,25,0)");
-  g.fillStyle = sh;
-  g.beginPath();
-  g.arc(0, 0, size, 0, Math.PI * 2);
-  g.fill();
-  g.restore();
+  drawStage(g, size);
+  drawShadow(g, size * 0.5, size * 0.835, size * 0.23, size * 0.035);
   g.imageSmoothingQuality = "high";
   g.drawImage(src, 0, 0, size, size);
-  return new Promise((res) => c.toBlob(async (b) => res(new Uint8Array(await b!.arrayBuffer())), type, quality));
+  return canvasBytes(c, type, quality);
 }
 
 function Grab({ onGrab }: { onGrab: (canvas: HTMLCanvasElement) => void }) {

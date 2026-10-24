@@ -45,7 +45,7 @@ export default function AboutPage() {
           <h1 className="mt-4 font-display text-6xl font-extrabold display-case leading-[0.88] tracking-tight sm:text-8xl">
             <KineticText text="The maker" />
             <br />
-            <KineticText text="behind it" holo delay={0.15} />
+            <KineticText text="behind it" delay={0.15} />
           </h1>
           <div className="mt-8 max-w-xl space-y-4 text-lg leading-relaxed text-fg/80">
             {/* top of the page: shown straight away, no fade-in (it's what people came to read) */}
@@ -119,7 +119,7 @@ export default function AboutPage() {
       <section className="px-5 py-20 sm:px-8">
         <div className="cta-card mx-auto max-w-7xl rounded-3xl p-8 text-center sm:p-14">
           <Reveal y={24}>
-            <h2 className="font-display text-4xl font-extrabold display-case leading-none tracking-tight sm:text-5xl">
+            <h2 className="section-title text-3xl sm:text-[2.6rem]">
               Say hello
             </h2>
           </Reveal>

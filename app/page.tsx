@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { Hero } from "@/components/home/Hero";
-import { MarqueeStrip } from "@/components/home/MarqueeStrip";
 import { ShopByCollection } from "@/components/home/ShopByCollection";
 import { CustomCta } from "@/components/home/CustomCta";
 import { NameTeaser } from "@/components/home/NameTeaser";
@@ -18,7 +17,6 @@ export default function Home() {
   return (
     <>
       <Hero />
-      <MarqueeStrip />
       {/* straight into the shop: ways in, then the pieces themselves */}
       <ShopByCollection />
 
@@ -26,7 +24,7 @@ export default function Home() {
         <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <Reveal y={24}>
-              <h2 className="font-display text-4xl font-extrabold display-case leading-none tracking-tight sm:text-5xl">Fresh off the bed</h2>
+              <h2 className="section-title text-3xl sm:text-[2.6rem]">Fresh off the bed</h2>
             </Reveal>
           </div>
           <ButtonLink href="/shop/">View all {products.length} →</ButtonLink>

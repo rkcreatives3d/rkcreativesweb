@@ -15,7 +15,7 @@ export default function ShopPage() {
         <SectionLabel>Every object printed to order</SectionLabel>
         <h1 className="mt-3 font-display text-5xl font-extrabold display-case leading-[0.88] tracking-tight sm:mt-4 sm:text-7xl lg:text-8xl">
           <KineticText text="Shop" />{" "}
-          <KineticText text="all prints" holo delay={0.12} />
+          <KineticText text="all prints" delay={0.12} />
         </h1>
         <p className="mt-3 max-w-xl text-muted sm:mt-4 sm:text-lg">The latest drop: decor, lamps, desk gear and gifts, printed for you and shipped across India.</p>
       </div>

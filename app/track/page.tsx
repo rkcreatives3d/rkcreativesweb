@@ -15,7 +15,7 @@ export default function TrackPage() {
       <h1 className="font-display text-6xl font-extrabold display-case leading-[0.88] tracking-tight sm:text-8xl">
         <KineticText text="Where's my" />
         <br />
-        <KineticText text="order?" holo delay={0.15} />
+        <KineticText text="order?" delay={0.15} />
       </h1>
       <p className="mt-6 max-w-xl text-lg text-muted">
         Every piece is printed for you, so it ships {dispatchLabel} working days after payment. Then it&apos;s with the courier.

@@ -21,11 +21,19 @@ export function ProductEditor({ slug, onClose }: { slug: string; onClose: () => 
   const p = draft.products.find((x) => x.slug === slug);
   const [preview, setPreview] = useState<string | null>(null);
   const [busy, setBusy] = useState("");
+  // new photos get their background cleaned up (product on the shop's stage), unless switched off
+  const [clean, setClean] = useState(true);
   const [error, setError] = useState("");
   if (!p) return null;
 
   const isNew = !original.products.some((x) => x.slug === slug);
   const set = (patch: Partial<Product>) => setProduct(slug, { ...p, ...patch });
+  // after a slow step (cleaning photos takes seconds), build on the product as it is now, so
+  // anything typed meanwhile stays
+  const setLater = (patch: (now: Product) => Partial<Product>) => {
+    const now = useOwner.getState().draft?.products.find((x) => x.slug === slug);
+    if (now) setProduct(slug, { ...now, ...patch(now) });
+  };
   const published = modelFor(p);
   const modelUrl = pendingModel === undefined ? published : (pendingModel?.url ?? undefined);
   const finish = preview && p.finishes.includes(preview) ? preview : p.finishes[0];
@@ -50,18 +58,64 @@ export function ProductEditor({ slug, onClose }: { slug: string; onClose: () => 
     }
   };
 
+  const cleaned = async (photo: Blob) => {
+    const { cleanBackground } = await import("@/lib/owner/cutout");
+    return cleanBackground(photo);
+  };
+
   const addPhotos = async (files: FileList | null) => {
     if (!files?.length) return;
-    setBusy("Preparing photos…");
+    setError("");
+    setBusy(clean ? "Cleaning up the backgrounds… (the first photo takes a little longer)" : "Preparing photos…");
     const added: string[] = [];
+    let kept = 0;
+    let unreadable = 0;
     for (const [i, f] of [...files].entries()) {
       if (!f.type.startsWith("image/")) continue;
       const path = `/products/${slug}/${Date.now().toString(36)}-${i}.jpg`;
-      addUpload(path, await resizePhoto(f));
+      let bytes;
+      try {
+        if (!clean) bytes = await resizePhoto(f);
+        else
+          try {
+            bytes = await cleaned(f);
+          } catch (e) {
+            console.warn("background clean-up:", e);
+            bytes = await resizePhoto(f); // couldn't cut it out: keep the photo as it is
+            kept++;
+          }
+      } catch {
+        unreadable++; // not a picture this browser can open (e.g. HEIC on some phones)
+        continue;
+      }
+      addUpload(path, bytes);
       added.push(path);
     }
-    set({ images: [...(p.images ?? []), ...added] });
+    if (added.length) setLater((now) => ({ images: [...(now.images ?? []), ...added] }));
     setBusy("");
+    const notes = [
+      kept && `${kept} photo${kept === 1 ? "" : "s"} kept as taken: the product couldn't be cut out cleanly. ✨ tries again.`,
+      unreadable && `${unreadable} file${unreadable === 1 ? "" : "s"} couldn't be opened. Try a JPG or PNG.`,
+    ].filter(Boolean);
+    if (notes.length) setError(notes.join(" "));
+  };
+
+  // clean up the background of a photo that's already there
+  const cleanPhoto = async (src: string) => {
+    setError("");
+    setBusy("Cleaning up the background…");
+    try {
+      const bytes = await cleaned(await (await fetch(photoSrc(src))).blob());
+      const path = `/products/${slug}/${Date.now().toString(36)}-c.jpg`;
+      addUpload(path, bytes);
+      dropUpload(src);
+      setLater((now) => ({ images: (now.images ?? []).map((x) => (x === src ? path : x)) }));
+    } catch (e) {
+      console.warn("background clean-up:", e);
+      setError("Couldn't find the product clearly in that photo. Try one with the product nearer the middle.");
+    } finally {
+      setBusy("");
+    }
   };
 
   const movePhoto = (i: number, by: number) => {
@@ -269,6 +323,14 @@ export function ProductEditor({ slug, onClose }: { slug: string; onClose: () => 
                     ←
                   </button>
                   <button
+                    onClick={() => cleanPhoto(src)}
+                    className="h-8 flex-1 rounded-lg border border-fg/15 text-sm"
+                    aria-label={`Clean up the background of photo ${i + 1}`}
+                    title="Clean up the background"
+                  >
+                    ✨
+                  </button>
+                  <button
                     onClick={() => {
                       dropUpload(src);
                       set({ images: p.images!.filter((x) => x !== src) });
@@ -297,6 +359,12 @@ export function ProductEditor({ slug, onClose }: { slug: string; onClose: () => 
           + Add photos
           <input type="file" accept="image/*" multiple className="sr-only" onChange={(e) => addPhotos(e.target.files)} />
         </label>
+        <Switch
+          label="Clean up the background"
+          checked={clean}
+          onChange={setClean}
+          hint="Cuts the product out and puts it on the shop's light studio background, so every product looks the same. ✨ on a photo does it later."
+        />
         {!!p.images?.length && (
           <Choice
             label="The photos show it in"
@@ -306,7 +374,7 @@ export function ProductEditor({ slug, onClose }: { slug: string; onClose: () => 
             hint="Other colours get an automatic colour preview made from your photos."
           />
         )}
-        <p className="text-xs text-muted">Square photos on a plain background work best. They're resized automatically.</p>
+        <p className="text-xs text-muted">Best results: the whole product in the middle of the photo, in good light. Photos are resized automatically.</p>
       </Card>
 
       <Card title="Details">

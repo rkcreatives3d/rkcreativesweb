@@ -25,28 +25,61 @@ export default function ReviewsPage() {
           </span>
         </p>
       ) : (
-        <p className="mt-4 max-w-xl text-muted">No reviews yet. Bought something from us? Be the first to tell others what you think.</p>
+        <p className="mt-4 max-w-xl text-muted">Bought something from us? Tell others what you think, with a photo of your print.</p>
       )}
 
-      <div className="mt-10 grid gap-10 lg:grid-cols-[1.4fr_1fr] lg:gap-14">
-        <section aria-label="Customer reviews" className="order-2 lg:order-1">
-          {reviews.length ? (
+      {reviews.length ? (
+        <div className="mt-10 grid gap-10 lg:grid-cols-[1.4fr_1fr] lg:gap-14">
+          <section aria-label="Customer reviews" className="order-2 lg:order-1">
             <div className="grid gap-4 sm:grid-cols-2">
               {reviews.map((r, i) => (
                 <ReviewCard key={r.id ?? i} review={r} />
               ))}
             </div>
-          ) : (
-            <p className="rounded-3xl border border-dashed border-line p-8 text-center text-muted">Reviews customers send appear here, with their photos.</p>
-          )}
-        </section>
-        <section id="write" aria-labelledby="write-title" className="order-1 lg:order-2 lg:sticky lg:top-28 lg:self-start">
-          <h2 id="write-title" className="mb-4 font-display text-2xl font-extrabold display-case">
-            Write a review
-          </h2>
-          <ReviewForm />
-        </section>
-      </div>
+          </section>
+          <section id="write" aria-labelledby="write-title" className="order-1 lg:order-2 lg:sticky lg:top-28 lg:self-start">
+            <h2 id="write-title" className="mb-4 section-title text-2xl">
+              Write a review
+            </h2>
+            <ReviewForm />
+          </section>
+        </div>
+      ) : (
+        // no reviews yet: the form, with a few pointers beside it on wide screens (no empty list)
+        <div className="mt-10 grid gap-10 lg:grid-cols-[minmax(0,36rem)_minmax(0,22rem)] lg:gap-16">
+          <section id="write" aria-labelledby="write-title">
+            <h2 id="write-title" className="mb-4 section-title text-2xl">
+              Write a review
+            </h2>
+            <ReviewForm />
+          </section>
+          <aside aria-labelledby="tips-title" className="hidden lg:block lg:pt-12">
+            <div className="card-lift rounded-3xl p-6">
+              <h2 id="tips-title" className="section-title text-xl">
+                What helps other buyers
+              </h2>
+              <ul className="mt-4 space-y-4 text-sm leading-relaxed text-fg/80">
+                {[
+                  ["📷", "A photo in daylight, with something next to it for size."],
+                  ["🎨", "How the colour and finish look in person."],
+                  ["📦", "How it was packed, and how long it took to arrive."],
+                ].map(([icon, text]) => (
+                  <li key={text} className="flex gap-3">
+                    <span aria-hidden className="text-lg leading-6">
+                      {icon}
+                    </span>
+                    {text}
+                  </li>
+                ))}
+              </ul>
+              <p className="mt-5 border-t border-line pt-4 text-xs text-muted">
+                Reviews go up once we&apos;ve read them, usually within a day. Something wrong with your order? Message us on WhatsApp first and we&apos;ll put it
+                right.
+              </p>
+            </div>
+          </aside>
+        </div>
+      )}
     </div>
   );
 }

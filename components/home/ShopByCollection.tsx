@@ -27,7 +27,7 @@ export function ShopByCollection() {
             <li key={c.name}>
               <Link
                 href={`/shop/?c=${encodeURIComponent(c.name)}`}
-                className="group flex h-full items-center gap-3 overflow-hidden rounded-2xl border border-line bg-surface p-2.5 pr-3 transition-colors hover:border-fg/30"
+                className="card-lift group flex h-full items-center gap-3 overflow-hidden rounded-2xl p-2.5 pr-3 transition-shadow hover:shadow-md"
               >
                 <span className="stage relative grid h-14 w-14 shrink-0 place-items-center overflow-hidden rounded-xl">
                   {pic && (

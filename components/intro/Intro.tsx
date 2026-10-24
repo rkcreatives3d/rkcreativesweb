@@ -3,12 +3,14 @@
 import { useEffect, useRef, useState } from "react";
 import { site } from "@/lib/site";
 
-const EMBLEM_SRCSET = "/brand/emblem-360.webp 360w, /brand/emblem-480.webp 480w, /brand/emblem-720.webp 720w";
+// the same cut-out logo the cover shows, so the hand-off matches
+const LOGO_SRCSET = "/brand/logo-cut-480.webp 480w, /brand/logo-cut-720.webp 720w";
 
 /**
- * Opening animation: the logo's emblem prints itself on a print bed, layer by
- * layer, with the nozzle sweeping each layer; the layer lines fuse, a sheen
- * passes over it, and the page lifts away like a curtain (about 3 seconds).
+ * Opening animation: the logo prints itself on a print bed, layer by layer,
+ * with the nozzle sweeping each layer; the layer lines fuse, a sheen passes
+ * over it, and the page lifts away like a curtain onto the same logo on the
+ * cover (about 3 seconds).
  *
  * It's all CSS (see "opening animation" in globals.css) on markup that's in
  * the static HTML, so it starts with the first paint and never waits for
@@ -48,7 +50,7 @@ export function Intro() {
           <div className="intro-window">
             <div className="intro-print">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/brand/emblem-480.webp" srcSet={EMBLEM_SRCSET} sizes="min(58vw, 38vh)" alt="" width={480} height={408} fetchPriority="high" />
+              <img src="/brand/logo-cut-480.webp" srcSet={LOGO_SRCSET} sizes="min(64vw, 42vh)" alt="" width={480} height={480} fetchPriority="high" />
               <span className="intro-lines" />
               <span className="intro-shine" />
             </div>
@@ -59,12 +61,6 @@ export function Intro() {
         </span>
         <span className="intro-bed" />
       </div>
-      <p className="intro-readout" aria-hidden>
-        <span>{site.handle}</span>
-        <span>
-          Layer <span className="intro-count" /> / 120
-        </span>
-      </p>
       {/* the boot script's click listener does the skipping */}
       <button type="button" className="intro-skip-btn">
         Skip

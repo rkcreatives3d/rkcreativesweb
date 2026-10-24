@@ -26,12 +26,15 @@ export function CardScene({
   pointer,
   standIn = false,
   onShown,
+  animateIn = true,
 }: {
   shape: Shape;
   model?: string;
   finish: string;
   active: boolean;
   inView: boolean;
+  /** print in as it scrolls into view (first row only); false = simply there */
+  animateIn?: boolean;
   delay?: number;
   pointer?: { current: { x: number; y: number } };
   /** a studio picture is standing in until this model is ready */
@@ -40,7 +43,7 @@ export function CardScene({
   onShown?: () => void;
 }) {
   // the visitor is already looking at the stand-in picture: swap to 3D in place, no print-in
-  const [instant] = useState(() => standIn && inView);
+  const [instant] = useState(() => (standIn && inView) || !animateIn);
   const g = useRef<THREE.Group>(null!);
   const invalidate = useThree((s) => s.invalidate);
   useEffect(() => invalidate(), [active, invalidate]);

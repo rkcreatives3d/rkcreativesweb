@@ -21,7 +21,7 @@ export default function PersonalisePage() {
       <h1 className="font-display text-6xl font-extrabold display-case leading-[0.88] tracking-tight sm:text-8xl">
         <KineticText text="Your name" />
         <br />
-        <KineticText text="in gold" shine delay={0.15} />
+        <KineticText text="in gold" delay={0.15} />
       </h1>
       <ol className="mb-10 mt-6 flex flex-wrap gap-x-8 gap-y-2 text-sm text-muted">
         {steps.map(([t, d], i) => (

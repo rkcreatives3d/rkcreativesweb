@@ -30,7 +30,7 @@ export default function CustomPage() {
             <h1 className="mt-4 font-display text-5xl font-extrabold display-case leading-[0.88] tracking-tight sm:text-7xl lg:text-8xl">
               <KineticText text="Custom" />
               <br />
-              <KineticText text="prints" holo delay={0.15} />
+              <KineticText text="prints" delay={0.15} />
             </h1>
             <p className="mt-5 max-w-md text-lg text-muted sm:mt-6">
               <span className="font-semibold text-fg">Dream it up, we print it.</span> Cosplay props, replacement parts, personalised
@@ -73,7 +73,7 @@ export default function CustomPage() {
       <BeforeAfter items={beforeAfter} />
 
       <section className="mx-auto max-w-3xl px-5 py-20 sm:px-8" aria-labelledby="request">
-        <h2 id="request" className="font-display text-4xl font-extrabold display-case leading-none tracking-tight sm:text-5xl">
+        <h2 id="request" className="section-title text-3xl sm:text-[2.6rem]">
           Tell us about it
         </h2>
         <p className="mb-8 mt-3 text-muted">The more detail, the faster and closer the quote.</p>

@@ -12,7 +12,7 @@ export function PhotoGrid({ photos, label, title, highlight }: { photos: Photo[]
     <section className="mx-auto max-w-7xl px-5 py-20 sm:px-8">
       <SectionLabel>{label}</SectionLabel>
       <Reveal y={24}>
-        <h2 className="mt-4 font-display text-4xl font-extrabold display-case leading-none tracking-tight sm:text-5xl">
+        <h2 className="mt-4 section-title text-3xl sm:text-[2.6rem]">
           {title} {highlight}
         </h2>
       </Reveal>
@@ -40,7 +40,7 @@ export function Reviews({ reviews }: { reviews: Review[] }) {
         <div>
           <SectionLabel>Reviews</SectionLabel>
           <Reveal y={24}>
-            <h2 className="mt-4 font-display text-4xl font-extrabold display-case leading-none tracking-tight sm:text-5xl">
+            <h2 className="mt-4 section-title text-3xl sm:text-[2.6rem]">
               Loved by people
             </h2>
           </Reveal>
@@ -72,7 +72,7 @@ export function InstagramGrid({ posts }: { posts: (Photo & { href: string })[] }
         <div>
           <SectionLabel>On Instagram</SectionLabel>
           <Reveal y={24}>
-            <h2 className="mt-4 font-display text-4xl font-extrabold display-case leading-none tracking-tight sm:text-5xl">
+            <h2 className="mt-4 section-title text-3xl sm:text-[2.6rem]">
               Fresh from the studio
             </h2>
           </Reveal>

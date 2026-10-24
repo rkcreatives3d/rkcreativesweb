@@ -5,30 +5,32 @@
   --font-sans: var(--font-manrope), ui-sans-serif, system-ui, sans-serif;
 }
 
-/* Beige palette: warm paper, espresso ink, the logo's amber and gold.
+/* Beige palette: warm paper, espresso ink, ONE accent (the logo's amber).
    Colour roles (keep to them):
-     amber     = actions: solid buttons (accent-fill), links and the cart count (accent)
-     bronze    = brand decoration: badges, labels, accent words (pop)
-     espresso  = text; warm greys = secondary text
+     amber       = the only accent: solid buttons (accent-fill, the bright one),
+                   links, badges, accent words (accent / pop, the deep one)
+     espresso    = text; warm greys = secondary text
+     surfaces    = beige page; white cards and panels lifted by a soft shadow;
+                   page-2 = the one darker band, for alternate sections
      danger / ok = errors and confirmations
-     deep amber = keyboard focus only
+     deep amber  = keyboard focus only
    Every text colour here passes WCAG AA (4.5:1) on page, page-2 and surface. */
 @theme {
   --color-page: #efe6d8; /* beige paper */
-  --color-surface: #f7f1e7; /* cards, panels: a shade lighter than the page */
-  --color-raised: #fbf8f2; /* inputs, drawers */
-  --color-line: #dccfba; /* borders */
-  --color-page-2: #e9dfcf; /* alternate sections */
+  --color-surface: #fffdf9; /* cards and panels: warm white on the beige page */
+  --color-raised: #f7f2ea; /* inputs and wells inside white panels */
+  --color-line: #e2d5c1; /* borders */
+  --color-page-2: #e7dcca; /* the darker band for alternate sections */
   --color-fg: #2a2119; /* espresso */
   --color-muted: #66574a;
   --color-accent: #9c4a08; /* burnt amber: links, small actions */
   --color-accent-fill: #e8891a; /* molten amber from the logo: solid buttons */
   --color-on-accent: #2a2119;
   --color-accent-2: #7a3f08; /* deep amber: focus rings */
-  --color-accent-3: #a8681c; /* deep gold, gradient stop only */
   --color-gold: #c08a3e; /* brushed gold: soft background glows only */
-  --color-pop: #765524; /* antique bronze: decoration */
-  --color-on-pop: #fbf6ee;
+  /* decoration uses the same deep amber as links: one accent family, two lightnesses */
+  --color-pop: #9c4a08;
+  --color-on-pop: #fffdf9;
   --color-danger: #a8231b;
   --color-ok: #17683f;
   /* readable minimums: body copy 15px, small labels 13px */
@@ -41,13 +43,10 @@
 :root {
   color-scheme: light;
   /* brushed-gold sheen for highlighted words, kept dark enough to read on beige */
-  --grad: linear-gradient(100deg, #6e3f0e, #9c5a14 20%, #b8741f 38%, #b5560a 58%, #9c5a14 78%, #6e3f0e);
-  --on-grad: #fbf6ee;
   --display-weight: 800;
   --display-case: uppercase;
   --display-stretch: normal; /* the font file is already semi-condensed */
   --holo-style: normal;
-  --hue-anim: none;
   --glow-a: 14%;
   --glow-b: 9%;
 }
@@ -98,21 +97,7 @@ html.intro-done .hero-in {
   }
 }
 
-/* photos sway gently in 3D when nobody is hovering them */
-.tilt-idle {
-  animation: tilt-idle 7s ease-in-out infinite;
-}
-@keyframes tilt-idle {
-  0%,
-  100% {
-    transform: rotateX(3deg) rotateY(-7deg) scale(1.02);
-  }
-  50% {
-    transform: rotateX(-3deg) rotateY(7deg) scale(1.02);
-  }
-}
 @media (prefers-reduced-motion: reduce) {
-  .tilt-idle,
   .logo-float,
   .hero-in {
     animation: none;
@@ -122,10 +107,6 @@ html.intro-done .hero-in {
 /* Lite mode (budget phones): keep the look, drop the effects that cost the
    most on a weak graphics chip: background blur behind glass panels, and
    endless animations that repaint every frame. */
-.lite .holo-text,
-.lite .holo-pan,
-.lite .holo-hue,
-.lite .tilt-idle,
 .lite .logo-float {
   animation: none;
 }
@@ -202,7 +183,7 @@ html.intro-done .hero-in {
 }
 
 /* ── opening animation ─────────────────────────────────
-   The logo's emblem prints itself on a bed, layer by layer, then the page
+   The logo prints itself on a bed, layer by layer, then the page
    lifts away (components/intro/Intro.tsx). Pure CSS on markup that's in the
    static HTML: it starts with the first paint and never waits for JavaScript.
    It animates transforms and opacity, plus one small image revealed in steps,
@@ -214,14 +195,9 @@ html.intro-done .hero-in {
 .no-intro #intro {
   display: none !important;
 }
-@property --layer {
-  syntax: "<integer>";
-  inherits: false;
-  initial-value: 0;
-}
 #intro {
-  --w: min(58vw, 38vh); /* print size */
-  --h: calc(var(--w) * 0.8495); /* the emblem is 930 × 790 */
+  --w: min(64vw, 42vh); /* print size */
+  --h: var(--w); /* the logo is square */
   --print-at: 0.45s;
   --print: 1.6s;
   --layers: 40;
@@ -298,8 +274,8 @@ html.intro-skipped #intro {
   position: absolute;
   inset: 0;
   overflow: hidden;
-  -webkit-mask: url(/brand/emblem-480.webp) center / 100% 100% no-repeat;
-  mask: url(/brand/emblem-480.webp) center / 100% 100% no-repeat;
+  -webkit-mask: url(/brand/logo-cut-480.webp) center / 100% 100% no-repeat;
+  mask: url(/brand/logo-cut-480.webp) center / 100% 100% no-repeat;
 }
 .intro-lines {
   background: repeating-linear-gradient(to top, rgb(255 238 205 / 0.5) 0 1px, transparent 1px calc(var(--h) / var(--layers)));
@@ -393,37 +369,6 @@ html.intro-skipped #intro {
     transform: scaleX(1);
   }
 }
-.intro-readout {
-  display: flex;
-  justify-content: space-between;
-  gap: 1rem;
-  width: min(92vw, max(calc(var(--w) * 1.24), 19rem));
-  margin-top: 1.4rem;
-  white-space: nowrap;
-  font: 600 10px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: var(--color-muted);
-  font-variant-numeric: tabular-nums;
-  opacity: 0;
-  animation: intro-appear 0.4s ease 0.3s forwards;
-}
-.intro-count {
-  display: inline-block;
-  min-width: 3ch;
-  text-align: right;
-  color: var(--color-accent);
-  counter-reset: layer var(--layer);
-  animation: intro-count var(--print) steps(120, end) var(--print-at) forwards;
-}
-.intro-count::after {
-  content: counter(layer);
-}
-@keyframes intro-count {
-  to {
-    --layer: 120;
-  }
-}
 .intro-skip-btn {
   position: absolute;
   top: max(1.25rem, env(safe-area-inset-top));
@@ -486,6 +431,25 @@ body::before {
     #f3ebdf;
 }
 
+/* Two heading voices: page titles in Saira's heavy caps (the brand), section
+   titles in Manrope, sentence case, tight: calmer, so the page doesn't shout. */
+.section-title {
+  font-family: var(--font-sans);
+  font-weight: 800;
+  letter-spacing: -0.035em;
+  line-height: 1.04;
+  text-transform: none;
+}
+
+/* white cards lifted off the beige page */
+.card-lift {
+  background: var(--color-surface);
+  border: 1px solid color-mix(in oklab, var(--color-line) 70%, transparent);
+  box-shadow:
+    0 1px 2px rgb(42 33 25 / 0.05),
+    0 10px 28px -14px rgb(42 33 25 / 0.22);
+}
+
 /* headings wrap into even lines, never leaving one word alone at the end */
 h1,
 h2,
@@ -534,44 +498,10 @@ h3 {
 }
 
 /* ── highlighted text ─────────────────────────────── */
+/* accent words: the deep amber, still (no shimmer pulling the eye from the buttons) */
 .holo-text {
-  background: var(--grad);
-  background-size: 200% 100%;
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+  color: var(--color-accent);
   font-style: var(--holo-style);
-  animation: holo-pan 6s linear infinite;
-}
-
-.holo-pan {
-  background-image: var(--grad);
-  background-size: 200% 100%;
-  animation: holo-pan 6s linear infinite;
-}
-
-@keyframes holo-pan {
-  to {
-    background-position: 200% 0;
-  }
-}
-
-.holo-letter {
-  background-image: var(--grad);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-}
-
-.holo-hue {
-  font-style: var(--holo-style);
-  animation: var(--hue-anim) 7s linear infinite;
-}
-
-@keyframes holo-hue {
-  to {
-    filter: hue-rotate(360deg);
-  }
 }
 
 /* ── buttons ──────────────────────────────────────
@@ -615,26 +545,6 @@ h3 {
 .btn:disabled {
   opacity: 0.5;
   pointer-events: none;
-}
-
-/* ── marquee ──────────────────────────────────────── */
-.marquee-track {
-  display: flex;
-  width: max-content;
-  animation: marquee 32s linear infinite;
-}
-.marquee-track.reverse {
-  animation-direction: reverse;
-}
-@keyframes marquee {
-  to {
-    transform: translateX(-50%);
-  }
-}
-
-.text-outline {
-  color: transparent;
-  -webkit-text-stroke: 1px color-mix(in oklab, var(--color-fg) 60%, transparent);
 }
 
 /* ── surfaces ─────────────────────────────────────── */
@@ -693,28 +603,4 @@ h3 {
     linear-gradient(color-mix(in oklab, var(--color-fg) 6%, transparent) 1px, transparent 1px),
     linear-gradient(90deg, color-mix(in oklab, var(--color-fg) 6%, transparent) 1px, transparent 1px);
   background-size: 40px 40px;
-}
-
-.grid-bg-accent {
-  background-image:
-    linear-gradient(color-mix(in oklab, var(--color-fg) 4%, transparent) 1px, transparent 1px),
-    linear-gradient(90deg, color-mix(in oklab, var(--color-fg) 4%, transparent) 1px, transparent 1px);
-  background-size: 32px 32px;
-}
-
-.footer-giant {
-  font-size: clamp(1.5rem, 6.6vw, 6rem);
-  background: linear-gradient(180deg, color-mix(in oklab, var(--color-fg) 90%, transparent), color-mix(in oklab, var(--color-fg) 5%, transparent) 85%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .marquee-track,
-  .holo-text,
-  .holo-hue,
-  .holo-pan {
-    animation: none;
-  }
 }

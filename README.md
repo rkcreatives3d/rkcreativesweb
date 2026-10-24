@@ -52,7 +52,7 @@ To change the password, change `OWNER_PASSWORD` and redeploy: that also signs ou
 - **Products:** add, edit, duplicate, hide/show, delete, reorder (the shop shows them in this order), and change prices straight from the list.
 - **Each product:** name, short line, description, category (or a new one), badge, starting price, sizes with their own measurement and extra price, colours and the main colour, material, print time, personalisation, the occasions it shows under, and its own customer questions.
 - **3D model:** upload the STL, 3MF (Bambu Studio, Orca, PrusaSlicer), OBJ or GLB you print from and see it in 3D straight away, in every colour. Customers get it in 3D, 360° and AR.
-- **Photos:** upload, reorder (the first is the cover), remove. Big phone photos are resized automatically.
+- **Photos:** upload, reorder (the first is the cover), remove. Big phone photos are resized automatically. **Clean up the background** (on by default) cuts the product out of the photo and puts it on the shop's light studio background with a soft shadow, sized and placed like every other product, so a photo taken on a table at home looks like the studio pictures. ✨ on a photo does the same for one that's already there. It runs in your browser (a small AI model, `public/vendor/u2netp.onnx`, about 4.5 MB, downloaded the first time); if it can't find the product clearly, the photo is kept as taken. Best results: the product near the middle, on a plain surface, with nothing else touching it.
 - **Colours:** add a filament colour (name, colour, matte / silk / glossy), edit or remove one.
 - **Shop settings:** WhatsApp number, order email, Instagram, city and PIN code, website address, UPI ID and name, card payment link, cash on delivery (fee, order limit), shipping fee and free-shipping amount, days to print and pack, name/message price, courier and tracking page, business details, review link, categories.
 
@@ -157,7 +157,7 @@ Customers can tap or hover over the colour swatches on shop cards and product pa
 ## Features
 
 - **Cover page:** what you sell, at a glance: a headline, the starting price, dispatch time and "Pay by UPI", and the two main buttons, beside your logo in 3D with printed objects orbiting it (stacked on phones, sized so the buttons are on the first screen even on a small phone). The headline fades in with plain CSS, so it never waits for JavaScript on a slow phone.
-- **Opening animation** (`components/intro/Intro.tsx`, styles under "opening animation" in `app/globals.css`): a print bed draws in, your logo's emblem prints itself on it layer by layer while a glowing nozzle sweeps each layer and a layer counter ticks up, the layer lines fuse, a sheen passes over it, and the page lifts away like a curtain. About 3 seconds, on the home page only, once per visit; tap, Esc or "Skip" to skip it. It's plain CSS in the page's HTML (no 3D, no waiting for JavaScript), so it plays smoothly on budget phones too. Not shown to people who prefer reduced motion. Timings are the `--print-at`, `--print` and delay values there; the printed picture is `public/brand/emblem-*.webp` (made by `scripts/make-icons.py`).
+- **Opening animation** (`components/intro/Intro.tsx`, styles under "opening animation" in `app/globals.css`): a print bed draws in, your logo prints itself on it layer by layer while a glowing nozzle sweeps each layer, the layer lines fuse, a sheen passes over it, and the page lifts away like a curtain onto the same logo on the cover. About 3 seconds, on the home page only, once per visit; tap, Esc or "Skip" to skip it. It's plain CSS in the page's HTML (no 3D, no waiting for JavaScript), so it plays smoothly on budget phones too. Not shown to people who prefer reduced motion. Timings are the `--print-at`, `--print` and delay values there; the printed picture is the cover's cut-out logo, `public/brand/logo-cut-*.webp`.
 - **Personalise** (`/personalise/`, and the second section of the home page): type a name and see it as a live 3D keychain or desk nameplate. Pick a lettering style (Bold, Script, Bubbly), an icon (heart, star, crown, paw, bolt) and a colour, and switch the preview to "On keys" or "On a desk" to judge the size. The choices go into the cart and the order message.
 - **Shop on a phone:** two products per row, each with a round "+" to add it straight away and a heart to save it; filters in one sideways-scrolling row; search and sort on one line. Adding from a card pops up "Added to cart" with "View cart" and "Checkout".
 - **Saved and recently viewed:** the heart keeps products in a "Saved" list (`/saved/`, under Menu), and the last 8 products someone looked at show as "Recently viewed" on the shop, product and Saved pages. Both live in the visitor's browser only, no account needed.
@@ -221,22 +221,25 @@ Security headers and long caching for static files come with the repo: `vercel.j
 A light beige theme. Each colour has one job, so the page stays easy to read (see the top of `app/globals.css`):
 
 - **Amber:** things you can click. Solid buttons use the logo's molten amber (`accent-fill`) with dark text; links and small actions use a deeper burnt amber (`accent`) so they stay readable on beige.
-- **Bronze** (`pop`): brand decoration: badges, labels, highlighted words. The gold gradient is kept for a few big moments only.
+- **Deep amber** (`pop`): brand decoration: badges, small labels and stars. Highlighted words in headlines use the burnt amber (`accent`). No gradients or shimmer on text.
 - **Espresso and warm greys:** text. **Red** (`danger`) for errors, **green** (`ok`) for confirmations. **Deep amber** (`accent-2`) shows keyboard focus.
-- **Surfaces:** a beige page with lighter cards (`surface`), near-white inputs and drawers (`raised`), and soft tan borders (`line`). The "Type a name" band on the home page is the one dark section.
-- **The logo:** on the home page cover it's cut out of its black square (`public/brand/logo-cut-*.webp`, made by `python3 scripts/cutout-logo.py`), so it sits straight on the beige with a soft shadow. The opening animation still prints it as a black tile. The nav icon, the browser-tab icon and the home-screen icon are cut from it too (`python3 scripts/make-icons.py`): the emblem (printer, RK and spool) for the nav and home screen, just the RK letters for the tiny tab icon.
+- **Surfaces, in three depths:** the beige page; near-white cards that lift off it with a soft shadow (`surface`, the `card-lift` class: products, collections, reviews); and a deeper beige (`page-2`) for the "Type a name" band and the footer, so the page has rhythm. Inputs and drawers are `raised`, borders soft tan (`line`).
+- **The logo:** on the home page cover it's cut out of its black square (`public/brand/logo-cut-*.webp`, made by `python3 scripts/cutout-logo.py`), so it sits straight on the beige with a soft shadow. The opening animation prints the same cut-out logo, so the hand-off to the cover matches. The nav icon, the browser-tab icon and the home-screen icon are cut from it too (`python3 scripts/make-icons.py`): the emblem (printer, RK and spool) for the nav and home screen, just the RK letters for the tiny tab icon.
 
 Every text colour passes WCAG AA contrast on the page, the cards and the alternate sections (the accessibility tests check this).
+
+**Type:** two heading styles. The tall condensed capitals (`font-display display-case`) are for the few loud moments: the cover headline, page titles, product names. Section headings ("Collections", "Fresh off the bed") use the bold sans in sentence case (`section-title`), so the page doesn't shout everywhere.
 
 Products are shown on a light, near-neutral stage with white studio light, so a white print looks white and a black print reads as black. The warm amber light is used only for the cover and the intro.
 
 ## Product animations
 
-- **Print-in:** each product model prints itself in, layer by layer from the bed up, with a hot amber line where the nozzle would be, while the turntable swings round to its resting angle. Cards print as they scroll into view, one after another along each row. The product page prints its model when it opens.
+- **Print-in:** each product model prints itself in, layer by layer from the bed up, with a hot amber line where the nozzle would be, while the turntable swings round to its resting angle. Only the first row of cards on a page prints in (the home page's first three, the shop's first domain); the rest are simply there, so scrolling stays calm. The product page prints its model when it opens.
 - **Filament swap:** picking another colour runs the new colour up the model from the bottom, as if the filament had been changed mid-print.
 - **Hover:** a product card's model lifts off the bed and turns to follow the cursor, then settles back when the mouse leaves.
 - **Lite mode:** the flat stand-in art prints in with CSS.
 - **Reduced motion:** visitors who ask for less motion see every model already printed, and colour changes simply fade.
+- **Kept quiet on purpose:** headlines fade up once (no letter-by-letter or shimmer), photos sit still until you touch them, the cover logo floats gently with nothing orbiting it, adding to the cart gives one clear signal (the cart icon bumps and the cart opens, or a short "Added to cart" note from a card's +), and the WhatsApp button appears only after you've scrolled, tucks away while you scroll down and stays out of the footer.
 
 All of this is two shader hooks on the product material (`components/three/Studio.tsx`). The canvas only draws while something is moving.
 
@@ -254,3 +257,5 @@ The opening animation uses its own temporary canvas. Gold and metal finishes ref
 
 - `public/vendor/model-viewer-4.3.1.min.js`: Google's [model-viewer](https://modelviewer.dev) for "View in your room" (Apache-2.0, see `model-viewer-LICENSE.txt`). It only loads when someone opens the AR view.
 - `lib/fonts/pacifico.typeface.json` and `titan-one.typeface.json`: converted from the Pacifico and Titan One fonts (SIL Open Font License, see `lib/fonts/OFL-*.txt`).
+- `public/vendor/u2netp.onnx`: the small [U²-Net](https://github.com/xuebinqin/U-2-Net) model that finds the product in a photo for "Clean up the background" (Apache-2.0, see `u2netp-LICENSE.txt`). Only the shop manager loads it.
+- [ONNX Runtime Web](https://github.com/microsoft/onnxruntime) (`onnxruntime-web`, MIT) runs that model in the browser; its WebAssembly file is fetched from the jsDelivr CDN when the clean-up first runs.

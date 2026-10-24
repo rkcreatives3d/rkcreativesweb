@@ -1,5 +1,5 @@
 import fs from "node:fs";
-import { expect, test } from "@playwright/test";
+import { expect, type Page, test } from "@playwright/test";
 import { prepare } from "./helpers";
 import { bigSTL, cubeSTL, mockGitHub, TINY_JPEG } from "./github-mock";
 
@@ -77,7 +77,7 @@ test("owner edits a price, adds a product with a 3D file, a colour and settings,
   await page.getByLabel("Starting price").fill("1199");
   await page.locator('input[type="file"][accept=".stl,.3mf,.obj,.glb"]').setInputFiles({ name: "lotus.stl", mimeType: "model/stl", buffer: cubeSTL() });
   await expect(page.getByText("New file: lotus.stl")).toBeVisible();
-  await page.getByRole("switch").check(); // visible in the shop
+  await page.getByRole("switch", { name: /Hidden from customers/ }).check(); // visible in the shop
   await page.getByRole("button", { name: "Done" }).click();
 
   // a new colour, and a settings change
@@ -268,4 +268,73 @@ test("owner approves one waiting review (with its photo) and rejects another; pu
   // both decided reviews leave the inbox, on the inbox branch
   expect(gh.rec.branches).toEqual(["main", "reviews-inbox"]);
   for (const p of ["inbox/r1.json", "inbox/r1.jpg", "inbox/r2.json"]) expect(gh.rec.tree.some((t) => t.path === p && t.sha === null)).toBe(true);
+});
+
+/** The background clean-up's ONNX runtime, served from node_modules instead of the CDN, so tests work offline. */
+const localRuntime = (page: Page) =>
+  page.route("https://cdn.jsdelivr.net/npm/onnxruntime-web@1.30.0/dist/**", (route) => {
+    const file = new URL(route.request().url()).pathname.split("/").pop()!;
+    return route.fulfill({ path: `node_modules/onnxruntime-web/dist/${file}`, contentType: file.endsWith(".wasm") ? "application/wasm" : "text/javascript" });
+  });
+
+test("✨ cleans up a product photo: the product, cut out, on the shop's studio background", async ({ page }) => {
+  test.setTimeout(180_000); // runs a real (small) AI model in the test browser
+  // any product the owner has photographed
+  const shot = (JSON.parse(fs.readFileSync("content/products.json", "utf8")) as { slug: string; name: string; images?: string[] }[]).find(
+    (p) => p.images?.length,
+  );
+  test.skip(!shot, "no product has a photo yet");
+  await prepare(page, { lite: true });
+  await localRuntime(page);
+  const gh = await mockGitHub(page, { password: "open sesame" });
+  await page.goto("/owner/");
+  await page.getByLabel("Password").fill("open sesame");
+  await page.getByRole("button", { name: "Sign in", exact: true }).click();
+  await page.getByRole("listitem").filter({ hasText: shot!.name }).getByRole("button", { name: "Edit" }).click();
+  await page.getByRole("button", { name: "Clean up the background of photo 1" }).click();
+  await expect(page.getByText("Cleaning up the background")).toBeHidden({ timeout: 120_000 });
+  await expect(page.getByRole("alert").filter({ hasText: "Couldn't find" })).toHaveCount(0);
+  await page.getByRole("button", { name: "Publish changes" }).click();
+  const dialog = page.getByRole("dialog", { name: "Publish to the website" });
+  await dialog.getByRole("button", { name: "Publish" }).click();
+  await expect(dialog).toContainText("Published", { timeout: 60_000 });
+  const product = JSON.parse(gh.written("content/products.json")!).find((p: { slug: string }) => p.slug === shot!.slug);
+  expect(product.images[0]).toMatch(new RegExp(`^/products/${shot!.slug}/\\w+-c\\.jpg$`));
+  const photo = gh.raw(`public${product.images[0]}`)!;
+  expect(photo.subarray(0, 3).equals(Buffer.from([0xff, 0xd8, 0xff]))).toBe(true); // a JPEG
+  // the old photo goes
+  expect(gh.rec.tree.some((t) => t.path === `public${shot!.images![0]}` && t.sha === null)).toBe(true);
+  if (process.env.OWNER_SHOTS) fs.writeFileSync(`${process.env.OWNER_SHOTS}/${shot!.slug}-clean.jpg`, photo);
+});
+
+test("new photos are cleaned up as they're added; a price typed meanwhile stays, and a broken file is reported", async ({ page }) => {
+  test.setTimeout(180_000);
+  await prepare(page, { lite: true });
+  await localRuntime(page);
+  const gh = await mockGitHub(page, { password: "open sesame" });
+  const first = (JSON.parse(fs.readFileSync("content/products.json", "utf8")) as { slug: string; name: string; images?: string[] }[])[0];
+  await page.goto("/owner/");
+  await page.getByLabel("Password").fill("open sesame");
+  await page.getByRole("button", { name: "Sign in", exact: true }).click();
+  await page.getByRole("listitem").filter({ hasText: first.name }).getByRole("button", { name: "Edit" }).first().click();
+  await expect(page.getByRole("switch", { name: /Clean up the background/ })).toBeChecked();
+  await page.locator('input[type="file"][accept="image/*"]').setInputFiles([
+    { name: "piece.webp", mimeType: "image/webp", buffer: fs.readFileSync("tests/fixtures/product.webp") },
+    { name: "broken.jpg", mimeType: "image/jpeg", buffer: Buffer.from("not a picture") },
+  ]);
+  await expect(page.getByText("Cleaning up the backgrounds")).toBeVisible();
+  await page.getByLabel("Starting price").fill("1234"); // while it works
+  await expect(page.getByText("Cleaning up the backgrounds")).toBeHidden({ timeout: 120_000 });
+  await expect(page.getByLabel("Starting price")).toHaveValue("1234");
+  await expect(page.getByRole("alert").filter({ hasText: "1 file couldn't be opened" })).toBeVisible();
+
+  await page.getByRole("button", { name: "Publish changes" }).click();
+  const dialog = page.getByRole("dialog", { name: "Publish to the website" });
+  await dialog.getByRole("button", { name: "Publish" }).click();
+  await expect(dialog).toContainText("Published", { timeout: 60_000 });
+  const product = JSON.parse(gh.written("content/products.json")!).find((p: { slug: string }) => p.slug === first.slug);
+  expect(product.price).toBe(1234);
+  expect(product.images).toHaveLength((first.images?.length ?? 0) + 1);
+  const photo = gh.raw(`public${product.images.at(-1)}`)!;
+  expect(photo.subarray(0, 3).equals(Buffer.from([0xff, 0xd8, 0xff]))).toBe(true);
 });

@@ -16,24 +16,37 @@ export function WhatsAppBubble() {
   const pathname = usePathname();
   const [show, setShow] = useState(false);
 
-  // appears once you've scrolled a bit; tucks away while you scroll down (so it
-  // never sits on top of prices and buttons) and comes back when you pause or scroll up
+  // appears after a good scroll and stays out of the footer (which has its own
+  // WhatsApp link). While you scroll down (reading) it tucks away so it never sits on
+  // prices and buttons; scrolling up brings it back. On wider screens, where it sits in
+  // the margin, it also comes back when you pause.
   useEffect(() => {
     let last = window.scrollY;
     let idle = 0;
+    let atFooter = false;
+    const wide = window.matchMedia("(min-width: 640px)");
+    const allowed = () => window.scrollY > window.innerHeight * 1.2 && !atFooter;
     const onScroll = () => {
       const y = window.scrollY;
-      const past = y > window.innerHeight * 0.6;
-      setShow(past && y < last);
+      if (y < last - 2) setShow(allowed());
+      else if (y > last + 2) setShow(false);
+      else if (!allowed()) setShow(false);
       last = y;
       clearTimeout(idle);
-      idle = window.setTimeout(() => setShow(window.scrollY > window.innerHeight * 0.6), 900);
+      if (wide.matches) idle = window.setTimeout(() => setShow(allowed()), 900);
     };
+    const footer = document.querySelector("footer");
+    const io = new IntersectionObserver(([e]) => {
+      atFooter = e.isIntersecting;
+      if (atFooter) setShow(false);
+    });
+    if (footer) io.observe(footer);
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => {
       window.removeEventListener("scroll", onScroll);
       clearTimeout(idle);
+      io.disconnect();
     };
   }, [pathname]);
 
@@ -51,7 +64,7 @@ export function WhatsAppBubble() {
           initial={{ scale: 0, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0, opacity: 0 }}
-          className="fixed bottom-[max(1rem,env(safe-area-inset-bottom))] left-[max(1rem,env(safe-area-inset-left))] z-[45] sm:left-auto sm:right-[max(1rem,env(safe-area-inset-right))] grid h-12 w-12 place-items-center rounded-full border border-fg bg-fg text-[#25D366] shadow-[0_8px_24px_-6px_rgba(42,33,25,0.45)] transition-colors hover:border-[#25D366]/60 sm:bottom-7 sm:right-7"
+          className="fixed bottom-[max(1rem,env(safe-area-inset-bottom))] left-[max(1rem,env(safe-area-inset-left))] z-[45] sm:left-auto sm:right-[max(1rem,env(safe-area-inset-right))] grid h-11 w-11 place-items-center rounded-full border border-fg bg-fg text-[#25D366] shadow-[0_8px_24px_-6px_rgba(42,33,25,0.45)] transition-colors hover:border-[#25D366]/60 sm:bottom-7 sm:right-7"
         >
           <span className="relative scale-125">
             <WhatsAppIcon />

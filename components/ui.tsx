@@ -1,27 +1,18 @@
 "use client";
 
 import Link from "next/link";
-import { motion, type Variants } from "motion/react";
-
-const letter: Variants = {
-  hidden: { y: "110%", rotate: 8 },
-  show: (delay: number) => ({ y: "0%", rotate: 0, transition: { duration: 0.9, delay, ease: [0.16, 1, 0.3, 1] } }),
-};
+import { motion } from "motion/react";
 
 /**
- * Letters rise out of a mask, staggered. Words never break mid-word.
- * The in-view trigger sits on the whole line: each hidden letter is clipped by
- * its word's mask, so an observer on a narrow letter ("i") would never fire.
- * `holo` colours the words brand gold. `shine` uses the brushed-gold
- * gradient instead: save it for one or two big moments. background-clip:text
- * ignores transformed children, so each letter carries its own slice of one
- * shared gradient, offset so it reads as continuous across the word.
+ * A title (or part of one) that fades up once as it comes into view: one calm
+ * movement, not letter by letter. `holo` / `shine` are kept for old call sites
+ * and now just mean "in the accent colour"; page titles are single-colour, and
+ * only the home page headline uses the accent.
  */
 export function KineticText({
   text,
   className = "",
   delay = 0,
-  stagger = 0.03,
   holo = false,
   shine = false,
 }: {
@@ -32,48 +23,16 @@ export function KineticText({
   holo?: boolean;
   shine?: boolean;
 }) {
-  const gold = holo && !shine;
-  holo = shine;
-  const words = text.split(" ");
-  const total = text.replace(/ /g, "").length;
-  let i = 0;
   return (
     <motion.span
-      className={`${className} ${holo ? "holo-hue" : ""} ${gold ? "text-pop" : ""}`}
-      initial="hidden"
-      whileInView="show"
+      data-reveal
+      className={`inline-block ${holo || shine ? "text-accent" : ""} ${className}`}
+      initial={{ opacity: 0, y: 14 }}
+      whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-5% 0px" }}
+      transition={{ duration: 0.7, delay, ease: [0.16, 1, 0.3, 1] }}
     >
-      {/* screen readers get the plain words; the animated letters are hidden from them */}
-      <span className="sr-only">{text}</span>
-      {words.map((word, w) => (
-        <span key={w} aria-hidden className="inline-block whitespace-nowrap overflow-hidden pb-[0.08em] -mb-[0.08em] align-bottom">
-          {word.split("").map((ch) => {
-            const idx = i++;
-            const d = delay + idx * stagger;
-            return (
-              <motion.span
-                key={idx}
-                data-reveal
-                className={`inline-block will-change-transform ${holo ? "holo-letter" : ""}`}
-                style={
-                  holo
-                    ? {
-                        backgroundSize: `${total * 100}% 100%`,
-                        backgroundPosition: `${total > 1 ? (idx / (total - 1)) * 100 : 0}% 0`,
-                      }
-                    : undefined
-                }
-                variants={letter}
-                custom={d}
-              >
-                {ch}
-              </motion.span>
-            );
-          })}
-          {w < words.length - 1 && <span className="inline-block">&nbsp;</span>}
-        </span>
-      ))}
+      {text}
     </motion.span>
   );
 }
@@ -151,26 +110,8 @@ export function Button({
 export function Heading({ children, className = "" }: { children: React.ReactNode; className?: string }) {
   return (
     <Reveal y={24}>
-      <h2 className={`font-display font-extrabold display-case leading-[0.92] tracking-tight ${className}`}>{children}</h2>
+      <h2 className={`section-title ${className}`}>{children}</h2>
     </Reveal>
-  );
-}
-
-export function Marquee({ items, reverse = false, className = "" }: { items: string[]; reverse?: boolean; className?: string }) {
-  const row = items.flatMap((t, i) => [
-    <span key={`t${i}`}>{t}</span>,
-    <span key={`s${i}`} aria-hidden className="mx-6 inline-block opacity-60">
-      •
-    </span>,
-  ]);
-  return (
-    <div className={`overflow-hidden whitespace-nowrap ${className}`}>
-      <p className="sr-only">{items.join(", ")}</p>
-      <div className={`marquee-track ${reverse ? "reverse" : ""}`} aria-hidden>
-        <div className="flex shrink-0 items-center">{row}</div>
-        <div className="flex shrink-0 items-center">{row}</div>
-      </div>
-    </div>
   );
 }
 

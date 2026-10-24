@@ -9,7 +9,7 @@ import { modelFor } from "@/lib/models";
 import { renderFor } from "@/lib/renders";
 import { useCart } from "@/lib/cart";
 import { formatPrice } from "@/lib/site";
-import { flyToCart } from "@/lib/fly";
+import { bumpCart } from "@/lib/fly";
 import { useLiteMode } from "@/lib/lite";
 import { useToast } from "@/lib/toast";
 import { track } from "@/lib/track";
@@ -26,7 +26,9 @@ const NARROW_SWATCHES = 4;
  * A product in a grid. Two per row on phones (compact: "+" on the picture),
  * three on desktop. Tap a colour to see it, the heart to save it.
  */
-export function ProductCard({ product: p, index = 0 }: { product: Product; index?: number }) {
+export function ProductCard({ product: p, index = 0, printIn }: { product: Product; index?: number; printIn?: boolean }) {
+  // the print-in is a first-row moment; further down products are simply there
+  const animateIn = printIn ?? index < 3;
   const [hovered, setHovered] = useState(false);
   const ref = useRef<HTMLElement>(null);
   const inView = useInView(ref, { once: true, margin: "-10% 0px" });
@@ -55,7 +57,7 @@ export function ProductCard({ product: p, index = 0 }: { product: Product; index
       value: p.price,
       from: "card",
     });
-    flyToCart(from, getFinish(finish).swatch);
+    bumpCart();
     showToast({
       title: "Added to cart",
       detail: `${p.name} · ${getFinish(finish).name} · ${p.sizes[0].label}`,
@@ -68,7 +70,7 @@ export function ProductCard({ product: p, index = 0 }: { product: Product; index
     <motion.article
       ref={ref}
       data-reveal
-      className="group relative flex flex-col overflow-hidden rounded-2xl border border-line bg-surface transition-colors hover:border-fg/30 sm:rounded-3xl"
+      className="card-lift group relative flex flex-col overflow-hidden rounded-2xl transition-shadow hover:shadow-[0_2px_4px_rgb(42_33_25/0.06),0_18px_40px_-16px_rgb(42_33_25/0.32)] sm:rounded-3xl"
       initial={{ opacity: 0, y: 28 }}
       animate={inView ? { opacity: 1, y: 0 } : undefined}
       transition={{
@@ -116,6 +118,7 @@ export function ProductCard({ product: p, index = 0 }: { product: Product; index
                     pointer={pointer}
                     standIn={standIn}
                     onShown={() => setShown3D(true)}
+                    animateIn={animateIn}
                   />
                 </View3D>
               </>
@@ -124,21 +127,23 @@ export function ProductCard({ product: p, index = 0 }: { product: Product; index
             ) : (
               <>
                 {renderFor(p, finish) ? (
-                  <StudioImage product={p} finish={finish} play={inView} alt={p.name} />
+                  <StudioImage product={p} finish={finish} play={inView} still={!animateIn} alt={p.name} />
                 ) : (
                   <ProductArt product={p} finish={finish} play={inView} />
                 )}
               </>
             )}
             {p.badge && (
-              <span className="absolute left-2 top-2 max-w-[calc(100%-3.5rem)] truncate rounded-full bg-pop px-2.5 py-1 tabular-nums text-xs font-semibold uppercase tracking-wide text-on-pop sm:left-4 sm:top-4 sm:px-3 sm:tracking-widest">
+              <span className="absolute left-2 top-2 max-w-[calc(100%-3.25rem)] truncate rounded-full bg-pop px-2 py-1 tabular-nums text-[10px] font-semibold uppercase tracking-normal text-on-pop sm:left-4 sm:top-4 sm:px-3 sm:text-xs sm:tracking-widest">
                 {p.badge}
               </span>
             )}
-            {/* every product can be turned all the way round on its page */}
-            <span className="absolute bottom-2 left-2 flex items-center gap-1 rounded-full bg-page/80 px-2 py-1 text-xs font-semibold text-fg sm:bottom-3 sm:left-auto sm:right-3 sm:gap-1.5 sm:px-2.5">
-              <SpinIcon size={14} /> 360°
-            </span>
+            {/* only products that really turn round on their page: a 3D model, or no photos yet */}
+            {(!!model || !photos.list.length) && (
+              <span className="absolute bottom-2 left-2 flex items-center gap-1 rounded-full bg-page/80 px-2 py-1 text-xs font-semibold text-fg sm:bottom-3 sm:left-auto sm:right-3 sm:gap-1.5 sm:px-2.5">
+                <SpinIcon size={14} /> 360°
+              </span>
+            )}
           </div>
         </Link>
         {/* siblings of the link, not inside it (a button can't sit inside a link) */}

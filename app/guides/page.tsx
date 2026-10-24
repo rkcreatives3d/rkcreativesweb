@@ -14,7 +14,7 @@ export default function GuidesPage() {
     <div className="mx-auto max-w-5xl px-5 pb-24 pt-28 sm:px-8 sm:pt-36">
       <SectionLabel>Guides</SectionLabel>
       <h1 className="mt-4 font-display text-6xl font-extrabold display-case leading-[0.88] tracking-tight sm:text-8xl">
-        <KineticText text="Good to" /> <KineticText text="know" holo delay={0.15} />
+        <KineticText text="Good to" /> <KineticText text="know" delay={0.15} />
       </h1>
       <div className="mt-12 grid gap-5 sm:grid-cols-2">
         {guides.map((g, i) => (

@@ -28,7 +28,7 @@ export default function ContactPage() {
       <h1 className="font-display text-6xl font-extrabold display-case leading-[0.88] tracking-tight sm:text-8xl">
         <KineticText text="Talk to" />
         <br />
-        <KineticText text="the maker" holo delay={0.15} />
+        <KineticText text="the maker" delay={0.15} />
       </h1>
       <p className="mt-6 max-w-xl text-lg text-muted">
         Questions about an order, a custom idea, bulk or corporate gifting: message us and a real person replies, {b.replyTime}.

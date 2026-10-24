@@ -6,7 +6,7 @@ import { LiteToggle } from "./LiteToggle";
 export function Footer() {
   const b = site.business;
   return (
-    <footer className="relative overflow-hidden border-t border-line px-5 pb-[max(2rem,env(safe-area-inset-bottom))] pt-14 sm:px-10 sm:pt-20">
+    <footer className="relative overflow-hidden border-t border-line bg-page-2 px-5 pb-[max(2rem,env(safe-area-inset-bottom))] pt-14 sm:px-10 sm:pt-20">
       {/* phones: two columns of links under the tagline */}
       <div className="mx-auto grid max-w-7xl grid-cols-2 gap-x-6 gap-y-10 md:grid-cols-[1.6fr_1fr_1fr_1fr_1fr] md:gap-12">
         <div className="col-span-2 md:col-span-1">
@@ -52,17 +52,9 @@ export function Footer() {
         </FooterCol>
       </div>
 
-      <p
-        aria-hidden
-        className="footer-giant mx-auto mt-12 max-w-7xl select-none whitespace-nowrap text-center font-display leading-[0.9] display-case sm:mt-16"
-      >
-        {site.name}
-      </p>
-      <p className="holo-text mt-3 text-center font-display text-xl uppercase tracking-[0.3em] sm:text-2xl">{site.slogan}</p>
-
-      <div className="mx-auto mt-6 flex max-w-7xl flex-wrap items-center justify-between gap-3 tabular-nums text-xs uppercase tracking-[0.12em] text-muted">
+      <div className="mx-auto mt-12 flex max-w-7xl flex-wrap items-center justify-between gap-3 border-t border-fg/10 pt-6 tabular-nums text-xs uppercase tracking-[0.12em] text-muted">
         <span>
-          © {new Date().getFullYear()} {site.name}
+          © {new Date().getFullYear()} {site.name} · {site.slogan}
         </span>
         <LiteToggle />
       </div>

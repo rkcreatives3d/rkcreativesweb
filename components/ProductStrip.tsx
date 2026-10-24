@@ -11,7 +11,7 @@ export function ProductStrip({ products, title, id }: { products: Product[]; tit
   if (!products.length) return null;
   return (
     <section aria-labelledby={id}>
-      <h2 id={id} className="font-display text-2xl font-extrabold display-case leading-none tracking-tight sm:text-3xl">
+      <h2 id={id} className="section-title text-2xl sm:text-3xl">
         {title}
       </h2>
       <ul className="-mx-5 mt-5 flex snap-x gap-3 overflow-x-auto px-5 pb-2 [scrollbar-width:none] sm:-mx-8 sm:px-8 [&::-webkit-scrollbar]:hidden">

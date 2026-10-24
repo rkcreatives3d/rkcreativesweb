@@ -7,10 +7,10 @@ export function CustomCta() {
       <div className="cta-card relative mx-auto max-w-7xl overflow-hidden rounded-3xl p-8 sm:p-16">
         <SectionLabel>Custom orders</SectionLabel>
         <Reveal y={24}>
-          <h2 className="mt-6 max-w-4xl font-display text-5xl font-extrabold display-case leading-[0.9] tracking-tight sm:text-7xl">
+          <h2 className="mt-6 max-w-4xl section-title text-4xl sm:text-6xl">
             Got a wild idea?
             <br />
-            <span className="holo-text">We&apos;ll print it.</span>
+            We&apos;ll print it.
           </h2>
         </Reveal>
         <Reveal delay={0.2}>

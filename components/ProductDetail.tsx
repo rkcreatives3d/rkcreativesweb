@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "motion/react";
 import { getFinish, photosFor, products, type Product } from "@/lib/products";
 import { itemPrice, useCart } from "@/lib/cart";
-import { flyToCart } from "@/lib/fly";
+import { bumpCart } from "@/lib/fly";
 import { useLite, useLiteMode } from "@/lib/lite";
 import { modelFor } from "@/lib/models";
 import { track } from "@/lib/track";
@@ -92,7 +92,8 @@ export function ProductDetail({ product: p }: { product: Product }) {
     if (!ready()) return;
     add(item, qty);
     track("add_to_cart", { product: p.slug, finish, size, value: price * qty });
-    flyToCart(from, getFinish(finish).swatch).then(() => useCart.getState().setOpen(true));
+    bumpCart();
+    useCart.getState().setOpen(true);
   };
   const share = async () => {
     const url = `${location.origin}/shop/${p.slug}/`;
@@ -423,10 +424,12 @@ export function ProductDetail({ product: p }: { product: Product }) {
             ))}
           </dl>
 
-          <div className="mt-10">
-            <h2 className="text-xs font-semibold uppercase tracking-[0.12em] text-muted">About it</h2>
-            <p className="mt-3 leading-relaxed text-fg/80">{p.description}</p>
-          </div>
+          {p.description.trim() && (
+            <div className="mt-10">
+              <h2 className="text-xs font-semibold uppercase tracking-[0.12em] text-muted">About it</h2>
+              <p className="mt-3 leading-relaxed text-fg/80">{p.description}</p>
+            </div>
+          )}
           {sizeInfo && <SizeGuide product={p} size={sizeInfo} />}
           <ProductFaq product={p} />
           <ProductReviews slug={p.slug} />
@@ -434,12 +437,12 @@ export function ProductDetail({ product: p }: { product: Product }) {
       </section>
 
       <section className="mx-auto max-w-7xl px-5 pb-24 sm:px-8">
-        <h2 className="font-display text-4xl font-extrabold display-case leading-none tracking-tight sm:text-5xl">
+        <h2 className="section-title text-3xl sm:text-[2.6rem]">
           You might also like
         </h2>
         <div className="mt-8 grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-3">
           {related.map((r, i) => (
-            <ProductCard key={r.slug} product={r} index={i} />
+            <ProductCard key={r.slug} product={r} index={i} printIn={false} />
           ))}
         </div>
         <RecentlyViewed exclude={p.slug} className="mt-16" />
@@ -522,7 +525,7 @@ function ProductReviews({ slug }: { slug: string }) {
           )}
         </>
       ) : (
-        <p className="mt-2 text-sm text-muted">No reviews yet. Bought it? Tell others what you think, with a photo.</p>
+        <p className="mt-2 text-sm text-muted">Bought it? Tell others what you think, with a photo.</p>
       )}
     </div>
   );

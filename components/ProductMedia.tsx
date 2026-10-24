@@ -154,7 +154,7 @@ export function Tilt({ children, className = "", max = 12 }: { children: React.R
     >
       <div
         ref={card}
-        className={`relative h-full w-full transition-transform duration-300 ease-out [transform-style:preserve-3d] ${active ? "" : "tilt-idle"}`}
+        className="relative h-full w-full transition-transform duration-300 ease-out [transform-style:preserve-3d]"
         style={{ transform: "rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) scale(1.02)" }}
       >
         {children}

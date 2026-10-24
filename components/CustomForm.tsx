@@ -93,7 +93,7 @@ export function CustomForm() {
     return (
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="cta-card rounded-3xl p-8 sm:p-10">
         <p className="tabular-nums text-xs uppercase tracking-[0.12em] text-pop">Request drafted ✦</p>
-        <h2 className="mt-3 font-display text-4xl font-extrabold display-case">Send it over</h2>
+        <h2 className="mt-3 section-title text-3xl">Send it over</h2>
         <p className="mt-3 text-muted">
           Hit send in the window that just opened. We usually reply with an exact quote within a day.
           {sent.attachHint && " Your files couldn't be attached automatically, so please attach them in the chat."}
