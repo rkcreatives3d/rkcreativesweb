@@ -1,7 +1,25 @@
 // ─────────────────────────────────────────────────────────────
-//  EDIT ME — your shop's identity, contact and payment details.
-//  Orders are sent to the WhatsApp number / email below.
+//  Your shop's identity, contact and payment details.
+//  Orders are sent to the WhatsApp number / email set in content/shop.json,
+//  which the owner page (/owner/ → Shop settings) edits; you can also edit
+//  that file by hand. What each setting means:
+//    url               your live web address (share previews, Google, sitemap)
+//    city, originPin   where you ship from (About page, policies, delivery dates)
+//    whatsapp          international format, digits only: 91 + 10-digit number
+//    upi               shown as a QR code after someone places an order
+//    payments          cardPayUrl: a Razorpay Payment Page/Link ("" hides it);
+//                      cod: cash on delivery, with an optional fee and order limit
+//    business          footer / Contact / invoices; empty fields are hidden
+//    tracking          your courier's tracking page; {awb} is the tracking number
+//    reviewUrl         where happy customers can leave a review
+//    dispatch, transit working days to print + pack, then days with the courier
+//    engravingPrice    add-on price for a name / message on products that offer it
+//    analytics         optional Plausible domain / GA4 id; empty loads nothing
 // ─────────────────────────────────────────────────────────────
+import shop from "@/content/shop.json";
+
+const { categories: _categories, ...settings } = shop;
+
 export const site = {
   name: "RK Creative Builds",
   /** Instagram handle; the only place the underscore spelling is used */
@@ -12,67 +30,11 @@ export const site = {
   slogan: "Bring Ideas to Life",
   description:
     "Custom 3D prints, personalised gifts and one-off builds by RK Creative Builds. Printed to order, finished by hand.",
-
-  /** EDIT: your live web address (used for share previews, Google and the sitemap) */
-  url: "https://rkcreativebuilds.in",
-  /** EDIT: the city you ship from (shown on About and in the policies) */
-  city: "Hyderabad, India",
-  /** EDIT: the PIN code you ship from (delivery estimates are worked out from it, see lib/delivery.ts) */
-  originPin: "500001",
-
-  // WhatsApp number in international format, digits only (no +, spaces or dashes).
-  // Example for India: 91 + 10-digit number → "919876543210"
-  whatsapp: "919999999999",
-  email: "orders@example.com",
-  instagram: "https://instagram.com/rk_creative_builds_3d",
-
-  /** EDIT: UPI details shown as a QR code after someone places an order */
-  upi: { id: "yourname@okaxis", payee: "RK Creative Builds" },
-
-  /** EDIT: how customers can pay. UPI is always offered. */
-  payments: {
-    /**
-     * Card / netbanking / wallets: a Razorpay Payment Page or Payment Link
-     * (create it free in the Razorpay dashboard, with "customer enters amount"),
-     * e.g. "https://rzp.io/l/rkcreativebuilds". Leave empty to hide the option.
-     */
-    cardPayUrl: "",
-    /** Cash on delivery. Most couriers charge for COD, so you can pass on a fee. */
-    cod: { enabled: false, fee: 49, maxOrder: 3000 },
-  },
-
-  /** EDIT: business details for the footer, Contact page and invoices. Empty fields are hidden. */
-  business: {
-    legalName: "",
-    /** 15-character GSTIN, once you're registered */
-    gstin: "",
-    /** full address, if you want it public (city is shown either way) */
-    address: "",
-    hours: "Mon–Sat, 10 am – 7 pm",
-    replyTime: "usually within a few hours",
-  },
-
-  /** EDIT: your courier's tracking page; {awb} is replaced by the tracking number */
-  tracking: { courier: "Shiprocket", url: "https://shiprocket.co/tracking/{awb}" },
-
-  /** EDIT: link where happy customers can leave a review (e.g. your Google Business "Ask for reviews" link) */
-  reviewUrl: "",
-
   currency: "INR",
   locale: "en-IN",
-  shippingFlat: 99,
-  freeShippingOver: 1499,
-  /** working days to print + pack, then days in transit with the courier (when the PIN isn't known yet) */
-  dispatch: [3, 5] as [number, number],
-  transit: [2, 6] as [number, number],
-  /** add-on price for engraving a name / message on products that offer it */
-  engravingPrice: 99,
-
-  /** Optional analytics. Leave empty to load nothing. */
-  analytics: {
-    plausibleDomain: "", // e.g. "rkcreativebuilds.in"
-    ga4Id: "", // e.g. "G-XXXXXXX"
-  },
+  ...settings,
+  dispatch: settings.dispatch as [number, number],
+  transit: settings.transit as [number, number],
 };
 
 export const dispatchLabel = `${site.dispatch[0]}–${site.dispatch[1]}`;

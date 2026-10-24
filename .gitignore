@@ -8,6 +8,9 @@ next-env.d.ts
 # converted 3D models: rebuilt from models/ by `npm run models` (runs before every build)
 public/models/
 
+# which commit was built (scripts/write-version.mjs)
+public/version.json
+
 # test output
 /test-results/
 /playwright-report/

@@ -29,6 +29,30 @@ npm run check      # typecheck + build + tests, the same as GitHub runs
 5. **`lib/policies.ts`:** read through the shipping, returns, privacy and terms policies and adjust them to how you actually work. They're a sensible starting point, not legal advice.
 6. **Optional:** add your analytics ID in `site.analytics` (Plausible domain or GA4 ID).
 
+## Owner page: manage products without code
+
+Tap the **logo on the home page 5 times** (within 3 seconds) to open the shop manager (`/owner/`). It isn't linked anywhere and search engines are told to skip it.
+
+**Signing in.** The secret tap only finds the page; what protects it is the **owner key**, a GitHub access token that can write to this repository. Without one nobody can change anything, even if they find the page. Make it once (the sign-in page has a link and the steps):
+
+1. Signed in to GitHub as `rkcreatives3d`, create a **fine-grained personal access token**.
+2. Repository access: only `rkcreativesweb`. Permissions: **Contents → Read and write**.
+3. Paste it on the sign-in page. Tick "Keep me signed in" on your own phone or computer only. Anyone with the key can change the shop; if it leaks, delete it on GitHub and make a new one.
+
+**What you can do:**
+- **Products:** add, edit, duplicate, hide/show, delete, reorder (the shop shows them in this order), and change prices straight from the list.
+- **Each product:** name, short line, description, category (or a new one), badge, starting price, sizes with their own measurement and extra price, colours and the main colour, material, print time, personalisation, the occasions it shows under, and its own customer questions.
+- **3D model:** upload the STL, 3MF (Bambu Studio, Orca, PrusaSlicer), OBJ or GLB you print from and see it in 3D straight away, in every colour. Customers get it in 3D, 360° and AR.
+- **Photos:** upload, reorder (the first is the cover), remove. Big phone photos are resized automatically.
+- **Colours:** add a filament colour (name, colour, matte / silk / glossy), edit or remove one.
+- **Shop settings:** WhatsApp number, order email, Instagram, city and PIN code, website address, UPI ID and name, card payment link, cash on delivery (fee, order limit), shipping fee and free-shipping amount, days to print and pack, name/message price, courier and tracking page, business details, review link, categories.
+
+**Publishing.** Nothing changes on the website until you press **Publish changes**. You see a list of what changed first. The page then makes the studio pictures for any new or changed product on your device (keep it open), and saves everything as one commit to GitHub. Render rebuilds the site from it automatically, and the page tells you when it's live, usually 3–5 minutes later. New products start **hidden**: switch "Visible to customers" on when they're ready.
+
+Under the hood, products, colours and settings live in `content/products.json`, `content/finishes.json` and `content/shop.json` (you can still edit them by hand), 3D files go to `models/`, photos to `public/products/<product>/`, studio pictures to `public/renders/<product>/`. If two people publish at once, the second is warned before anything is overwritten. GitHub's automatic code tests skip these "Owner:" commits.
+
+**Render needs:** auto-deploy on every push to `main` (Render's default).
+
 ## Where things live
 
 | What | Where |
@@ -69,7 +93,7 @@ On the product page, items that have both a model and photos get a "3D view / Ph
 
 Every product also has a studio picture of its 3D model in each of its colours, in `public/renders/`. They're used wherever live 3D is too heavy or too small: in Lite mode (cards and product pages), the cart and checkout, the "What's it for?" links, the About page, share images and Google results. Real photos always take their place once a product has them.
 
-They're made from the site itself. Run this whenever you add or change a product, a colour or a 3D model, with the site running:
+The owner page makes them automatically when you publish. To remake all of them yourself (after changing the lighting, say), run this with the site running:
 
 ```bash
 npm run dev          # in one terminal

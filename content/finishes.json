@@ -1,0 +1,93 @@
+[
+  {
+    "id": "amber",
+    "name": "Molten Amber",
+    "swatch": "linear-gradient(135deg, #ffb24d, #ff8a1a 60%)",
+    "color": "#ff8a1a",
+    "metalness": 0.35,
+    "roughness": 0.25,
+    "iridescence": 0,
+    "clearcoat": 1,
+    "emissive": "#000000",
+    "emissiveIntensity": 0,
+    "kind": "glossy"
+  },
+  {
+    "id": "gold",
+    "name": "Silk Gold",
+    "swatch": "linear-gradient(135deg, #f0c56a, #d4973f 60%)",
+    "color": "#e0a542",
+    "metalness": 0.9,
+    "roughness": 0.25,
+    "iridescence": 0,
+    "clearcoat": 0.6,
+    "emissive": "#000000",
+    "emissiveIntensity": 0,
+    "kind": "silk"
+  },
+  {
+    "id": "copper",
+    "name": "Silk Copper",
+    "swatch": "linear-gradient(135deg, #d98a5c, #b0603a 60%)",
+    "color": "#b8673a",
+    "metalness": 0.9,
+    "roughness": 0.28,
+    "iridescence": 0,
+    "clearcoat": 0.5,
+    "emissive": "#000000",
+    "emissiveIntensity": 0,
+    "kind": "silk"
+  },
+  {
+    "id": "silver",
+    "name": "Silk Silver",
+    "swatch": "linear-gradient(135deg, #e6e8eb, #b8bcc2 60%)",
+    "color": "#c9ccd1",
+    "metalness": 0.95,
+    "roughness": 0.2,
+    "iridescence": 0,
+    "clearcoat": 0.5,
+    "emissive": "#000000",
+    "emissiveIntensity": 0,
+    "kind": "silk"
+  },
+  {
+    "id": "onyx",
+    "name": "Matte Black",
+    "swatch": "#1d1d1f",
+    "color": "#1d1d1f",
+    "metalness": 0,
+    "roughness": 0.62,
+    "iridescence": 0,
+    "clearcoat": 0.15,
+    "emissive": "#000000",
+    "emissiveIntensity": 0,
+    "kind": "matte"
+  },
+  {
+    "id": "graphite",
+    "name": "Matte Grey",
+    "swatch": "#6e6f73",
+    "color": "#6e6f73",
+    "metalness": 0,
+    "roughness": 0.65,
+    "iridescence": 0,
+    "clearcoat": 0.1,
+    "emissive": "#000000",
+    "emissiveIntensity": 0,
+    "kind": "matte"
+  },
+  {
+    "id": "frost",
+    "name": "Matte White",
+    "swatch": "#f1f1ee",
+    "color": "#f1f1ee",
+    "metalness": 0,
+    "roughness": 0.6,
+    "iridescence": 0,
+    "clearcoat": 0.1,
+    "emissive": "#000000",
+    "emissiveIntensity": 0,
+    "kind": "matte"
+  }
+]

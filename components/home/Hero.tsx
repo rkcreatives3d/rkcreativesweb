@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { LogoScene, View3D } from "../three/lazy";
 import type { CoverFrame } from "../three/LogoScene";
 import { ButtonLink } from "../ui";
@@ -25,7 +26,18 @@ const city = site.city.split(",")[0];
  */
 export function Hero() {
   const full3D = useFull3D();
+  const router = useRouter();
   const section = useRef<HTMLElement>(null);
+  // the owner's way in: tap the logo 5 times within 3 seconds
+  const taps = useRef<number[]>([]);
+  const tap = () => {
+    const now = Date.now();
+    taps.current = [...taps.current.filter((t) => now - t < 3000), now];
+    if (taps.current.length >= 5) {
+      taps.current = [];
+      router.push("/owner/");
+    }
+  };
   const img = useRef<HTMLImageElement>(null);
   const [logoSrc, setLogoSrc] = useState<string | null>(null);
   const [frame, setFrame] = useState<CoverFrame | null>(null);
@@ -104,7 +116,10 @@ export function Hero() {
           </div>
         </div>
 
-        <div className="relative order-1 aspect-square w-[min(68vw,34svh)] justify-self-center sm:w-[min(60vw,42svh)] lg:order-2 lg:w-[min(46vw,64svh)]">
+        <div
+          onClick={tap}
+          className="relative order-1 aspect-square w-[min(68vw,34svh)] touch-manipulation select-none justify-self-center sm:w-[min(60vw,42svh)] lg:order-2 lg:w-[min(46vw,64svh)]"
+        >
           <div aria-hidden className="pointer-events-none absolute inset-[8%] rounded-full bg-accent-fill/20 blur-[90px]" />
           {/* plain logo: in the page HTML so it shows instantly; fades out under the identical 3D logo */}
           {/* eslint-disable-next-line @next/next/no-img-element */}

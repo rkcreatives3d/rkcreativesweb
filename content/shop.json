@@ -1,0 +1,54 @@
+{
+  "url": "https://rkcreativebuilds.in",
+  "city": "Hyderabad, India",
+  "originPin": "500001",
+  "whatsapp": "919999999999",
+  "email": "orders@example.com",
+  "instagram": "https://instagram.com/rk_creative_builds_3d",
+  "upi": {
+    "id": "yourname@okaxis",
+    "payee": "RK Creative Builds"
+  },
+  "payments": {
+    "cardPayUrl": "",
+    "cod": {
+      "enabled": false,
+      "fee": 49,
+      "maxOrder": 3000
+    }
+  },
+  "business": {
+    "legalName": "",
+    "gstin": "",
+    "address": "",
+    "hours": "Mon–Sat, 10 am – 7 pm",
+    "replyTime": "usually within a few hours"
+  },
+  "tracking": {
+    "courier": "Shiprocket",
+    "url": "https://shiprocket.co/tracking/{awb}"
+  },
+  "reviewUrl": "",
+  "shippingFlat": 99,
+  "freeShippingOver": 1499,
+  "dispatch": [
+    3,
+    5
+  ],
+  "transit": [
+    2,
+    6
+  ],
+  "engravingPrice": 99,
+  "analytics": {
+    "plausibleDomain": "",
+    "ga4Id": ""
+  },
+  "categories": [
+    "Decor",
+    "Lighting",
+    "Desk",
+    "Toys",
+    "Personalised"
+  ]
+}
