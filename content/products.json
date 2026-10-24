@@ -8,11 +8,7 @@
     "category": "Devotion",
     "shape": "vase",
     "finishes": [
-      "onyx",
-      "copper",
-      "gold",
-      "graphite",
-      "frost"
+      "onyx"
     ],
     "sizes": [
       {
