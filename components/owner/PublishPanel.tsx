@@ -1,13 +1,13 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { modelFor } from "@/lib/models";
 import { commit, shaOf } from "@/lib/owner/github";
 import { summarize } from "@/lib/owner/edit";
 import { buildChanges, renderJobs, type ShotFiles } from "@/lib/owner/publish";
 import { PATHS } from "@/lib/owner/repo";
 import { useOwner } from "@/lib/owner/store";
-import { StudioCapture } from "./Studio3D";
+const StudioCapture = lazy(() => import("./Studio3D").then((m) => ({ default: m.StudioCapture })));
 
 type Phase =
   | { k: "review" }
@@ -76,7 +76,12 @@ export function PublishPanel({ onClose }: { onClose: () => void }) {
   const totalShots = jobs.reduce((n, j) => n + j.finishes.length, 0);
 
   return (
-    <div role="dialog" aria-modal="true" aria-labelledby="publish-title" className="fixed inset-0 z-[70] grid place-items-end bg-black/40 sm:place-items-center">
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="publish-title"
+      className="fixed inset-0 z-[70] grid place-items-end bg-black/40 sm:place-items-center"
+    >
       <div className="max-h-[90svh] w-full overflow-y-auto rounded-t-3xl bg-page p-5 sm:max-w-lg sm:rounded-3xl sm:p-6">
         <h2 id="publish-title" className="font-display text-2xl font-extrabold display-case">
           Publish to the website
@@ -98,7 +103,8 @@ export function PublishPanel({ onClose }: { onClose: () => void }) {
             )}
             {totalShots > 0 && (
               <p className="mt-4 rounded-xl bg-surface p-3 text-xs text-muted">
-                {totalShots} studio picture{totalShots === 1 ? "" : "s"} will be made on this device first (for the cart, share previews and slow phones). Keep this page open.
+                {totalShots} studio picture{totalShots === 1 ? "" : "s"} will be made on this device first (for the cart, share previews and slow
+                phones). Keep this page open.
               </p>
             )}
             <div className="mt-6 flex flex-wrap justify-end gap-3">
@@ -115,7 +121,8 @@ export function PublishPanel({ onClose }: { onClose: () => void }) {
         {phase.k === "conflict" && (
           <>
             <p className="mt-4 text-sm">
-              The shop was changed somewhere else (another device, or a site update) since you opened this page. Publishing now replaces those changes with yours.
+              The shop was changed somewhere else (another device, or a site update) since you opened this page. Publishing now replaces those changes
+              with yours.
             </p>
             <div className="mt-6 flex flex-wrap justify-end gap-3">
               <button onClick={() => location.reload()} className="btn">
@@ -135,19 +142,21 @@ export function PublishPanel({ onClose }: { onClose: () => void }) {
               <span className="block text-xs text-muted">{job.product.name}</span>
             </p>
             <Progress value={shotCount / totalShots} />
-            <StudioCapture
-              key={phase.job}
-              product={job.product}
-              modelUrl={job.modelUrl}
-              finishes={job.finishes}
-              onShot={() => setShotCount((n) => n + 1)}
-              onDone={(list) => {
-                shots.current[job.product.slug] = list;
-                if (phase.job + 1 < jobs.length) setPhase({ k: "pictures", job: phase.job + 1 });
-                else upload();
-              }}
-              onError={(e) => setPhase({ k: "error", message: e.message })}
-            />
+            <Suspense fallback={null}>
+              <StudioCapture
+                key={phase.job}
+                product={job.product}
+                modelUrl={job.modelUrl}
+                finishes={job.finishes}
+                onShot={() => setShotCount((n) => n + 1)}
+                onDone={(list) => {
+                  shots.current[job.product.slug] = list;
+                  if (phase.job + 1 < jobs.length) setPhase({ k: "pictures", job: phase.job + 1 });
+                  else upload();
+                }}
+                onError={(e) => setPhase({ k: "error", message: e.message })}
+              />
+            </Suspense>
           </>
         )}
 

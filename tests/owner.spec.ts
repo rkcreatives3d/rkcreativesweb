@@ -13,10 +13,13 @@ for (const mode of ["3D", "Lite"] as const) {
     await page.addInitScript(() => localStorage.setItem("rk-gpu", "ok"));
     await page.goto("/");
     if (mode === "3D") await expect(page.locator("canvas")).toHaveCount(1, { timeout: 15_000 });
-    // a real tap in the middle of the logo, whatever is drawn over it
+    // nothing (like the 3D layer) may sit on top of the logo and catch the taps
     const box = (await page.locator("#cover-logo").boundingBox())!;
-    for (let i = 0; i < 5; i++) await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
-    await expect(page).toHaveURL(/\/owner\/$/);
+    const [x, y] = [box.x + box.width / 2, box.y + box.height / 2];
+    expect(await page.evaluate(([x, y]) => !!document.elementFromPoint(x, y)?.closest("[data-owner-tap]"), [x, y])).toBe(true);
+    for (let i = 0; i < 5; i++) await page.mouse.click(x, y);
+    // the owner page's code (with its 3D editor) loads on the way: give a busy test machine time
+    await expect(page).toHaveURL(/\/owner\/$/, { timeout: 20_000 });
     await expect(page.getByRole("heading", { name: "Shop manager" })).toBeVisible();
     await expect(page.getByLabel("Owner key")).toBeVisible();
   });

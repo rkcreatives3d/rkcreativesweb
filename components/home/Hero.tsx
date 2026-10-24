@@ -29,8 +29,8 @@ export function Hero() {
   const full3D = useFull3D();
   const router = useRouter();
   const section = useRef<HTMLElement>(null);
-  // the owner's way in: tap the logo 5 times within 3 seconds (lib/ownerTap.ts)
-  const tap = () => ownerTap() && router.push("/owner/");
+  // the owner's way in: tap the logo 5 times within 5 seconds (lib/ownerTap.ts)
+  const tap = (e: React.MouseEvent) => ownerTap(e.timeStamp) && router.push("/owner/");
   const img = useRef<HTMLImageElement>(null);
   const [logoSrc, setLogoSrc] = useState<string | null>(null);
   const [frame, setFrame] = useState<CoverFrame | null>(null);
@@ -110,6 +110,7 @@ export function Hero() {
         </div>
 
         <div
+          data-owner-tap
           onClick={tap}
           className="relative order-1 aspect-square w-[min(68vw,34svh)] touch-manipulation select-none justify-self-center sm:w-[min(60vw,42svh)] lg:order-2 lg:w-[min(46vw,64svh)]"
         >

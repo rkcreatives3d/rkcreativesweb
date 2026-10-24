@@ -1,13 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { lazy, Suspense, useState } from "react";
 import type { Product, Shape, Tag } from "@/lib/products";
 import { modelFor } from "@/lib/models";
 import { formatPrice } from "@/lib/site";
 import { newSize, resizePhoto, SHAPES, TAGS } from "@/lib/owner/edit";
 import { photoSrc, useOwner } from "@/lib/owner/store";
 import { Card, Choice, dangerBtn, Num, smallBtn, Switch, Text } from "./fields";
-import { fileToModel, ModelPreview } from "./Studio3D";
+// the 3D engine loads only when a product is opened, so the owner page itself opens fast
+const ModelPreview = lazy(() => import("./Studio3D").then((m) => ({ default: m.ModelPreview })));
 
 const BADGES = ["Bestseller", "New", "Personalised", "Limited", "Articulated"];
 
@@ -39,6 +40,7 @@ export function ProductEditor({ slug, onClose }: { slug: string; onClose: () => 
     }
     setBusy("Reading the 3D file…");
     try {
+      const { fileToModel } = await import("./Studio3D");
       const m = await fileToModel(file);
       setModel(slug, { bytes: m.bytes, ext: m.ext, url: m.url, name: file.name });
     } catch (e) {
@@ -197,7 +199,9 @@ export function ProductEditor({ slug, onClose }: { slug: string; onClose: () => 
 
       <Card title="3D model">
         <div className="grid gap-4 sm:grid-cols-[1fr_1fr]">
-          <ModelPreview product={p} finish={finish} modelUrl={modelUrl} />
+          <Suspense fallback={<div className="stage aspect-square rounded-2xl border border-line" />}>
+            <ModelPreview product={p} finish={finish} modelUrl={modelUrl} />
+          </Suspense>
           <div className="space-y-3 text-sm">
             <p className="text-muted">
               {pendingModel

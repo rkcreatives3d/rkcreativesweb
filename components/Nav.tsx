@@ -64,7 +64,7 @@ export function Nav() {
           href="/"
           // on the home page, 5 taps here open the owner page too (like the big logo)
           onClick={(e) => {
-            if (pathname !== "/" || !ownerTap()) return;
+            if (pathname !== "/" || !ownerTap(e.timeStamp)) return;
             e.preventDefault(); // instead of the link's own "go home"
             router.push("/owner/");
           }}
