@@ -193,3 +193,18 @@ test("a password typed into the GitHub key box gets a clear hint, and isn't sent
   await expect(page.getByRole("alert").filter({ hasText: "not a GitHub key" })).toBeVisible();
   expect(sent).toBe(false);
 });
+
+test("password set but no GitHub key on the host: signs in and edits; Publish explains what's missing", async ({ page }) => {
+  await prepare(page, { lite: true });
+  const gh = await mockGitHub(page, { password: "open sesame", canPublish: false });
+  await page.goto("/owner/");
+  await page.getByLabel("Password").fill("open sesame");
+  await page.getByRole("button", { name: "Sign in", exact: true }).click();
+  await expect(page.getByText("You can edit, but Publish is off")).toBeVisible();
+  await page.getByLabel("Price of Infinity Knot").fill("700");
+  await page.getByRole("button", { name: "Publish changes" }).click();
+  const dialog = page.getByRole("dialog", { name: "Publish to the website" });
+  await dialog.getByRole("button", { name: "Publish" }).click();
+  await expect(dialog.getByRole("alert")).toContainText("add GITHUB_TOKEN");
+  expect(gh.rec.refUpdated).toBe(false);
+});

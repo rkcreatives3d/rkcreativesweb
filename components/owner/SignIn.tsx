@@ -36,6 +36,9 @@ function keep(token: string, remember: boolean) {
 export function SignIn() {
   const signIn = useOwner((s) => s.signIn);
   const [server, setServer] = useState<"checking" | "slow" | "ok" | "not-set-up" | "unreachable">("checking");
+  const [missing, setMissing] = useState<string[]>([]);
+  // can the sign-in server publish (does the host have its GitHub key)? Only matters for password sign-in
+  const [serverCanPublish, setServerCanPublish] = useState(true);
   const [useKey, setUseKey] = useState(false);
   const [password, setPassword] = useState("");
   const [token, setToken] = useState("");
@@ -49,8 +52,10 @@ export function SignIn() {
     const slow = setTimeout(() => setServer((s) => (s === "checking" ? "slow" : s)), 2500);
     ping().then((r) => {
       clearTimeout(slow);
-      setServer(r);
-      if (r === "not-set-up") setUseKey(true);
+      setServer(r.state);
+      setMissing(r.missing);
+      setServerCanPublish(r.canPublish);
+      if (r.state === "not-set-up") setUseKey(true);
     });
   };
   useEffect(connect, []);
@@ -63,6 +68,7 @@ export function SignIn() {
     try {
       const session = await passwordLogin(password, remember);
       keep(session, remember);
+      useOwner.setState({ canPublish: serverCanPublish });
       signIn(session, "owner");
     } catch (err) {
       const g = err instanceof GitHubError ? err : null;
@@ -97,6 +103,7 @@ export function SignIn() {
         return;
       }
       keep(t, remember);
+      useOwner.setState({ canPublish: true }); // a GitHub key publishes directly
       signIn(t, login);
     } catch (err) {
       setError(
@@ -173,8 +180,13 @@ export function SignIn() {
               <a href={VERCEL_ENV} target="_blank" rel="noreferrer" className="font-semibold underline underline-offset-4">
                 Vercel → Settings → Environment Variables
               </a>
-              , add <code className="font-mono">OWNER_PASSWORD</code> (your password) and <code className="font-mono">GITHUB_TOKEN</code> (a GitHub key), then
-              redeploy. Then this page shows a password box. Meanwhile you can sign in with a GitHub key.
+              , add <code className="font-mono">OWNER_PASSWORD</code> (your password) for <b>Production</b>, then redeploy. Then this page shows a password
+              box. (<code className="font-mono">GITHUB_TOKEN</code> is needed too, to publish.)
+              {missing.length > 0 && (
+                <span className="mt-2 block text-xs">
+                  The website reports missing: <b className="font-mono">{missing.join(", ")}</b>
+                </span>
+              )}
             </p>
           )}
           <div>

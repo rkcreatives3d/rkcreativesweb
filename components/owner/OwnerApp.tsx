@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import type { Finish, Product } from "@/lib/products";
 import type { Content, Shop } from "@/lib/owner/edit";
-import { GitHubError, readJSON, verify } from "@/lib/owner/github";
+import { GitHubError, ping, readJSON, verify } from "@/lib/owner/github";
 import { PATHS, REPO } from "@/lib/owner/repo";
 import { isDirty, TOKEN_KEY, useOwner } from "@/lib/owner/store";
 import { SignIn } from "./SignIn";
@@ -21,7 +21,7 @@ type Tab = "products" | "colours" | "settings";
  * host rebuilds the site from it. Covers the site's own header and footer.
  */
 export function OwnerApp() {
-  const { token, login, draft } = useOwner();
+  const { token, login, draft, canPublish } = useOwner();
   const [checking, setChecking] = useState(true);
   const [error, setError] = useState("");
   const [tab, setTab] = useState<Tab>("products");
@@ -47,6 +47,11 @@ export function OwnerApp() {
       })
       .finally(() => setChecking(false));
   }, []);
+
+  // signed in with the password: can the host publish yet? (it needs its GitHub key)
+  useEffect(() => {
+    if (token.startsWith("session:")) ping().then((r) => useOwner.setState({ canPublish: r.canPublish }));
+  }, [token]);
 
   // load the shop's current content
   useEffect(() => {
@@ -128,6 +133,20 @@ export function OwnerApp() {
           </header>
 
           <main className="mx-auto max-w-4xl px-4 py-5 pb-24 sm:px-6">
+            {!canPublish && (
+              <p className="mb-4 rounded-xl border border-pop/40 bg-pop/10 p-3 text-sm" role="status">
+                <b>You can edit, but Publish is off</b> until the website has its GitHub key: in{" "}
+                <a
+                  href="https://vercel.com/rkc4/rkcreativesweb/settings/environment-variables"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="font-semibold underline underline-offset-4"
+                >
+                  Vercel → Settings → Environment Variables
+                </a>
+                , add <code className="font-mono">GITHUB_TOKEN</code> for Production, then redeploy.
+              </p>
+            )}
             {error ? (
               <p role="alert" className="rounded-xl border border-danger/30 bg-danger/5 p-4 text-danger">
                 {error}

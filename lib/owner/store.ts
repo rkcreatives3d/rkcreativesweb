@@ -14,6 +14,8 @@ export type ModelChange = { bytes: Uint8Array<ArrayBuffer>; ext: string; url: st
 type OwnerState = {
   token: string;
   login: string;
+  /** false: signed in with the password, but the host has no GitHub key yet, so Publish can't save */
+  canPublish: boolean;
   original: Content | null;
   draft: Content | null;
   /** blob shas of the content files when loaded, to notice edits made elsewhere */
@@ -43,6 +45,7 @@ const mapProducts = (d: Content, fn: (ps: Product[]) => Product[]): Content => (
 export const useOwner = create<OwnerState>((set, get) => ({
   token: "",
   login: "",
+  canPublish: true,
   original: null,
   draft: null,
   shas: {},

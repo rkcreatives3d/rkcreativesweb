@@ -9,8 +9,9 @@
 //  Wrong passwords are rate-limited. No dependencies.
 //
 //  Environment (set them in your host's dashboard, never in code):
-//    OWNER_PASSWORD   the owner page password
+//    OWNER_PASSWORD   the owner page password (enough to sign in and edit)
 //    GITHUB_TOKEN     fine-grained token: this repo only, Contents read & write
+//                     (needed to publish; without it the shop is read from the public repo)
 //    GITHUB_REPO      optional, default "rkcreatives3d/rkcreativesweb"
 //    PORT             set by the host
 //
@@ -52,11 +53,20 @@ const b64url = (buf) => Buffer.from(buf).toString("base64url");
  * this closure, so create it once per server (or per warm serverless instance).
  * `env` defaults to process.env; `fetchImpl` / `githubApi` let tests use a fake GitHub.
  */
-export function createOwnerApi({ env = process.env, prefix = "/api/owner", fetchImpl = fetch, githubApi = env.GITHUB_API || "https://api.github.com" } = {}) {
+export function createOwnerApi({
+  env = process.env,
+  prefix = "/api/owner",
+  fetchImpl = fetch,
+  githubApi = env.GITHUB_API || "https://api.github.com",
+  githubRaw = env.GITHUB_RAW || "https://raw.githubusercontent.com",
+} = {}) {
   const password = env.OWNER_PASSWORD || "";
   const token = env.GITHUB_TOKEN || "";
   const repo = env.GITHUB_REPO || "rkcreatives3d/rkcreativesweb";
-  const ready = !!(password && token);
+  // the password alone signs the owner in (and reads the shop from the public repo);
+  // publishing also needs the GitHub key
+  const ready = !!password;
+  const missing = [...(password ? [] : ["OWNER_PASSWORD"]), ...(token ? [] : ["GITHUB_TOKEN"])];
   // signing key for sessions: changing the password (or the GitHub key) signs everyone out
   const key = sha256(`rk-owner-session\0${password}\0${token}`);
   const fails = new Map(); // ip -> [times]
@@ -99,10 +109,11 @@ export function createOwnerApi({ env = process.env, prefix = "/api/owner", fetch
     const route = url.pathname.slice(prefix.length).replace(/^\/+|\/+$/g, "");
     const method = request.method;
     if (method === "OPTIONS") return reply(204, "");
-    if (!ready) return reply(503, { error: "not-set-up" });
+    // which settings are missing: names only, never values
+    if (!ready) return reply(503, { error: "not-set-up", missing });
 
     // wake-up / health check (some hosts sleep when idle)
-    if (route === "" && method === "GET") return reply(200, { ok: true });
+    if (route === "" && method === "GET") return reply(200, { ok: true, canPublish: !!token, missing });
 
     if (route === "login" && method === "POST") {
       const now = Date.now();
@@ -136,6 +147,22 @@ export function createOwnerApi({ env = process.env, prefix = "/api/owner", fetch
     if (route === "github" || route.startsWith("github/")) {
       const path = route.slice("github".length).replace(/^\//, "");
       if (!ALLOWED.some(([m, re]) => m === method && re.test(path))) return reply(403, { error: "not-allowed" });
+      if (!token) {
+        // no GitHub key yet: files can still be read from the public repository; saving can't
+        const file = path.match(/^contents\/(.+)$/)?.[1];
+        if (method !== "GET" || !file) return reply(503, { error: "no-github-token", missing });
+        const ref = url.searchParams.get("ref") || "main";
+        try {
+          const raw = await fetchImpl(`${githubRaw}/${repo}/${ref}/${file}`, { headers: { "User-Agent": "rk-owner-api" } });
+          if (!raw.ok) return reply(raw.status === 404 ? 404 : 502, { error: raw.status === 404 ? "not-found" : "github-unreachable" });
+          const bytes = Buffer.from(await raw.arrayBuffer());
+          // the same blob id GitHub would report, so "changed elsewhere" checks still work
+          const sha = crypto.createHash("sha1").update(`blob ${bytes.length}\0`).update(bytes).digest("hex");
+          return reply(200, { content: bytes.toString("base64"), sha, encoding: "base64" });
+        } catch {
+          return reply(502, { error: "github-unreachable" });
+        }
+      }
       let body;
       if (method !== "GET") {
         body = await request.arrayBuffer();

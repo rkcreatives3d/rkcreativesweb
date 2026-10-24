@@ -51,8 +51,8 @@ if (!fs.existsSync(root)) {
   process.exit(1);
 }
 
-// owner page password sign-in at /api/owner, when its two secrets are set (see owner-api.mjs)
-const ownerApi = process.env.OWNER_PASSWORD && process.env.GITHUB_TOKEN ? toNodeHandler(createOwnerApi()) : null;
+// owner page password sign-in at /api/owner, once OWNER_PASSWORD is set (see owner-api.mjs)
+const ownerApi = process.env.OWNER_PASSWORD ? toNodeHandler(createOwnerApi()) : null;
 
 http
   .createServer(async (req, res) => {

@@ -53,21 +53,26 @@ async function call<T>(token: string, url: string, init: RequestInit = {}): Prom
   if (!res.ok) {
     let msg = res.statusText;
     try {
-      msg = ((await res.json()) as { message?: string }).message ?? msg;
+      const body = (await res.json()) as { message?: string; error?: string };
+      msg = body.message ?? body.error ?? msg;
     } catch {}
     throw new GitHubError(msg, res.status);
   }
   return res.status === 204 ? (undefined as T) : ((await res.json()) as T);
 }
 
-/** Is the owner sign-in server there (and awake: free hosts sleep when idle)? */
-export async function ping(): Promise<"ok" | "not-set-up" | "unreachable"> {
+export type Ping = { state: "ok" | "not-set-up" | "unreachable"; canPublish: boolean; missing: string[] };
+
+/** Is the owner sign-in server there (and awake), and which of its settings are missing? */
+export async function ping(): Promise<Ping> {
   try {
     const res = await fetch(`${OWNER_API}/`, { cache: "no-store" });
-    if (res.ok) return "ok";
-    return res.status === 503 || res.status === 404 ? "not-set-up" : "unreachable";
+    const body = (await res.json().catch(() => ({}))) as { canPublish?: boolean; missing?: string[] };
+    const missing = body.missing ?? (res.ok ? [] : ["OWNER_PASSWORD", "GITHUB_TOKEN"]);
+    if (res.ok) return { state: "ok", canPublish: body.canPublish ?? true, missing };
+    return { state: res.status === 503 || res.status === 404 ? "not-set-up" : "unreachable", canPublish: false, missing };
   } catch {
-    return "unreachable";
+    return { state: "unreachable", canPublish: false, missing: [] };
   }
 }
 

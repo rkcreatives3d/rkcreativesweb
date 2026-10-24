@@ -1,5 +1,6 @@
 import http from "node:http";
 import { spawn } from "node:child_process";
+import { createHash } from "node:crypto";
 import type { AddressInfo } from "node:net";
 import { expect, test } from "@playwright/test";
 
@@ -27,7 +28,13 @@ async function start(extra: Record<string, string>) {
   await new Promise<void>((r) => github.listen(0, r));
   const port = await freePort();
   const proc = spawn(process.execPath, ["scripts/owner-api.mjs"], {
-    env: { PATH: process.env.PATH, PORT: String(port), GITHUB_API: `http://127.0.0.1:${(github.address() as AddressInfo).port}`, ...extra } as unknown as NodeJS.ProcessEnv,
+    env: {
+      PATH: process.env.PATH,
+      PORT: String(port),
+      GITHUB_API: `http://127.0.0.1:${(github.address() as AddressInfo).port}`,
+      GITHUB_RAW: `http://127.0.0.1:${(github.address() as AddressInfo).port}/raw`,
+      ...extra,
+    } as unknown as NodeJS.ProcessEnv,
     stdio: ["ignore", "pipe", "inherit"],
   });
   await new Promise<void>((r) => proc.stdout!.on("data", (d: Buffer) => String(d).includes("port") && r()));
@@ -48,9 +55,27 @@ async function start(extra: Record<string, string>) {
 
 const env = { OWNER_PASSWORD: "correct horse", GITHUB_TOKEN: "ghp_secret", GITHUB_REPO: "shop/site" };
 
-test("says when it isn't set up", async () => {
+test("says when it isn't set up, and which settings are missing (names only)", async () => {
   const s = await start({});
-  expect((await s.call("/")).status).toBe(503);
+  const res = await s.call("/");
+  expect(res.status).toBe(503);
+  expect(await res.json()).toEqual({ error: "not-set-up", missing: ["OWNER_PASSWORD", "GITHUB_TOKEN"] });
+  s.close();
+});
+
+test("the password alone signs in and reads the shop; publishing waits for the GitHub key", async () => {
+  const s = await start({ OWNER_PASSWORD: "pw only" });
+  expect(await (await s.call("/")).json()).toEqual({ ok: true, canPublish: false, missing: ["GITHUB_TOKEN"] });
+  const { session } = (await (await s.login("pw only")).json()) as { session: string };
+  const auth = { Authorization: `Bearer ${session}` };
+  // read from the public repo's raw files, with the same blob id GitHub uses
+  const file = (await (await s.call("/github/contents/content/shop.json?ref=main", { headers: auth })).json()) as { content: string; sha: string };
+  expect(Buffer.from(file.content, "base64").toString()).toBe('{"ok":true}');
+  expect(file.sha).toBe(createHash("sha1").update('blob 11\0{"ok":true}').digest("hex"));
+  expect(s.calls.at(-1)!.url).toBe("/raw/rkcreatives3d/rkcreativesweb/main/content/shop.json");
+  const save = await s.call("/github/git/blobs", { method: "POST", headers: auth, body: "{}" });
+  expect(save.status).toBe(503);
+  expect(((await save.json()) as { error: string }).error).toBe("no-github-token");
   s.close();
 });
 

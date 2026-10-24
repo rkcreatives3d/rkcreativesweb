@@ -39,6 +39,11 @@ export function PublishPanel({ onClose }: { onClose: () => void }) {
   const [shotCount, setShotCount] = useState(0);
 
   const start = async (force = false) => {
+    if (!useOwner.getState().canPublish)
+      return setPhase({
+        k: "error",
+        message: "Publishing needs the website's GitHub key: add GITHUB_TOKEN in Vercel → Settings → Environment Variables (Production), then redeploy.",
+      });
     try {
       if (!force) {
         // someone (or another device) published since this page loaded?
@@ -71,6 +76,11 @@ export function PublishPanel({ onClose }: { onClose: () => void }) {
       setPhase({ k: "done", sha });
     } catch (e) {
       if (e instanceof GitHubError && e.status === 401) return setPhase({ k: "expired" });
+      if (e instanceof GitHubError && e.message === "no-github-token")
+        return setPhase({
+          k: "error",
+          message: "Publishing needs the website's GitHub key: add GITHUB_TOKEN in Vercel → Settings → Environment Variables (Production), then redeploy.",
+        });
       setPhase({ k: "error", message: e instanceof Error ? `Publishing failed: ${e.message}` : "Publishing failed." });
     }
   };

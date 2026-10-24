@@ -13,7 +13,7 @@ export type Recorded = { blobs: string[]; tree: { path: string; sha: string | nu
  */
 export async function mockGitHub(
   page: Page,
-  { canWrite = true, files = ["models/vortex-vase.stl", "public/renders/vortex-vase/amber.webp"], password = "" } = {},
+  { canWrite = true, files = ["models/vortex-vase.stl", "public/renders/vortex-vase/amber.webp"], password = "", canPublish = true } = {},
 ) {
   const rec: Recorded = { blobs: [], tree: [], message: "", refUpdated: false };
   const blobs = new Map<string, string>();
@@ -22,15 +22,19 @@ export async function mockGitHub(
     const req = route.request();
     const json = (body: unknown, status = 200) => route.fulfill({ status, contentType: "application/json", body: JSON.stringify(body) });
     const rest = new URL(req.url()).pathname.replace(/^.*\/api\/owner\/?/, "").replace(/\/+$/, "");
-    if (!password) return json({ error: "not-set-up" }, 503);
-    if (rest === "") return json({ ok: true });
+    if (!password) return json({ error: "not-set-up", missing: ["OWNER_PASSWORD", "GITHUB_TOKEN"] }, 503);
+    if (rest === "") return json({ ok: true, canPublish, missing: canPublish ? [] : ["GITHUB_TOKEN"] });
     if (rest === "login") {
       if ((req.postDataJSON() as { password: string }).password === password) return json({ session: "test-session" });
       return json({ error: "wrong-password", left: --tries }, 401);
     }
     if (req.headers().authorization !== "Bearer test-session") return json({ error: "signed-out" }, 401);
     if (rest === "me") return json({ login: "owner", canWrite: true });
-    if (rest.startsWith("github")) return repo(route, `/${rest.slice("github".length).replace(/^\//, "")}`.replace(/\/$/, ""));
+    if (rest.startsWith("github")) {
+      const path = `/${rest.slice("github".length).replace(/^\//, "")}`.replace(/\/$/, "");
+      if (!canPublish && !path.startsWith("/contents/")) return json({ error: "no-github-token" }, 503);
+      return repo(route, path);
+    }
     return json({}, 404);
   });
   await page.route("https://api.github.com/**", async (route) => {
