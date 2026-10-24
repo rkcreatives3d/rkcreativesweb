@@ -16,6 +16,9 @@ import { useShelf } from "@/lib/shelf";
 // context. The 3D engine itself downloads only once the page is on screen and
 // the browser is idle, so it never delays the first paint. In Lite mode
 // (decided before first paint by the boot script) it never loads at all.
+/** When the opening animation has lifted away, in ms from page load (globals.css: lift 2.45 s + 0.7 s). */
+const INTRO_MS = 3200;
+
 export function Providers({ children }: { children: React.ReactNode }) {
   const root = useRef<HTMLDivElement>(null!);
   const full3D = useFull3D();
@@ -32,12 +35,33 @@ export function Providers({ children }: { children: React.ReactNode }) {
     useLite.setState({ lite });
     setSmooth(!lite && matchMedia("(pointer: fine)").matches && !matchMedia("(prefers-reduced-motion: reduce)").matches);
     const start = () => useLite.setState({ ready: true });
-    if ("requestIdleCallback" in window) {
-      const id = requestIdleCallback(start, { timeout: 1200 });
-      return () => cancelIdleCallback(id);
-    }
-    const id = setTimeout(start, 300);
-    return () => clearTimeout(id);
+    let idle = 0;
+    let timer = 0;
+    const whenIdle = () => {
+      if (typeof requestIdleCallback === "function") idle = requestIdleCallback(start, { timeout: 1200 });
+      else timer = setTimeout(start, 300) as unknown as number;
+    };
+    // While the opening animation plays, the 3D engine waits: downloading and
+    // compiling it would take the main thread from the animation on a phone.
+    // It starts as the animation lifts away (about 3 s), or straight after Skip.
+    const root = document.documentElement;
+    const introPlaying = !root.classList.contains("no-intro") && location.pathname === "/";
+    let watch: MutationObserver | null = null;
+    if (introPlaying && performance.now() < INTRO_MS) {
+      const go = () => {
+        watch?.disconnect();
+        clearTimeout(timer);
+        whenIdle();
+      };
+      timer = window.setTimeout(go, INTRO_MS - performance.now());
+      watch = new MutationObserver(() => root.classList.contains("intro-skipped") && go());
+      watch.observe(root, { attributes: true, attributeFilter: ["class"] });
+    } else whenIdle();
+    return () => {
+      watch?.disconnect();
+      clearTimeout(timer);
+      if (idle) cancelIdleCallback(idle);
+    };
   }, []);
 
   return (
