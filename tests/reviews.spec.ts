@@ -29,6 +29,15 @@ test("a customer writes a review with a photo; it's posted straight away and sho
   // they see it right away, with their own photo (the site's copy appears after the rebuild)
   const card = page.locator("figure").filter({ hasText: "Lovely finish" });
   await expect(card).toContainText("Asha");
+  // stars, then the customer's name, then the product they ordered, then their review
+  const text = (await card.innerText()).replace(/\s+/g, " ");
+  const at = (t: string) => text.indexOf(t);
+  expect(await card.getByRole("img", { name: "5 out of 5 stars" }).isVisible()).toBe(true);
+  expect(at("Asha")).toBeGreaterThan(-1);
+  expect(at("Asha")).toBeLessThan(at("Vortex Vase"));
+  expect(at("Vortex Vase")).toBeLessThan(at("Lovely finish"));
+  const box = async (l: import("@playwright/test").Locator) => (await l.boundingBox())!.y;
+  expect(await box(card.getByRole("img", { name: "5 out of 5 stars" }))).toBeLessThan(await box(card.getByText("Asha", { exact: false }).first()));
   await expect(card.locator("img")).toHaveAttribute("src", /^blob:/);
   expect(sent).toMatchObject({ name: "Asha", city: "Pune", product: "vortex-vase", rating: 5, text: "Lovely finish, looks even better in person." });
   // the photo was shrunk to a JPEG in the browser
