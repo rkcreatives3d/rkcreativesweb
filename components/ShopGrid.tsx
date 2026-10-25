@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { categories, products, type Category, type Product } from "@/lib/products";
 import { getOccasion, occasions } from "@/lib/occasions";
 import { searchProducts } from "@/lib/search";
@@ -28,6 +28,16 @@ export function ShopGrid() {
   const [filter, setFilter] = useState<string | null>(null);
   const [sort, setSort] = useState<keyof typeof sorts>("featured");
   const [q, setQ] = useState("");
+  const tabsBar = useRef<HTMLDivElement>(null);
+  // picking a collection while scrolled down: bring the top of the list back under the pinned tabs
+  const pick = (c: Category | "All") => {
+    setCat(c);
+    const bar = tabsBar.current;
+    if (!bar) return;
+    const top = bar.parentElement!.getBoundingClientRect().top + window.scrollY;
+    const pinned = parseFloat(getComputedStyle(bar).top) || 0;
+    if (window.scrollY > top - pinned) window.scrollTo({ top: top - pinned, behavior: "smooth" });
+  };
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -50,14 +60,18 @@ export function ShopGrid() {
 
   return (
     <>
-      <div className="border-b border-line">
+      {/* pinned under the top bar while scrolling, so another collection is always one tap away */}
+      <div
+        ref={tabsBar}
+        className="sticky top-[calc(3rem+env(safe-area-inset-top))] z-20 -mx-5 border-b border-line bg-page px-5 sm:top-[calc(3.25rem+env(safe-area-inset-top))] sm:-mx-6 sm:px-6"
+      >
         <div className="-mx-5 flex gap-5 overflow-x-auto px-4 [scrollbar-width:none] sm:mx-0 sm:px-0 [&::-webkit-scrollbar]:hidden" role="tablist" aria-label="Collections">
           {tabs.map((c) => (
             <button
               key={c}
               role="tab"
               aria-selected={cat === c}
-              onClick={() => setCat(c)}
+              onClick={() => pick(c)}
               className={`-mb-px min-w-8 shrink-0 whitespace-nowrap border-b-2 px-1 py-3 text-sm transition-colors ${
                 cat === c ? "border-fg font-medium text-fg" : "border-transparent text-muted hover:text-fg"
               }`}
@@ -122,7 +136,7 @@ export function ShopGrid() {
                     <h2 id={`c-${c}`} className="section-title text-2xl sm:text-[1.75rem]">
                       {c}
                     </h2>
-                    <button onClick={() => setCat(c)} className="link-more shrink-0 py-1.5 text-sm">
+                    <button onClick={() => pick(c)} className="link-more shrink-0 py-1.5 text-sm">
                       {items.length} {items.length === 1 ? "product" : "products"}
                     </button>
                   </div>

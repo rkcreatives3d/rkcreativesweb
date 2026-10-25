@@ -167,7 +167,13 @@ export function CheckoutForm() {
         </ul>
       </details>
       <form onSubmit={submit} className="space-y-5">
-        <Fieldset title="01 · Contact">
+        <Steps
+          done={{
+            contact: c.name.trim().length >= 2 && c.phone.replace(/\D/g, "").length >= 10,
+            delivery: !!c.address.trim() && !!c.city.trim() && validPin(c.pincode),
+          }}
+        />
+        <Fieldset title="01 · Contact" id="step-contact">
           <Field label="Full name" required value={c.name} onChange={set("name")} autoComplete="name" />
           <div className="grid gap-4 sm:grid-cols-2">
             <Field
@@ -185,7 +191,7 @@ export function CheckoutForm() {
           </div>
         </Fieldset>
 
-        <Fieldset title="02 · Delivery">
+        <Fieldset title="02 · Delivery" id="step-delivery">
           <Field label="Address" required value={c.address} onChange={set("address")} autoComplete="street-address" textarea />
           <div className="grid gap-4 sm:grid-cols-2">
             <Field label="City" required value={c.city} onChange={set("city")} autoComplete="address-level2" />
@@ -215,7 +221,7 @@ export function CheckoutForm() {
           <Field label="Notes (gift message, colour tweaks…)" value={c.notes} onChange={set("notes")} textarea />
         </Fieldset>
 
-        <Fieldset title="03 · Payment">
+        <Fieldset title="03 · Payment" id="step-payment">
           {options.length > 1 ? (
             <div role="radiogroup" aria-label="How would you like to pay?" className="grid gap-2">
               {options.map((o) => (
@@ -241,7 +247,7 @@ export function CheckoutForm() {
           )}
         </Fieldset>
 
-        <Fieldset title="04 · Send order">
+        <Fieldset title="04 · Send order" id="step-send">
           <p className="text-sm text-muted">
             Your order goes straight to us on WhatsApp{emailReady ? " or email" : ""}. We confirm colours and print time, {site.business.replyTime}.
           </p>
@@ -315,9 +321,48 @@ export function CheckoutForm() {
   );
 }
 
-export function Fieldset({ title, children }: { title: string; children: React.ReactNode }) {
+/**
+ * Where they are in checkout: four steps that tick off as they're filled in
+ * (payment counts once contact and delivery are done; it has a default).
+ * Each step jumps to its part of the form.
+ */
+function Steps({ done }: { done: { contact: boolean; delivery: boolean } }) {
+  const steps: [string, string, boolean][] = [
+    ["step-contact", "Contact", done.contact],
+    ["step-delivery", "Delivery", done.delivery],
+    ["step-payment", "Payment", done.contact && done.delivery],
+    ["step-send", "Send", false],
+  ];
+  const current = steps.findIndex(([, , d]) => !d);
   return (
-    <fieldset className="space-y-4 rounded-[var(--radius-tile)] bg-page-2 p-6">
+    <ol aria-label="Checkout steps" className="grid grid-cols-4 gap-1.5">
+      {steps.map(([id, label, d], i) => (
+        <li key={id}>
+          <a
+            href={`#${id}`}
+            aria-current={i === current ? "step" : undefined}
+            className={`flex flex-col gap-1.5 rounded-lg py-1 text-xs font-medium transition-colors sm:text-sm ${d || i === current ? "text-fg" : "text-muted hover:text-fg"}`}
+          >
+            <span className={`h-1 rounded-full ${d ? "bg-ok" : i === current ? "bg-fg" : "bg-line"}`} />
+            <span className="flex items-center gap-1">
+              {d && (
+                <svg width="12" height="12" viewBox="0 0 16 16" aria-hidden className="text-ok">
+                  <path d="m3 8.5 3.2 3.2L13 5" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              )}
+              {label}
+              {d && <span className="sr-only"> (done)</span>}
+            </span>
+          </a>
+        </li>
+      ))}
+    </ol>
+  );
+}
+
+export function Fieldset({ title, id, children }: { title: string; id?: string; children: React.ReactNode }) {
+  return (
+    <fieldset id={id} className="scroll-mt-24 space-y-4 rounded-[var(--radius-tile)] bg-page-2 p-6">
       <legend className="sr-only">{title}</legend>
       <p className="text-sm font-semibold text-accent">{title}</p>
       {children}

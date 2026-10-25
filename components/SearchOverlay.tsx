@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "motion/react";
 import { categories, products } from "@/lib/products";
 import { searchProducts } from "@/lib/search";
+import { popular } from "@/lib/popular";
 import { formatPrice } from "@/lib/site";
 import { useFocusTrap } from "@/lib/focus";
 import { ProductThumb } from "./ProductMedia";
@@ -25,6 +26,8 @@ export function SearchOverlay({ open, onClose }: { open: boolean; onClose: () =>
   useFocusTrap(panel, open);
   const results = useMemo(() => (q.trim() ? searchProducts(q).slice(0, 6) : []), [q]);
   const shownCollections = categories.filter((c) => products.some((p) => p.category === c)).slice(0, 4);
+  // before anything is typed: a few pieces to start from (bestsellers and new ones first)
+  const suggestions = popular(4);
 
   useEffect(() => {
     if (!open) return;
@@ -147,7 +150,19 @@ export function SearchOverlay({ open, onClose }: { open: boolean; onClose: () =>
                 )
               ) : (
                 <div className="mt-7">
-                  <p className="text-xs font-medium text-muted">Quick links</p>
+                  <p className="text-xs font-medium text-muted">Popular</p>
+                  <ul className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
+                    {suggestions.map((p) => (
+                      <li key={p.slug}>
+                        <Link data-result href={`/shop/${p.slug}/`} onClick={onClose} className="group block rounded-xl outline-offset-2">
+                          <ProductThumb product={p} finish={p.finishes[0]} className="aspect-square h-auto w-full" />
+                          <span className="mt-2 block truncate text-sm font-medium group-hover:underline">{p.name}</span>
+                          <span className="block tabular-nums text-xs text-muted">{formatPrice(p.price)}</span>
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                  <p className="mt-7 text-xs font-medium text-muted">Quick links</p>
                   <ul className="mt-2 space-y-0.5">
                     {[
                       ...shownCollections.map((c) => ({ href: `/shop/?c=${encodeURIComponent(c)}`, label: c })),

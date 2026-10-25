@@ -128,7 +128,7 @@ export function ProductDetail({ product: p }: { product: Product }) {
     <>
       <section className="mx-auto grid max-w-6xl gap-10 px-5 pb-20 pt-20 sm:px-6 sm:pt-24 lg:grid-cols-[1.12fr_1fr] lg:gap-16 lg:pt-28">
         {/* media: photos if the product has them, otherwise the 3D preview (or flat art in Lite mode) */}
-        <div className="min-w-0 lg:sticky lg:top-20 lg:self-start">
+        <div className="min-w-0 lg:sticky lg:top-[7.75rem] lg:self-start">
           {(model || (has3D && photos.list.length > 0)) && (
             <div className="mb-3 flex flex-wrap items-center gap-2">
               {has3D && photos.list.length > 0 && (
@@ -209,6 +209,28 @@ export function ProductDetail({ product: p }: { product: Product }) {
                   </Toggle>
                 </div>
               )}
+              {/* every colour side by side, as studio pictures: tap one to see it */}
+              {p.finishes.filter((f) => renderFor(p, f)).length > 1 && (
+                <div className="mt-4 flex justify-center gap-2.5 overflow-x-auto p-1" role="group" aria-label="Colours">
+                  {p.finishes
+                    .filter((f) => renderFor(p, f))
+                    .map((f) => (
+                      <button
+                        key={f}
+                        onClick={() => setFinish(f)}
+                        aria-label={`See it in ${getFinish(f).name}`}
+                        aria-pressed={finish === f}
+                        title={getFinish(f).name}
+                        className={`stage h-14 w-14 shrink-0 overflow-hidden rounded-xl transition-[box-shadow,opacity] sm:h-16 sm:w-16 ${
+                          finish === f ? "ring-2 ring-fg ring-offset-2 ring-offset-page" : "opacity-75 hover:opacity-100"
+                        }`}
+                      >
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={renderFor(p, f, "sm")} alt="" width={64} height={64} loading="lazy" decoding="async" className="h-full w-full object-contain" />
+                      </button>
+                    ))}
+                </div>
+              )}
             </>
           )}
         </div>
@@ -239,6 +261,7 @@ export function ProductDetail({ product: p }: { product: Product }) {
             <KineticText text={p.name} stagger={0.025} />
           </h1>
           <p className="lead mt-3">{p.tagline}</p>
+          <Rating slug={p.slug} />
 
           <p className="mt-5 flex items-baseline gap-3">
             <span className="text-2xl font-semibold tabular-nums tracking-tight">{formatPrice(price * qty)}</span>
@@ -457,6 +480,32 @@ export function ProductDetail({ product: p }: { product: Product }) {
         <RecentlyViewed exclude={p.slug} className="mt-16" />
       </section>
 
+      {/* computers: a slim bar under the top bar with the name, price and "Add to cart" once the main button scrolls away */}
+      <div
+        className={`fixed inset-x-0 top-[calc(3.25rem+env(safe-area-inset-top))] z-30 hidden border-b border-line bg-page transition-transform duration-300 lg:block ${
+          barOn ? "translate-y-0" : "pointer-events-none -translate-y-full"
+        }`}
+        aria-hidden={!barOn}
+        inert={!barOn}
+      >
+        <div className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-6 px-6">
+          <p className="min-w-0 truncate">
+            <span className="font-semibold">{p.name}</span>
+            <span className="text-sm text-muted">
+              {" "}
+              · {getFinish(finish).name}
+              {sizeInfo ? ` · ${sizeInfo.label}` : ""}
+            </span>
+          </p>
+          <div className="flex shrink-0 items-center gap-4">
+            <span className="font-semibold tabular-nums">{formatPrice(price * qty)}</span>
+            <Button primary className="!min-h-9 !py-2 px-4 text-sm" onClick={(e) => addToCart(e.currentTarget)}>
+              {included && !engraving ? "Add your name" : "Add to cart"}
+            </Button>
+          </div>
+        </div>
+      </div>
+
       {/* phones: price and "Add to cart" always one tap away (hidden while the main button is in view) */}
       <div
         className={`fixed inset-x-0 bottom-0 z-40 border-t border-line bg-page px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 transition-transform duration-300 lg:hidden ${
@@ -513,12 +562,27 @@ function Detail({ title, children }: { title: string; children: React.ReactNode 
   );
 }
 
-/** Customer reviews of this product (approved by the owner), with ways to write one and to read them all. */
+/** The product's star rating under its name, linking to its reviews (only once it has some). */
+function Rating({ slug }: { slug: string }) {
+  const list = reviewsFor(slug);
+  if (!list.length) return null;
+  const avg = average(list);
+  return (
+    <a href="#reviews" className="mt-3 inline-flex items-center gap-2 py-1 text-sm text-muted hover:text-fg">
+      <Stars rating={Math.round(avg)} />
+      <span className="tabular-nums">
+        {avg.toFixed(1)} · {list.length} {list.length === 1 ? "review" : "reviews"}
+      </span>
+    </a>
+  );
+}
+
+/** Customer reviews of this product, with ways to write one and to read them all. */
 function ProductReviews({ slug }: { slug: string }) {
   const list = reviewsFor(slug);
   const avg = average(list);
   return (
-    <section className="mt-10 border-t border-line pt-6">
+    <section id="reviews" className="mt-10 scroll-mt-32 border-t border-line pt-6">
       <h2 className="text-lg font-semibold tracking-tight">Customer reviews</h2>
       {list.length ? (
         <>
