@@ -9,8 +9,9 @@ import { Stars } from "../Reviews";
 import { Card, dangerBtn, smallBtn } from "./fields";
 
 /**
- * Customers' reviews: the ones waiting (sent in on /reviews/, kept on the
- * inbox branch) to approve or reject, and the published ones to remove.
+ * Customers' reviews. They go live on the site as soon as they're sent (see
+ * scripts/owner-api.mjs); here the owner can take any of them down. Reviews
+ * sent before that (kept on the inbox branch) can still be approved or rejected.
  * Decisions take effect on Publish, like every other change.
  */
 export function ReviewsTab() {
@@ -88,7 +89,8 @@ export function ReviewsTab() {
           </ul>
         ) : (
           <p className="text-sm text-muted">
-            No reviews waiting. Customers write them on the <span className="font-mono">/reviews/</span> page.
+            Nothing waiting. Customers&apos; reviews (from the <span className="font-mono">/reviews/</span> page) now go live on the site as soon as they&apos;re
+            sent. Take any of them down below.
           </p>
         )}
         {inboxDone.length > 0 && (

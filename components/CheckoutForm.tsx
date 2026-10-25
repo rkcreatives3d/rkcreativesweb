@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { optionsLabel } from "@/lib/personalise";
@@ -18,7 +18,7 @@ import {
   type PayMethod,
 } from "@/lib/order";
 import { deliveryQuote, shippingTo, validPin } from "@/lib/delivery";
-import { dispatchLabel, formatPrice, mailtoUrl, site, whatsappUrl } from "@/lib/site";
+import { dispatchLabel, emailReady, formatPrice, mailtoUrl, site, upiReady, whatsappUrl } from "@/lib/site";
 import { track } from "@/lib/track";
 import { ButtonLink } from "./ui";
 import { ProductThumb } from "./ProductMedia";
@@ -26,8 +26,8 @@ import { DeliveryEstimate, usePin } from "./Delivery";
 import { TrustBadges } from "./TrustBadges";
 import { MailIcon, TruckIcon } from "./Icons";
 
-/** the UPI QR on the order page only appears once the shop's real UPI ID is set (components/UpiPay.tsx) */
-const upiReady = !site.upi.id.startsWith("yourname");
+// the UPI QR on the order page only appears once the shop's real UPI ID is set (components/UpiPay.tsx);
+// ordering by email only once there's a real address to send it to (lib/site.ts)
 
 const payNotes: Record<PayMethod, string> = {
   upi: upiReady ? "Pay now on the next page, or after we confirm. No extra charge." : "Pay after we confirm your order on WhatsApp. No extra charge.",
@@ -43,6 +43,7 @@ export function CheckoutForm() {
   const savedPin = usePin((s) => s.pin);
   const setPin = usePin((s) => s.setPin);
   const [c, setC] = useState<Customer>(empty);
+  const sending = useRef(false);
   const [quote, setQuote] = useState<ReturnType<typeof deliveryQuote> | null>(null);
 
   // pre-fill the PIN someone already checked on a product page
@@ -73,11 +74,11 @@ export function CheckoutForm() {
   if (items.length === 0) {
     return (
       <div className="mx-auto max-w-xl py-16 text-center">
-        <p className="text-3xl font-semibold tracking-tight">Cart&apos;s empty</p>
+        <p className="text-3xl font-semibold tracking-tight">Your cart is empty.</p>
         <p className="mt-3 text-muted">Nothing to check out yet.</p>
         <div className="mt-8">
           <ButtonLink href="/shop/" primary>
-            Browse the shop →
+            Explore the collection
           </ButtonLink>
         </div>
       </div>
@@ -86,6 +87,9 @@ export function CheckoutForm() {
 
   const submit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    // one order per tap, even on a double tap
+    if (sending.current) return;
+    sending.current = true;
     const via = ((e.nativeEvent as SubmitEvent).submitter as HTMLButtonElement | null)?.value === "email" ? "email" : "whatsapp";
     const id = newOrderId();
     const msg = buildOrderMessage(id, items, c, pay);
@@ -239,15 +243,17 @@ export function CheckoutForm() {
 
         <Fieldset title="04 · Send order">
           <p className="text-sm text-muted">
-            Your order goes straight to us on WhatsApp or email. We confirm colours and print time, {site.business.replyTime}.
+            Your order goes straight to us on WhatsApp{emailReady ? " or email" : ""}. We confirm colours and print time, {site.business.replyTime}.
           </p>
           <div className="flex flex-col gap-3 sm:flex-row">
             <button type="submit" name="via" value="whatsapp" className="btn btn-primary flex-1">
               <WhatsAppIcon /> Order on WhatsApp
             </button>
-            <button type="submit" name="via" value="email" className="btn flex-1">
-              <MailIcon /> Order by email
-            </button>
+            {emailReady && (
+              <button type="submit" name="via" value="email" className="btn flex-1">
+                <MailIcon /> Order by email
+              </button>
+            )}
           </div>
         </Fieldset>
       </form>
@@ -327,7 +333,7 @@ type FieldProps = {
 
 export function Field({ label, textarea, className = "", ...rest }: FieldProps) {
   const cls =
-    "mt-1.5 w-full rounded-xl border border-line bg-page px-4 py-3 text-fg outline-none transition-colors placeholder:text-fg/50 focus:border-fg/60 focus:ring-4 focus:ring-fg/[0.06]";
+    "mt-1.5 w-full rounded-xl border border-subtle bg-page px-4 py-3 text-fg outline-none transition-colors placeholder:text-subtle focus:border-fg focus:ring-1 focus:ring-fg";
   return (
     <label className={`block text-sm ${className}`}>
       <span className="text-muted">

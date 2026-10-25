@@ -1,22 +1,25 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import type { Review } from "@/lib/content";
 import { products } from "@/lib/products";
 import { resizePhoto, toBase64 } from "@/lib/photo";
 import { site, whatsappUrl } from "@/lib/site";
 import { track } from "@/lib/track";
+import { ReviewCard } from "./Reviews";
 
 /** The owner sign-in server also takes reviews (scripts/owner-api.mjs). */
 const API = (process.env.NEXT_PUBLIC_OWNER_API || "/api/owner").replace(/\/$/, "");
 
 const input =
-  "w-full rounded-xl border border-line bg-page px-3.5 py-3 text-fg outline-none placeholder:text-fg/40 focus:border-fg/60 focus:ring-4 focus:ring-fg/[0.06]";
+  "w-full rounded-xl border border-subtle bg-page px-3.5 py-3 text-fg outline-none placeholder:text-subtle focus:border-fg focus:ring-1 focus:ring-fg";
 
-type State = { k: "idle" } | { k: "sending" } | { k: "sent" } | { k: "error"; message: string; whatsapp?: boolean };
+type State = { k: "idle" } | { k: "sending" } | { k: "sent"; review?: Review } | { k: "error"; message: string; whatsapp?: boolean };
 
 /**
- * Write a review, with a photo of the piece. It goes to the owner first and
- * appears on the site once they approve it.
+ * Write a review, with a photo of the piece. It goes live straight away: the
+ * server adds it to the site's reviews, and the site shows it to everyone a
+ * minute or two later (after it rebuilds). Meanwhile the customer sees it here.
  */
 export function ReviewForm() {
   const [product, setProduct] = useState("");
@@ -45,6 +48,7 @@ export function ReviewForm() {
   const submit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!rating) return setState({ k: "error", message: "Tap the stars to give a rating." });
+    if (state.k === "sending") return; // one review per tap
     setState({ k: "sending" });
     const honeypot = (new FormData(e.currentTarget).get("website") as string) || "";
     try {
@@ -55,14 +59,26 @@ export function ReviewForm() {
       });
       if (res.ok) {
         track("review_sent", { product, rating, photo: !!photo });
-        return setState({ k: "sent" });
+        const posted = ((await res.json().catch(() => ({}))) as { review?: Review }).review;
+        // show it with the photo from this device (the site's copy appears after the rebuild)
+        return setState({ k: "sent", review: posted && { ...posted, image: posted.image && photo ? photo.url : undefined } });
       }
       const err = ((await res.json().catch(() => ({}))) as { error?: string }).error;
       setState(
         res.status === 429
           ? { k: "error", message: "Thanks, we've already got a few reviews from you. Try again in an hour." }
           : res.status === 400
-            ? { k: "error", message: err === "text" ? "Tell us a little more (at least a sentence)." : err === "photo" ? "That photo couldn't be used. Try another one." : "Check the form and try again." }
+            ? {
+                k: "error",
+                message:
+                  err === "text"
+                    ? "Tell us a little more (at least a sentence)."
+                    : err === "photo"
+                      ? "That photo couldn't be used. Try another one."
+                      : err === "links"
+                        ? "Please leave out website links."
+                        : "Check the form and try again.",
+              }
             : { k: "error", message: "Reviews can't be received here right now. Send it to us on WhatsApp instead:", whatsapp: true },
       );
     } catch {
@@ -72,9 +88,17 @@ export function ReviewForm() {
 
   if (state.k === "sent")
     return (
-      <div role="status" className="rounded-[var(--radius-tile)] bg-page-2 p-6 text-center">
-        <p className="text-2xl font-semibold tracking-tight">Thank you!</p>
-        <p className="mt-2 text-muted">Your review is with us. It appears here once we&apos;ve had a look, usually within a day.</p>
+      <div className="space-y-6">
+        <div role="status" className="rounded-[var(--radius-tile)] bg-page-2 p-6 text-center">
+          <p className="text-2xl font-semibold tracking-tight">Thank you!</p>
+          <p className="mt-2 text-muted">Your review is posted. It shows on the site for everyone in a minute or two.</p>
+        </div>
+        {state.review && (
+          <div className="mx-auto max-w-sm">
+            <p className="mb-2 text-sm text-muted">Your review</p>
+            <ReviewCard review={state.review} />
+          </div>
+        )}
       </div>
     );
 
@@ -186,7 +210,7 @@ export function ReviewForm() {
       <button type="submit" disabled={state.k === "sending"} className="btn btn-primary w-full disabled:opacity-60">
         {state.k === "sending" ? "Sending…" : "Send review"}
       </button>
-      <p className="text-xs text-muted">We read every review before it goes up, and only show your name and city.</p>
+      <p className="text-xs text-muted">Your review goes up on the site straight away. Only your name and city are shown.</p>
     </form>
   );
 }

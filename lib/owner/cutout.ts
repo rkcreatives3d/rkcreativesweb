@@ -34,8 +34,13 @@ const smooth = (a: number, b: number, x: number) => {
   return t * t * (3 - 2 * t);
 };
 
-/** The product on the shop's stage, as JPEG bytes (`size` px square). Throws if no product is found. */
-export async function cleanBackground(photo: Blob, size = 1200): Promise<Uint8Array<ArrayBuffer>> {
+/**
+ * The product on the shop's stage, as JPEG bytes (`size` px square). With
+ * `transparent`, just the product and its floor shadow, as a WebP with a
+ * transparent background (for the home page cover, which has its own backdrop).
+ * Throws if no product is found.
+ */
+export async function cleanBackground(photo: Blob, size = 1200, transparent = false): Promise<Uint8Array<ArrayBuffer>> {
   const bmp = await createImageBitmap(photo);
   const W = bmp.width;
   const H = bmp.height;
@@ -112,7 +117,7 @@ export async function cleanBackground(photo: Blob, size = 1200): Promise<Uint8Ar
   // 5. on the stage: fitted to 76% of the frame, standing on a soft shadow
   const sq = canvas(size, size);
   const g = sq.getContext("2d")!;
-  drawStage(g, size);
+  if (!transparent) drawStage(g, size);
   const k = Math.min((size * 0.76) / bw, (size * 0.76) / bh);
   const dw = bw * k, dh = bh * k;
   const dx = (size - dw) / 2;
@@ -120,7 +125,7 @@ export async function cleanBackground(photo: Blob, size = 1200): Promise<Uint8Ar
   drawShadow(g, size / 2, size * 0.86, Math.max(dw * 0.42, size * 0.12), size * 0.035);
   g.imageSmoothingQuality = "high";
   g.drawImage(cut, bx, by, bw, bh, dx, dy, dw, dh);
-  return canvasBytes(sq, "image/jpeg", 0.88);
+  return transparent ? canvasBytes(sq, "image/webp", 0.9) : canvasBytes(sq, "image/jpeg", 0.88);
 }
 
 /**

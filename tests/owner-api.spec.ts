@@ -21,7 +21,7 @@ const freePort = () =>
 
 async function start(extra: Record<string, string>) {
   const calls: Call[] = [];
-  // a pretend GitHub: records every call; plays along with the reviews inbox branch
+  // a pretend GitHub: records every call; plays along with the reviews inbox branch and the reviews file
   let inboxExists = false;
   const sha = (c: string) => c.repeat(40);
   const github = http.createServer((req, res) => {
@@ -33,6 +33,8 @@ async function start(extra: Record<string, string>) {
       const send = (status: number, data: unknown) => res.writeHead(status, { "Content-Type": "application/json" }).end(JSON.stringify(data));
       if (url.endsWith("/git/ref/heads/reviews-inbox")) return inboxExists ? send(200, { object: { sha: sha("c") } }) : send(404, { message: "Not Found" });
       if (url.endsWith("/git/ref/heads/main")) return send(200, { object: { sha: sha("a") } });
+      if (url.includes("/contents/content/reviews.json"))
+        return send(200, { content: Buffer.from(JSON.stringify([{ id: "old1", name: "Ravi", rating: 4, text: "Nice keychain, quick delivery.", date: "2026-10-01" }])).toString("base64"), encoding: "base64" });
       if (url.endsWith("/git/refs") && req.method === "POST") return (inboxExists = true), send(201, {});
       if (url.includes("/git/commits/")) return send(200, { tree: { sha: sha("b") } });
       if (url.endsWith("/git/blobs")) return send(201, { sha: sha("d") });
@@ -162,27 +164,37 @@ const review = (extra: Record<string, unknown> = {}) => ({
   ...extra,
 });
 
-test("reviews: checked, then filed on the inbox branch (created the first time) for the owner to approve", async () => {
+test("reviews: checked, then put straight on the site (reviews file and photo, one commit on main)", async () => {
   const s = await start({ GITHUB_TOKEN: "ghp_secret" });
   const send = (body: unknown) => s.call("/review/", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
   expect((await send(review({ name: "" }))).status).toBe(400);
   expect((await send(review({ rating: 7 }))).status).toBe(400);
   expect((await send(review({ text: "ok" }))).status).toBe(400);
   expect((await send(review({ photo: Buffer.from("<svg/>").toString("base64") }))).status).toBe(400);
-  // the hidden field only bots fill in: "accepted", but nothing is filed
+  // links are refused (spam); a missing space after a full stop isn't a link
+  const links = await send(review({ text: "Great vase, buy more at cheap-deals.com today" }));
+  expect(links.status).toBe(400);
+  expect(await links.json()).toEqual({ error: "links" });
+  // the hidden field only bots fill in: "accepted", but nothing is written
   const before = s.calls.length;
   expect((await send(review({ website: "http://spam" }))).status).toBe(200);
   expect(s.calls.length).toBe(before);
 
-  expect((await send(review())).status).toBe(200);
-  expect(s.calls.some((c) => c.method === "POST" && c.url.endsWith("/git/refs") && c.body!.includes("refs/heads/reviews-inbox"))).toBe(true);
-  const tree = JSON.parse(s.calls.find((c) => c.url.endsWith("/git/trees"))!.body!).tree as { path: string }[];
-  expect(tree.map((t) => t.path)).toEqual([expect.stringMatching(/^inbox\/\w+\.json$/), expect.stringMatching(/^inbox\/\w+\.jpg$/)]);
-  const entry = JSON.parse(Buffer.from(JSON.parse(s.calls.find((c) => c.url.endsWith("/git/blobs"))!.body!).content, "base64").toString());
-  expect(entry).toMatchObject({ name: "Asha", city: "Pune", product: "vortex-vase", rating: 5, photo: true });
-  expect(s.calls.some((c) => c.method === "PATCH" && c.url.endsWith("/git/refs/heads/reviews-inbox"))).toBe(true);
-  // nothing touches the live site's branch
-  expect(s.calls.some((c) => c.method !== "GET" && c.url.includes("heads/main"))).toBe(false);
+  const res = await send(review({ text: "Lovely finish, a great gift for my mom.in fact she loved it." }));
+  expect(res.status).toBe(200);
+  const { review: posted } = await res.json();
+  expect(posted).toMatchObject({ name: "Asha", city: "Pune", product: "vortex-vase", rating: 5, image: expect.stringMatching(/^\/reviews\/\w+\.jpg$/) });
+  const tree = JSON.parse(s.calls.find((c) => c.url.endsWith("/git/trees"))!.body!).tree as { path: string; sha: string }[];
+  expect(tree.map((t) => t.path)).toEqual(["content/reviews.json", `public${posted.image}`]);
+  // the new review goes first, the existing ones are kept
+  const blobs = s.calls.filter((c) => c.url.endsWith("/git/blobs")).map((c) => Buffer.from(JSON.parse(c.body!).content, "base64"));
+  const file = JSON.parse(blobs.find((b) => b[0] === 0x5b)!.toString()); // "["
+  expect(file.map((r: { id: string }) => r.id)).toEqual([posted.id, "old1"]);
+  expect(file[0]).toMatchObject({ name: "Asha", rating: 5, image: posted.image });
+  expect(JSON.parse(s.calls.find((c) => c.url.endsWith("/git/commits") && c.method === "POST")!.body!).message).toMatch(/^Review: Asha, 5\/5/);
+  expect(s.calls.some((c) => c.method === "PATCH" && c.url.endsWith("/git/refs/heads/main") && JSON.parse(c.body!).force === false)).toBe(true);
+  // nothing goes to the old approval inbox
+  expect(s.calls.some((c) => c.url.includes("reviews-inbox"))).toBe(false);
   s.close();
 });
 

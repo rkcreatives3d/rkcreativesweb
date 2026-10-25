@@ -36,7 +36,7 @@ export function TrustBadges({ className = "" }: { className?: string }) {
       {badges.map((b) => {
         const body = (
           <>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden className="shrink-0 text-fg/70">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden className="shrink-0 text-subtle">
               {b.icon}
             </svg>
             <span className="min-w-0 flex-1 text-sm">

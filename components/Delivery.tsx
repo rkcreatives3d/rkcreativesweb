@@ -83,8 +83,8 @@ export function PinCheck({ subtotal }: { subtotal: number }) {
           placeholder="Your PIN code"
           aria-invalid={error}
           aria-describedby="pin-result"
-          className={`min-w-0 flex-1 rounded-xl border bg-page/60 px-3 py-2 text-sm tabular-nums text-fg outline-none transition-colors placeholder:text-fg/50 focus:border-fg/60 focus:ring-4 focus:ring-fg/[0.06] ${
-            error ? "border-danger" : "border-line"
+          className={`min-w-0 flex-1 rounded-xl border bg-page px-3 py-2 text-sm tabular-nums text-fg outline-none transition-colors placeholder:text-subtle focus:border-fg focus:ring-1 focus:ring-fg ${
+            error ? "border-danger" : "border-subtle"
           }`}
         />
         <button type="submit" className="shrink-0 rounded-xl px-3 py-2 text-sm font-semibold text-accent hover:bg-fg/5">

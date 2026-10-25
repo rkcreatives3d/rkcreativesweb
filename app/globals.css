@@ -7,9 +7,15 @@
 
 /* Design system: quiet and precise. White and soft grey surfaces, near-black
    text, the products carry the colour.
+   Palette: #FFFFFF white · #1D1D1F near-black · #86868B secondary grey ·
+   #F5F5F7 soft grey · #D2D2D7 borders.
    Colour roles (keep to them):
      ink (fg)       = text and the solid primary button
-     grey (muted)   = secondary text
+     muted          = secondary text (#6E6E73: the palette's grey made dark enough
+                      to read at small sizes; #86868B on white is only 3.5:1)
+     subtle         = #86868B: icons, form-field borders (3.5:1, enough to see a
+                      field's edge), large or decorative secondary text
+     line           = #D2D2D7 hairlines and dividers
      page / page-2  = white, and the soft grey of secondary sections and product stages
      amber (accent) = the brand's one accent, used sparingly: text links, small
                       labels ("New"), keyboard focus. accent-fill is the logo's own
@@ -22,9 +28,10 @@
   --color-page-2: #f5f5f7;
   --color-surface: #ffffff;
   --color-raised: #f5f5f7;
-  --color-line: #e2e2e7;
+  --color-line: #d2d2d7;
   --color-fg: #1d1d1f;
   --color-muted: #6e6e73;
+  --color-subtle: #86868b;
   --color-accent: #a8530c;
   --color-accent-fill: #e8891a;
   --color-on-accent: #1d1d1f;
@@ -39,7 +46,8 @@
   --text-xs--line-height: 1.4;
   --text-sm: 0.9375rem;
   --text-sm--line-height: 1.5;
-  --radius-tile: 1.375rem; /* big imagery tiles */
+  --radius-tile: 1.375rem; /* big panels and picture tiles */
+  --radius-card: 1.125rem; /* product and collection pictures in grids */
 }
 
 :root {
@@ -58,6 +66,7 @@
   --color-line: #333336;
   --color-fg: #f5f5f7;
   --color-muted: #a1a1a6;
+  --color-subtle: #86868b;
   --color-accent: #f5a442;
   --color-accent-2: #f5a442;
   --color-pop: #f5a442;
@@ -274,6 +283,13 @@ h3 {
 .viewer-bg {
   background: radial-gradient(ellipse 70% 60% at 50% 42%, #fcfcfd, #f5f5f7 58%, #ececef 100%);
 }
+/* the cover: a soft studio sweep, lit from above, with the product standing on its floor */
+.hero-stage {
+  background:
+    radial-gradient(ellipse 70% 58% at 50% 80%, rgb(255 255 255 / 0.95) 0%, rgb(255 255 255 / 0.55) 38%, rgb(255 255 255 / 0.18) 62%, rgb(255 255 255 / 0) 85%),
+    linear-gradient(to bottom, #ffffff 0%, #f8f8fa 38%, #f2f2f4 100%);
+}
+
 /* a soft floor shadow under a live 3D model */
 .stage-shadow {
   position: absolute;
@@ -320,7 +336,7 @@ h3 {
   animation: hero-in 0.9s cubic-bezier(0.16, 1, 0.3, 1) var(--d, 0s) both;
 }
 html:not(.no-intro) .hero-in {
-  animation-delay: calc(var(--d, 0s) + 2.6s);
+  animation-delay: calc(var(--d, 0s) + 1.65s); /* as the opening animation lifts away */
 }
 html.intro-done .hero-in {
   animation-name: hero-in-again;
@@ -440,8 +456,9 @@ html.intro-done .hero-in {
    static HTML: it starts with the first paint and never waits for JavaScript.
    It animates transforms and opacity, plus one small image revealed in steps,
    so it stays smooth on budget phones.
-   Timeline: bed 0.1–0.6 s · print 0.45–2.05 s · fuse + sheen 2.05–2.6 s ·
-   lift 2.45–3.15 s. The cover's text starts at 2.6 s (.hero-in, above). */
+   Timeline (about 2 s, kept short so it never holds up the shop): bed 0.05–0.45 s ·
+   print 0.3–1.3 s · fuse + sheen 1.3–1.77 s · lift 1.55–2.05 s. The home page's
+   text fades in from 1.65 s (.hero-in, above). */
 
 /* set by the boot script before first paint: not the home page, seen this visit, or reduced motion */
 .no-intro #intro {
@@ -450,9 +467,9 @@ html.intro-done .hero-in {
 #intro {
   --w: min(64vw, 42vh); /* print size */
   --h: var(--w); /* the logo is square */
-  --print-at: 0.45s;
-  --print: 1.6s;
-  --layers: 40;
+  --print-at: 0.3s;
+  --print: 1s;
+  --layers: 26;
   position: fixed;
   inset: 0;
   z-index: 90;
@@ -460,7 +477,7 @@ html.intro-done .hero-in {
   place-content: center;
   justify-items: center;
   touch-action: none;
-  animation: intro-lift 0.7s cubic-bezier(0.76, 0, 0.24, 1) 2.45s forwards;
+  animation: intro-lift 0.5s cubic-bezier(0.76, 0, 0.24, 1) 1.55s forwards;
 }
 html.intro-skipped #intro {
   animation: intro-lift-now 0.5s cubic-bezier(0.76, 0, 0.24, 1) forwards;
@@ -531,7 +548,7 @@ html.intro-skipped #intro {
 }
 .intro-lines {
   background: repeating-linear-gradient(to top, rgb(255 238 205 / 0.5) 0 1px, transparent 1px calc(var(--h) / var(--layers)));
-  animation: intro-fade 0.45s ease 2.05s forwards;
+  animation: intro-fade 0.35s ease 1.3s forwards;
 }
 .intro-shine::before {
   content: "";
@@ -542,7 +559,7 @@ html.intro-skipped #intro {
   width: 45%;
   background: linear-gradient(100deg, transparent, rgb(255 248 230 / 0.8), transparent);
   transform: skewX(-15deg);
-  animation: intro-shine 0.65s ease-in-out 2.1s forwards;
+  animation: intro-shine 0.45s ease-in-out 1.32s forwards;
 }
 @keyframes intro-shine {
   to {
@@ -558,9 +575,9 @@ html.intro-skipped #intro {
   height: 0;
   opacity: 0;
   animation:
-    intro-appear 0.2s ease 0.35s forwards,
+    intro-appear 0.2s ease 0.25s forwards,
     intro-rise var(--print) steps(var(--layers), end) var(--print-at) forwards,
-    intro-fade 0.3s ease 2.05s forwards;
+    intro-fade 0.25s ease 1.3s forwards;
 }
 .intro-head::before {
   /* the hot layer under the nozzle */
@@ -605,7 +622,7 @@ html.intro-skipped #intro {
   border-radius: 3px;
   background: var(--color-fg);
   transform: scaleX(0);
-  animation: intro-bed 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.1s forwards;
+  animation: intro-bed 0.4s cubic-bezier(0.16, 1, 0.3, 1) 0.05s forwards;
 }
 .intro-bed::after {
   content: "";
@@ -633,7 +650,7 @@ html.intro-skipped #intro {
   text-transform: uppercase;
   color: var(--color-muted);
   opacity: 0;
-  animation: intro-appear 0.4s ease 0.6s forwards;
+  animation: intro-appear 0.3s ease 0.4s forwards;
 }
 .intro-skip-btn:hover {
   color: var(--color-fg);

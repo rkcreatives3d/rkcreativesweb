@@ -84,12 +84,16 @@ export async function buildChanges(
   }
 
   // photos: new ones still in use are written; owner-uploaded ones no longer used are deleted
-  const used = new Set([...draft.products.flatMap(photosOf), ...draft.reviews.flatMap((r) => (r.image ? [r.image] : []))]);
+  const cover = (c: Content) => (c.shop.home?.heroImage ? [c.shop.home.heroImage] : []);
+  const used = new Set([...draft.products.flatMap(photosOf), ...draft.reviews.flatMap((r) => (r.image ? [r.image] : [])), ...cover(draft)]);
   for (const [path, u] of Object.entries(uploads)) if (used.has(path)) changes.push({ path: `public${path}`, content: u.bytes });
   for (const p of original.products) {
     if (!live.has(p.slug)) continue;
     for (const path of photosOf(p)) if (!used.has(path) && path.startsWith(`/products/${p.slug}/`)) changes.push({ path: `public${path}`, delete: true });
   }
+
+  // a replaced or removed home page cover photo goes
+  for (const path of cover(original)) if (!used.has(path) && path.startsWith("/home/")) changes.push({ path: `public${path}`, delete: true });
 
   // reviews taken off the site: their photos go too
   for (const r of original.reviews) if (r.image && !used.has(r.image) && r.image.startsWith("/reviews/")) changes.push({ path: `public${r.image}`, delete: true });

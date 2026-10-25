@@ -9,8 +9,8 @@ const LOGO_SRCSET = "/brand/logo-cut-480.webp 480w, /brand/logo-cut-720.webp 720
 /**
  * Opening animation: the logo prints itself on a print bed, layer by layer,
  * with the nozzle sweeping each layer; the layer lines fuse, a sheen passes
- * over it, and the page lifts away like a curtain onto the home page (about 3
- * seconds).
+ * over it, and the page lifts away like a curtain onto the home page (about 2
+ * seconds, short so it never holds up the shop).
  *
  * It's all CSS (see "opening animation" in globals.css) on markup that's in
  * the static HTML, so it starts with the first paint and never waits for
@@ -32,7 +32,7 @@ export function Intro() {
     }
     const end = (e: AnimationEvent) => e.target === el && setGone(true);
     el.addEventListener("animationend", end);
-    const t = setTimeout(() => setGone(true), 4000); // in case `animationend` is missed
+    const t = setTimeout(() => setGone(true), 2800); // in case `animationend` is missed
     return () => {
       el.removeEventListener("animationend", end);
       clearTimeout(t);

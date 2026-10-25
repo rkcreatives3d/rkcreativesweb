@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { Photo, Review } from "@/lib/content";
 import { site } from "@/lib/site";
 import { ButtonLink, Reveal, SectionLabel } from "./ui";
@@ -38,11 +39,9 @@ export function Reviews({ reviews }: { reviews: Review[] }) {
     <section className="mx-auto max-w-6xl px-5 py-20 sm:px-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <SectionLabel>Reviews</SectionLabel>
+          <SectionLabel>Customer reviews</SectionLabel>
           <Reveal y={24}>
-            <h2 className="mt-4 section-title text-3xl sm:text-[2.6rem]">
-              Loved by people
-            </h2>
+            <h2 className="headline-md mt-2">What our customers say.</h2>
           </Reveal>
         </div>
         <p className="flex items-center gap-2 tabular-nums text-sm text-muted">
@@ -56,9 +55,13 @@ export function Reviews({ reviews }: { reviews: Review[] }) {
           </Reveal>
         ))}
       </div>
-      <div className="mt-8 flex flex-wrap gap-3">
-        <ButtonLink href="/reviews/">All reviews →</ButtonLink>
-        <ButtonLink href="/reviews/#write">Write a review</ButtonLink>
+      <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-3">
+        <ButtonLink href="/reviews/#all" primary>
+          View all customer reviews
+        </ButtonLink>
+        <Link href="/reviews/#write" className="link-more">
+          Write a new review
+        </Link>
       </div>
     </section>
   );

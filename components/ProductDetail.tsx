@@ -17,6 +17,7 @@ import { ProductCard } from "./ProductCard";
 import { Gallery, ProductArt, StudioImage } from "./ProductMedia";
 import { renderFor } from "@/lib/renders";
 import { PinCheck } from "./Delivery";
+import { zones } from "@/lib/delivery";
 import { ProductFaq, SizeGuide, sizeCm } from "./ProductInfo";
 import { ArView } from "./ArView";
 import { TrustBadges } from "./TrustBadges";
@@ -324,8 +325,8 @@ export function ProductDetail({ product: p }: { product: Product }) {
                     placeholder={included ? "e.g. ANANYA" : "e.g. Happy Birthday, Ria"}
                     maxLength={maxLen}
                     aria-label="Text to print"
-                    className={`mt-3 w-full rounded-xl border bg-page px-4 py-3 text-fg outline-none transition-colors focus-visible:border-fg ${
-                      nudge ? "border-danger" : "border-line hover:border-fg/30"
+                    className={`mt-3 w-full rounded-xl border bg-page px-4 py-3 text-fg outline-none transition-colors focus-visible:border-fg focus-visible:ring-1 focus-visible:ring-fg ${
+                      nudge ? "border-danger" : "border-subtle hover:border-fg/70"
                     }`}
                   />
                   <p className={`mt-1.5 flex justify-between text-xs ${nudge ? "text-danger" : "text-muted"}`}>
@@ -407,6 +408,39 @@ export function ProductDetail({ product: p }: { product: Product }) {
                 ))}
             </dl>
           </Detail>
+
+          {/* from the shop settings and the policies: the same promises as at checkout */}
+          <Detail title="Delivery and returns">
+            <ul className="space-y-2 leading-relaxed text-fg/85">
+              <li>
+                Made to order: printed and dispatched in {dispatchLabel} working days, then sent by tracked courier. Enter your PIN code above to see your delivery dates.
+              </li>
+              <li>
+                Shipping is free over {formatPrice(site.freeShippingOver)}. Below that it&apos;s {formatPrice(site.shippingFlat)}, or{" "}
+                {formatPrice(site.shippingFlat + zones.remote.extra)} to the {zones.remote.label}.
+              </li>
+              <li>Arrived damaged? Message us within 48 hours with photos and we reprint it free, or refund you.</li>
+            </ul>
+            <p className="mt-3 flex flex-wrap gap-x-6 gap-y-1 text-sm">
+              <Link href="/policies/shipping/" className="link-more py-1">
+                Shipping
+              </Link>
+              <Link href="/policies/returns/" className="link-more py-1">
+                Returns and refunds
+              </Link>
+            </p>
+          </Detail>
+
+          {/* from the care guide (lib/guides.ts) */}
+          <Detail title="Care">
+            <ul className="space-y-2 leading-relaxed text-fg/85">
+              <li>Keep it out of hot cars, away from stoves and out of hours of direct afternoon sun: most prints soften in high heat.</li>
+              <li>Dust with a soft, dry brush. Wipe marks with a cloth dampened with mild soapy water. No dishwasher, hot water or solvents.</li>
+            </ul>
+            <Link href="/guides/caring-for-3d-prints/" className="link-more mt-3 py-1 text-sm">
+              The full care guide
+            </Link>
+          </Detail>
           {sizeInfo && <SizeGuide product={p} size={sizeInfo} />}
           <ProductFaq product={p} />
           <ProductReviews slug={p.slug} />
@@ -425,7 +459,7 @@ export function ProductDetail({ product: p }: { product: Product }) {
 
       {/* phones: price and "Add to cart" always one tap away (hidden while the main button is in view) */}
       <div
-        className={`fixed inset-x-0 bottom-0 z-40 border-t border-line bg-page/95 px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 backdrop-blur-xl transition-transform duration-300 lg:hidden ${
+        className={`fixed inset-x-0 bottom-0 z-40 border-t border-line bg-page px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 transition-transform duration-300 lg:hidden ${
           barOn ? "translate-y-0" : "pointer-events-none translate-y-full"
         }`}
         aria-hidden={!barOn}
@@ -479,18 +513,13 @@ function Detail({ title, children }: { title: string; children: React.ReactNode 
   );
 }
 
-/** Reviews of this product (approved by the owner), and a way to add one. */
+/** Customer reviews of this product (approved by the owner), with ways to write one and to read them all. */
 function ProductReviews({ slug }: { slug: string }) {
   const list = reviewsFor(slug);
   const avg = average(list);
   return (
     <section className="mt-10 border-t border-line pt-6">
-      <div className="flex items-baseline justify-between gap-3">
-        <h2 className="text-lg font-semibold tracking-tight">Reviews</h2>
-        <Link href={`/reviews/?product=${slug}#write`} className="link-more py-1 text-sm">
-          Write a review
-        </Link>
-      </div>
+      <h2 className="text-lg font-semibold tracking-tight">Customer reviews</h2>
       {list.length ? (
         <>
           <p className="mt-2 flex items-center gap-2 text-sm text-muted">
@@ -501,15 +530,18 @@ function ProductReviews({ slug }: { slug: string }) {
               <ReviewCard key={r.id ?? i} review={r} showProduct={false} />
             ))}
           </div>
-          {list.length > 4 && (
-            <Link href="/reviews/" className="mt-3 inline-block text-sm font-semibold text-accent hover:underline">
-              All {list.length} reviews →
-            </Link>
-          )}
         </>
       ) : (
-        <p className="mt-2 text-sm text-muted">No reviews yet. Bought it? Tell others what you think, with a photo.</p>
+        <p className="mt-2 text-sm text-muted">No reviews of this piece yet. Bought it? Tell others what you think, with a photo.</p>
       )}
+      <p className="mt-4 flex flex-wrap gap-x-6 gap-y-1 text-sm">
+        <Link href={`/reviews/?product=${slug}#write`} className="link-more py-1">
+          Write a new review
+        </Link>
+        <Link href="/reviews/#all" className="link-more py-1">
+          View all customer reviews
+        </Link>
+      </p>
     </section>
   );
 }

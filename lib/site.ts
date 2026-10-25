@@ -15,6 +15,10 @@
 //    dispatch, transit working days to print + pack, then days with the courier
 //    engravingPrice    add-on price for a name / message on products that offer it
 //    analytics         optional Plausible domain / GA4 id; empty loads nothing
+//    home              the home page cover: heroProduct (a product's slug),
+//                      heroImage (an optional photo of it, uploaded on the
+//                      owner page) and heroImageCut (that photo was cut out
+//                      onto a transparent background)
 // ─────────────────────────────────────────────────────────────
 import shop from "@/content/shop.json";
 
@@ -35,7 +39,19 @@ export const site = {
   ...settings,
   dispatch: settings.dispatch as [number, number],
   transit: settings.transit as [number, number],
+  // (defaults, so a shop.json without "home" still builds)
+  home: {
+    heroProduct: "vortex-vase",
+    heroImage: "",
+    heroImageCut: false,
+    ...((settings as unknown as { home?: Partial<{ heroProduct: string; heroImage: string; heroImageCut: boolean }> }).home ?? {}),
+  },
 };
+
+/** A real order email is set (not empty, not the sample orders@example.com). */
+export const emailReady = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(site.email) && !site.email.endsWith("@example.com");
+/** A real UPI ID is set (not empty, not the sample yourname@…). */
+export const upiReady = /^[^\s@]+@[^\s@]+$/.test(site.upi.id) && !site.upi.id.startsWith("yourname");
 
 export const dispatchLabel = `${site.dispatch[0]}–${site.dispatch[1]}`;
 

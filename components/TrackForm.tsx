@@ -14,7 +14,7 @@ export function TrackForm() {
   }, []);
 
   const field =
-    "mt-1.5 w-full rounded-xl border border-line bg-page px-4 py-3 text-fg outline-none transition-colors placeholder:text-fg/50 focus:border-fg/60 focus:ring-4 focus:ring-fg/[0.06]";
+    "mt-1.5 w-full rounded-xl border border-subtle bg-page px-4 py-3 text-fg outline-none transition-colors placeholder:text-subtle focus:border-fg focus:ring-1 focus:ring-fg";
 
   return (
     <div className="grid gap-4 sm:grid-cols-2">

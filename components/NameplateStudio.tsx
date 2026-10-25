@@ -131,8 +131,8 @@ export function NameplateStudio() {
             placeholder="Type here…"
             maxLength={MAX_NAME}
             autoComplete="off"
-            className={`mt-2 w-full rounded-xl border bg-page px-5 py-4 text-2xl font-semibold tracking-tight text-fg outline-none transition-colors placeholder:text-fg/40 focus:border-fg/60 focus:ring-4 focus:ring-fg/[0.06] ${
-              nudge ? "border-danger" : "border-line"
+            className={`mt-2 w-full rounded-xl border bg-page px-5 py-4 text-2xl font-semibold tracking-tight text-fg outline-none transition-colors placeholder:text-subtle focus:border-fg focus:ring-1 focus:ring-fg ${
+              nudge ? "border-danger" : "border-subtle"
             }`}
           />
           <span className={`mt-1.5 flex justify-between text-xs ${nudge ? "text-danger" : "text-muted"}`}>

@@ -52,7 +52,7 @@ export function NameTeaser() {
                 onChange={(e) => setName(e.target.value.slice(0, MAX_NAME))}
                 placeholder="e.g. Ananya"
                 autoComplete="off"
-                className="h-12 w-full rounded-xl border border-line bg-page px-4 text-lg text-fg outline-none transition-colors placeholder:text-fg/40 hover:border-fg/30 focus-visible:border-fg"
+                className="h-12 w-full rounded-xl border border-subtle bg-page px-4 text-lg text-fg outline-none transition-colors placeholder:text-subtle hover:border-fg/70 focus-visible:border-fg focus-visible:ring-1 focus-visible:ring-fg"
               />
               <p className="mt-1.5 text-xs text-muted">
                 Up to {MAX_NAME} letters · {name.length}/{MAX_NAME}

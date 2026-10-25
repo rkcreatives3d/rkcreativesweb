@@ -47,8 +47,8 @@ export function ProductCard({ product: p, index = 0 }: { product: Product; index
     >
       <div className="relative">
         {/* the picture is a second way in for pointers; keyboards and screen readers use the name below */}
-        <Link href={`/shop/${p.slug}/`} className="block rounded-[1.125rem]" tabIndex={-1} aria-hidden>
-          <div className="stage zoom-on-hover relative aspect-square overflow-hidden rounded-[1.125rem]">
+        <Link href={`/shop/${p.slug}/`} className="block rounded-[var(--radius-card)]" tabIndex={-1} aria-hidden>
+          <div className="stage zoom-on-hover relative aspect-square overflow-hidden rounded-[var(--radius-card)]">
             {show3D ? (
               <>
                 <span aria-hidden className="stage-shadow" />

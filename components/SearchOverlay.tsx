@@ -100,7 +100,7 @@ export function SearchOverlay({ open, onClose }: { open: boolean; onClose: () =>
                   aria-label="Search products"
                   autoComplete="off"
                   enterKeyHint="search"
-                  className="min-w-0 flex-1 bg-transparent text-2xl font-semibold tracking-tight text-fg outline-none placeholder:text-fg/35 sm:text-3xl"
+                  className="min-w-0 flex-1 bg-transparent text-2xl font-semibold tracking-tight text-fg outline-none placeholder:text-subtle sm:text-3xl"
                 />
                 <button type="button" onClick={onClose} className="shrink-0 rounded-lg px-2 py-1.5 text-sm text-muted hover:text-fg">
                   Cancel

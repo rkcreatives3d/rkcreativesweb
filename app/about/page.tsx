@@ -3,7 +3,7 @@ import { ButtonLink, KineticText, Reveal, SectionLabel } from "@/components/ui";
 import { InstagramGrid, PhotoGrid, Reviews } from "@/components/Proof";
 import { StudioClip } from "@/components/StudioClip";
 import { about, customerPhotos, instagramPosts, packingPhotos, reviews } from "@/lib/content";
-import { site, whatsappUrl } from "@/lib/site";
+import { emailReady, site, whatsappUrl } from "@/lib/site";
 import { getFinish, getProduct, type Product } from "@/lib/products";
 import { renderFor } from "@/lib/renders";
 
@@ -122,7 +122,7 @@ export default function AboutPage() {
             <ButtonLink href={whatsappUrl(`Hi ${site.name}!`)} primary target="_blank" rel="noreferrer">
               WhatsApp us
             </ButtonLink>
-            {!site.email.endsWith("@example.com") && <ButtonLink href={`mailto:${site.email}`}>Email</ButtonLink>}
+            {emailReady && <ButtonLink href={`mailto:${site.email}`}>Email</ButtonLink>}
             <a href={site.instagram} target="_blank" rel="noreferrer" className="link-more">
               Instagram
             </a>

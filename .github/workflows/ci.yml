@@ -10,7 +10,7 @@ on:
 jobs:
   check:
     # product / price / settings updates from the owner page are content, not code: no test run
-    if: ${{ !startsWith(github.event.head_commit.message, 'Owner:') }}
+    if: ${{ !startsWith(github.event.head_commit.message, 'Owner:') && !startsWith(github.event.head_commit.message, 'Review:') }}
     runs-on: ubuntu-latest
     # Playwright's own image: the browser and everything it needs are already
     # installed (installing them took over 10 minutes per run)

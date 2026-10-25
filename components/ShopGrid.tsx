@@ -16,7 +16,7 @@ const sorts = {
 } as const;
 
 const select =
-  "h-10 rounded-[10px] border border-line bg-page pl-3 pr-8 text-sm text-fg outline-none transition-colors hover:border-fg/30 focus-visible:border-fg";
+  "h-10 rounded-[10px] border border-subtle bg-page pl-3 pr-8 text-sm text-fg outline-none transition-colors hover:border-fg/70 focus-visible:border-fg focus-visible:ring-1 focus-visible:ring-fg";
 const grid = "grid grid-cols-2 gap-x-3 gap-y-9 sm:gap-x-5 sm:gap-y-12 lg:grid-cols-3";
 
 /**
@@ -79,7 +79,7 @@ export function ShopGrid() {
             onChange={(e) => setQ(e.target.value)}
             placeholder="Search products"
             type="search"
-            className="h-10 w-full rounded-[10px] border border-line bg-page pl-9 pr-3 text-sm text-fg outline-none transition-colors placeholder:text-fg/45 hover:border-fg/30 focus-visible:border-fg"
+            className="h-10 w-full rounded-[10px] border border-subtle bg-page pl-9 pr-3 text-sm text-fg outline-none transition-colors placeholder:text-subtle hover:border-fg/70 focus-visible:border-fg focus-visible:ring-1 focus-visible:ring-fg"
           />
         </label>
         <label className="shrink-0">

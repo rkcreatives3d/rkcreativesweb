@@ -108,6 +108,8 @@ test("owner edits a price, adds a product with a 3D file, a colour and settings,
   const renders = JSON.parse(gh.written("lib/renders.generated.json")!);
   expect(renders["lotus-lamp"]).toEqual(products[0].finishes);
   for (const f of products[0].finishes) expect(gh.rec.tree.some((t) => t.path === `public/renders/lotus-lamp/${f}.webp`)).toBe(true);
+  // the main colour also gets the big picture the home page uses
+  expect(gh.rec.tree.some((t) => t.path === `public/renders/lotus-lamp/${products[0].finishes[0]}-xl.webp`)).toBe(true);
   expect(JSON.parse(gh.written("content/finishes.json")!).some((f: { name: string }) => f.name === "Ocean Blue")).toBe(true);
   expect(JSON.parse(gh.written("content/shop.json")!).whatsapp).toBe("919876543210");
   expect(gh.rec.message).toContain("Owner:");
@@ -341,4 +343,28 @@ test("new photos are cleaned up as they're added; a price typed meanwhile stays,
   expect(product.images).toHaveLength((first.images?.length ?? 0) + 1);
   const photo = gh.raw(`public${product.images.at(-1)}`)!;
   expect(photo.subarray(0, 3).equals(Buffer.from([0xff, 0xd8, 0xff]))).toBe(true);
+});
+
+test("owner sets the home page cover: another product and a photo of it, published together", async ({ page }) => {
+  await prepare(page, { lite: true });
+  const gh = await mockGitHub(page);
+  await page.goto("/owner/");
+  await page.getByLabel("GitHub key").fill("github_pat_test");
+  await page.getByRole("button", { name: "Sign in with key" }).click();
+  await page.getByRole("button", { name: "Shop settings" }).click();
+
+  await page.getByLabel("Product on the cover").selectOption("infinity-knot");
+  await page.getByRole("switch", { name: /Clean up the background/ }).uncheck(); // keep the photo as taken
+  await page.getByLabel("Cover photo").setInputFiles({ name: "knot.jpg", mimeType: "image/jpeg", buffer: TINY_JPEG });
+  await expect(page.getByAltText("Cover photo")).toBeVisible();
+
+  await page.getByRole("button", { name: "Publish changes" }).click();
+  const dialog = page.getByRole("dialog", { name: "Publish to the website" });
+  await dialog.getByRole("button", { name: "Publish" }).click();
+  await expect(dialog).toContainText("Published", { timeout: 60_000 });
+  const home = JSON.parse(gh.written("content/shop.json")!).home;
+  expect(home.heroProduct).toBe("infinity-knot");
+  expect(home.heroImage).toMatch(/^\/home\/cover-\w+\.jpg$/);
+  expect(home.heroImageCut).toBe(false);
+  expect(gh.raw(`public${home.heroImage}`)!.subarray(0, 3).equals(Buffer.from([0xff, 0xd8, 0xff]))).toBe(true);
 });

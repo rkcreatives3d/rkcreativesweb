@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { estimate, estimator } from "@/lib/content";
-import { formatPrice, mailtoUrl, site, whatsappUrl } from "@/lib/site";
+import { emailReady, formatPrice, mailtoUrl, site, whatsappUrl } from "@/lib/site";
 import { track } from "@/lib/track";
 import { MailIcon } from "./Icons";
 import { Field, Fieldset, WhatsAppIcon } from "./CheckoutForm";
@@ -111,7 +111,7 @@ export function CustomForm() {
   }
 
   const selectCls =
-    "mt-1.5 w-full appearance-none rounded-xl border border-line bg-page px-4 py-3 text-fg outline-none focus:border-fg/60 focus:ring-4 focus:ring-fg/[0.06]";
+    "mt-1.5 w-full appearance-none rounded-xl border border-subtle bg-page px-4 py-3 text-fg outline-none focus:border-fg focus:ring-1 focus:ring-fg";
 
   return (
     <form onSubmit={submit} className="space-y-5">
@@ -203,12 +203,14 @@ export function CustomForm() {
           <button type="submit" value="whatsapp" className="btn btn-primary flex-1">
             <WhatsAppIcon /> Send on WhatsApp
           </button>
-          <button type="submit" value="email" className="btn flex-1">
-            <MailIcon /> Send by email
-          </button>
+          {emailReady && (
+            <button type="submit" value="email" className="btn flex-1">
+              <MailIcon /> Send by email
+            </button>
+          )}
         </div>
         <p className="text-xs text-muted">
-          Opens WhatsApp ({`+${site.whatsapp}`}) or your email app with everything filled in.
+          Opens WhatsApp ({`+${site.whatsapp}`}){emailReady ? " or your email app" : ""} with everything filled in.
         </p>
       </Fieldset>
     </form>

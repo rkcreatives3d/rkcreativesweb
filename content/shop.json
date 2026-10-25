@@ -3,7 +3,7 @@
   "city": "Hyderabad, India",
   "originPin": "500001",
   "whatsapp": "919182750681",
-  "email": "orders@example.com",
+  "email": "rkcreatives3d@gmail.com",
   "instagram": "https://instagram.com/rk_creative_builds_3d",
   "upi": {
     "id": "yourname@okaxis",
@@ -43,6 +43,11 @@
   "analytics": {
     "plausibleDomain": "",
     "ga4Id": ""
+  },
+  "home": {
+    "heroProduct": "vortex-vase",
+    "heroImage": "",
+    "heroImageCut": false
   },
   "categories": [
     "Decor",

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ButtonLink, KineticText } from "@/components/ui";
-import { site, whatsappUrl } from "@/lib/site";
+import { emailReady, site, whatsappUrl } from "@/lib/site";
 import { policies } from "@/lib/policies";
 
 export const metadata: Metadata = {
@@ -20,7 +20,7 @@ export default function ContactPage() {
     ["Based in", b.address || site.city],
   ];
   // the sample address stays hidden until the real one is set (Shop settings)
-  if (!site.email.endsWith("@example.com"))
+  if (emailReady)
     rows.splice(1, 0, ["Email", <a key="e" href={`mailto:${site.email}`} className="inline-block py-1 font-medium text-accent hover:underline">{site.email}</a>]);
   if (b.legalName) rows.push(["Business", b.legalName]);
   if (b.gstin) rows.push(["GSTIN", b.gstin]);

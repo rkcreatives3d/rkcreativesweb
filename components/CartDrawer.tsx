@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from "motion/react";
 import { optionsLabel } from "@/lib/personalise";
 import { useCart, cartSubtotal, lineTotal } from "@/lib/cart";
 import { getFinish, getProduct } from "@/lib/products";
-import { formatPrice, shippingFor, site } from "@/lib/site";
+import { emailReady, formatPrice, shippingFor, site } from "@/lib/site";
 import { useFocusTrap } from "@/lib/focus";
 import { Swatch } from "./ui";
 import { ProductThumb } from "./ProductMedia";
@@ -158,7 +158,7 @@ export function CartDrawer() {
                     Checkout
                   </Link>
                   <DeliveryEstimate className="text-center text-xs text-muted" />
-                  <p className="text-center text-xs text-muted">You&apos;ll confirm your order on WhatsApp or by email.</p>
+                  <p className="text-center text-xs text-muted">You&apos;ll confirm your order on WhatsApp{emailReady ? " or by email" : ""}.</p>
                 </div>
               </>
             )}

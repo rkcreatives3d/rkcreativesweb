@@ -25,7 +25,7 @@ const links = [
 const more = [
   { href: "/saved/", label: "Saved" },
   { href: "/track/", label: "Track an order" },
-  { href: "/reviews/", label: "Reviews" },
+  { href: "/reviews/", label: "Customer reviews" },
   { href: "/guides/", label: "Guides" },
   { href: "/contact/", label: "Contact us" },
 ];
@@ -73,7 +73,7 @@ export function Nav() {
 
   return (
     <header className="fixed inset-x-0 top-0 z-40 pt-[env(safe-area-inset-top)]">
-      <div className={`nav-glass border-b border-line/80 backdrop-blur-xl backdrop-saturate-150 ${menu ? "bg-page" : "bg-page/80"}`}>
+      <div className="nav-glass border-b border-line bg-page">
         <nav
           aria-label="Main"
           className="mx-auto flex h-12 max-w-6xl items-center justify-between gap-4 px-[max(1rem,env(safe-area-inset-left))] sm:h-[3.25rem] sm:px-6"

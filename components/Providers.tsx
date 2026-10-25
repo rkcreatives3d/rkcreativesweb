@@ -16,8 +16,8 @@ import { useShelf } from "@/lib/shelf";
 // only once the page is on screen and the browser is idle, so it never delays
 // the first paint. In Lite mode
 // (decided before first paint by the boot script) it never loads at all.
-/** When the opening animation has lifted away, in ms from page load (globals.css: lift 2.45 s + 0.7 s). */
-const INTRO_MS = 3200;
+/** When the opening animation has lifted away, in ms from page load (globals.css: lift 1.55 s + 0.5 s). */
+const INTRO_MS = 2100;
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const root = useRef<HTMLDivElement>(null!);

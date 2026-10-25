@@ -3,6 +3,7 @@ import { Hero } from "@/components/home/Hero";
 import { Showcase, ShowcasePair } from "@/components/home/Showcase";
 import { ShopByCollection } from "@/components/home/ShopByCollection";
 import { NameTeaser } from "@/components/home/NameTeaser";
+import { Process } from "@/components/home/Process";
 import { CustomCta } from "@/components/home/CustomCta";
 import { BrandStory } from "@/components/home/BrandStory";
 import { InstagramGrid, PhotoGrid, Reviews } from "@/components/Proof";
@@ -44,6 +45,7 @@ export default function Home() {
       />
       <ShopByCollection />
       <NameTeaser />
+      <Process />
       <CustomCta />
       <BrandStory />
       <StudioClip />

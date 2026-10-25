@@ -2,10 +2,10 @@
 
 import { useEffect, useState } from "react";
 import QRCode from "qrcode";
-import { formatPrice, site, upiUrl } from "@/lib/site";
+import { formatPrice, site, upiReady, upiUrl } from "@/lib/site";
 
-/** UPI ID still the placeholder from lib/site.ts? */
-const notSetUp = site.upi.id.startsWith("yourname");
+/** UPI ID still the placeholder (or empty)? */
+const notSetUp = !upiReady;
 
 /**
  * Pay-now step shown after an order is sent: a UPI QR code with the amount

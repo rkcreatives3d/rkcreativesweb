@@ -1,8 +1,10 @@
 "use client";
 
-import type { Shop } from "@/lib/owner/edit";
-import { useOwner } from "@/lib/owner/store";
-import { Card, Num, smallBtn, Switch, Text } from "./fields";
+import { useState } from "react";
+import { resizePhoto, type Shop } from "@/lib/owner/edit";
+import { photoSrc, useOwner } from "@/lib/owner/store";
+import { Card, Choice, Num, smallBtn, Switch, Text } from "./fields";
+import { Thumb } from "./ProductsTab";
 
 /** Contact, payment and shipping details, and the shop's categories (content/shop.json). */
 export function SettingsTab() {
@@ -14,6 +16,7 @@ export function SettingsTab() {
 
   return (
     <div className="space-y-4">
+      <CoverCard />
       <Card title="Contact (orders come here)">
         <Text
           label="WhatsApp number"
@@ -130,5 +133,142 @@ export function SettingsTab() {
         </button>
       </Card>
     </div>
+  );
+}
+
+const coverDefaults = { heroProduct: "vortex-vase", heroImage: "", heroImageCut: false };
+const homeOf = (s: Shop) => ({ ...coverDefaults, ...(s.home as Partial<Shop["home"]> | undefined) });
+
+/**
+ * The big picture at the top of the home page: which product it shows, and
+ * (optionally) a photo of it. Without a photo, the product's own photo or
+ * studio picture is used. Photos can be cleaned up onto the studio background.
+ */
+function CoverCard() {
+  const draft = useOwner((s) => s.draft)!;
+  useOwner((s) => s.uploads); // re-render when the photo is added
+  const { setShop, addUpload, dropUpload } = useOwner.getState();
+  const home = homeOf(draft.shop);
+  const [clean, setClean] = useState(true);
+  const [busy, setBusy] = useState("");
+  const [note, setNote] = useState("");
+  const live = draft.products.filter((p) => !p.hidden);
+  const saved = draft.products.find((p) => p.slug === home.heroProduct);
+  // what the home page will actually show (a hidden or deleted cover product falls back to another one)
+  const shown = saved && !saved.hidden ? saved : (live.find((p) => p.slug === "vortex-vase") ?? live[0]);
+  const options = [
+    ...live.map((p) => [p.slug, p.name] as const),
+    ...(saved?.hidden ? [[saved.slug, `${saved.name} (hidden from customers)`] as const] : []),
+  ];
+  // always build on the settings as they are now (cleaning a photo takes a few seconds)
+  const setHome = (patch: Partial<Shop["home"]>) => {
+    const shop = useOwner.getState().draft!.shop;
+    setShop({ ...shop, home: { ...homeOf(shop), ...patch } });
+  };
+
+  const pick = async (file?: File) => {
+    if (!file) return;
+    setNote("");
+    setBusy(clean ? "Cleaning up the background… (the first time takes a little longer)" : "Preparing the photo…");
+    let bytes: Uint8Array<ArrayBuffer>;
+    let cut = false;
+    try {
+      if (!clean) bytes = await resizePhoto(file);
+      else
+        try {
+          const { cleanBackground } = await import("@/lib/owner/cutout");
+          // just the product and its shadow, transparent: it stands on the home page's own backdrop
+          bytes = await cleanBackground(file, 1200, true);
+          cut = true;
+        } catch (e) {
+          console.warn("background clean-up:", e);
+          bytes = await resizePhoto(file);
+          setNote("Kept as taken: the product couldn't be cut out cleanly. It shows as a framed photo.");
+        }
+    } catch {
+      setBusy("");
+      setNote("That file couldn't be opened. Try a JPG or PNG.");
+      return;
+    }
+    const old = homeOf(useOwner.getState().draft!.shop).heroImage;
+    if (old) dropUpload(old);
+    const path = `/home/cover-${Date.now().toString(36)}.${cut ? "webp" : "jpg"}`;
+    addUpload(path, bytes);
+    setHome({ heroImage: path, heroImageCut: cut });
+    setBusy("");
+  };
+
+  return (
+    <Card title="Home page cover">
+      <Choice
+        label="Product on the cover"
+        value={saved ? saved.slug : (shown?.slug ?? "")}
+        onChange={(v) => {
+          // a photo belongs to its product: a new cover product starts with its own picture
+          if (home.heroImage) {
+            if (!confirm("Changing the product removes the current cover photo. Continue?")) return;
+            dropUpload(home.heroImage);
+          }
+          setHome({ heroProduct: v, heroImage: "", heroImageCut: false });
+        }}
+        options={options}
+        hint="Shown big at the top of the home page, with a link to it."
+      />
+      {(!saved || saved.hidden) && shown && (
+        <p className="rounded-xl border border-danger/30 bg-danger/5 p-3 text-sm text-danger">
+          {saved ? `${saved.name} is hidden from customers,` : "The cover product was deleted,"} so the home page shows {shown.name} (with its own picture) instead. Pick
+          another product, or show that one again.
+        </p>
+      )}
+      <div className="flex flex-wrap items-center gap-4">
+        {home.heroImage ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={photoSrc(home.heroImage)} alt="Cover photo" width={128} height={128} className="stage h-32 w-32 rounded-xl object-contain" />
+        ) : (
+          shown && <Thumb p={shown} size={128} />
+        )}
+        <div className="space-y-2 text-sm">
+          <p className="text-muted">{home.heroImage ? "Your cover photo." : "Using the product's own picture. Upload a real photo of it to use instead."}</p>
+          <div className="flex flex-wrap gap-2">
+            <label className={`${smallBtn} relative cursor-pointer focus-within:ring-2 focus-within:ring-accent-2 focus-within:ring-offset-2`}>
+              {home.heroImage ? "Replace photo" : "Upload a photo"}
+              <input
+                type="file"
+                accept="image/*"
+                aria-label="Cover photo"
+                className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+                onChange={(e) => {
+                  pick(e.target.files?.[0]);
+                  e.target.value = "";
+                }}
+              />
+            </label>
+            {home.heroImage && (
+              <button
+                onClick={() => {
+                  dropUpload(home.heroImage);
+                  setHome({ heroImage: "", heroImageCut: false });
+                }}
+                className={smallBtn}
+              >
+                Use the product&apos;s picture
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+      <Switch
+        label="Clean up the background"
+        checked={clean}
+        onChange={setClean}
+        hint="Cuts the product out so it stands on the home page's studio background, like the rest of the shop's pictures. Off: the photo shows as it is, framed."
+      />
+      {busy && (
+        <p role="status" className="rounded-xl bg-fg p-3 text-sm text-page">
+          {busy}
+        </p>
+      )}
+      {note && <p className="text-sm text-muted">{note}</p>}
+    </Card>
   );
 }

@@ -31,8 +31,11 @@ const MAX_FAILS_PER_IP = 5; // per 15 minutes
 const MAX_FAILS_TOTAL = 30; // per hour, from everyone: then everyone waits
 const MAX_BODY = 120 * 1024 * 1024; // a big 3D file, base64-encoded
 
-// Customer reviews: anyone may send one; they wait on this branch until the
-// owner approves them in the shop manager. Limits keep it from being abused.
+// Customer reviews: anyone may send one, and it goes live straight away: it's
+// added to content/reviews.json on the live branch, which rebuilds the site.
+// The limits below (and refusing links) keep it from being abused; the owner can
+// take any review down in the shop manager. (Older reviews may still wait on
+// this branch from when reviews needed approval; the shop manager shows them.)
 export const REVIEWS_BRANCH = "reviews-inbox";
 const REVIEWS_PER_IP = 3; // per hour
 const REVIEWS_TOTAL = 40; // per day, from everyone
@@ -107,35 +110,34 @@ export function createOwnerApi({
     return body;
   };
 
-  /** Files one review (and its photo) on the inbox branch, creating the branch the first time. */
-  async function fileReview(entry, photo) {
-    let head;
-    try {
-      head = (await gh(`git/ref/heads/${REVIEWS_BRANCH}`)).object.sha;
-    } catch (e) {
-      if (e.status !== 404) throw e;
-      const main = (await gh("git/ref/heads/main")).object.sha;
-      await gh("git/refs", { method: "POST", body: JSON.stringify({ ref: `refs/heads/${REVIEWS_BRANCH}`, sha: main }) });
-      head = main;
-    }
-    const files = [[`inbox/${entry.id}.json`, Buffer.from(JSON.stringify(entry, null, 2) + "\n")]];
-    if (photo) files.push([`inbox/${entry.id}.jpg`, photo]);
-    const tree = [];
-    for (const [path, bytes] of files) {
-      const blob = await gh("git/blobs", { method: "POST", body: JSON.stringify({ content: bytes.toString("base64"), encoding: "base64" }) });
-      tree.push({ path, mode: "100644", type: "blob", sha: blob.sha });
-    }
-    // two reviews at once: the second retries on top of the first
+  /** Puts one review (and its photo) straight on the site: content/reviews.json and public/reviews/<id>.jpg on main, in one commit. */
+  async function postReview(entry, photo) {
+    const photoBlob = photo ? await gh("git/blobs", { method: "POST", body: JSON.stringify({ content: photo.toString("base64"), encoding: "base64" }) }) : null;
+    // the owner (or another customer) publishing at the same moment: the second retries on top of the first
     for (let attempt = 0; ; attempt++) {
+      const head = (await gh("git/ref/heads/main")).object.sha;
+      let list = [];
+      try {
+        const file = await gh(`contents/content/reviews.json?ref=${head}`);
+        list = JSON.parse(Buffer.from(file.content, "base64").toString("utf8"));
+      } catch (e) {
+        if (e.status !== 404) throw e;
+      }
+      if (!Array.isArray(list)) list = [];
+      // newest first, written the way the shop manager writes it
+      const json = Buffer.from(JSON.stringify([entry, ...list], null, 2) + "\n");
+      const jsonBlob = await gh("git/blobs", { method: "POST", body: JSON.stringify({ content: json.toString("base64"), encoding: "base64" }) });
+      const tree = [{ path: "content/reviews.json", mode: "100644", type: "blob", sha: jsonBlob.sha }];
+      if (photoBlob) tree.push({ path: `public${entry.image}`, mode: "100644", type: "blob", sha: photoBlob.sha });
       const base = (await gh(`git/commits/${head}`)).tree.sha;
       const t = await gh("git/trees", { method: "POST", body: JSON.stringify({ base_tree: base, tree }) });
-      const c = await gh("git/commits", { method: "POST", body: JSON.stringify({ message: `Review from ${entry.name} (waiting for approval)`, tree: t.sha, parents: [head] }) });
+      const message = `Review: ${entry.name}, ${entry.rating}/5${entry.product ? ` (${entry.product})` : ""}`;
+      const c = await gh("git/commits", { method: "POST", body: JSON.stringify({ message, tree: t.sha, parents: [head] }) });
       try {
-        await gh(`git/refs/heads/${REVIEWS_BRANCH}`, { method: "PATCH", body: JSON.stringify({ sha: c.sha, force: false }) });
+        await gh("git/refs/heads/main", { method: "PATCH", body: JSON.stringify({ sha: c.sha, force: false }) });
         return;
       } catch (e) {
         if (attempt >= 2 || e.status !== 422) throw e;
-        head = (await gh(`git/ref/heads/${REVIEWS_BRANCH}`)).object.sha;
       }
     }
   }
@@ -207,7 +209,7 @@ export function createOwnerApi({
       return reply(200, { session: sign({ exp }), expiresAt: exp });
     }
 
-    // a customer's review: public, checked, rate-limited, filed for the owner to approve
+    // a customer's review: public, checked, rate-limited, then straight onto the site
     if (route === "review" && method === "POST") {
       const now = Date.now();
       const mine = (sent.get(ip) || []).filter((t) => now - t < 60 * 60_000);
@@ -231,6 +233,9 @@ export function createOwnerApi({
       if (!Number.isInteger(rating) || rating < 1 || rating > 5) return reply(400, { error: "rating" });
       if (text.length < 10) return reply(400, { error: "text" });
       if (product && !/^[a-z0-9-]{1,60}$/.test(product)) return reply(400, { error: "product" });
+      // no links: they're how spam gets onto review pages
+      // (web addresses only: "mom.in fact", a missing space after a full stop, is fine)
+      if (/https?:\/\/|www\.|\b[\w-]{2,}\.(com|net|org|xyz|info|biz|ru|top|shop|online|link)\b|\b[\w-]{2,}\.co\.[a-z]{2}\b/i.test(`${name} ${city} ${text}`)) return reply(400, { error: "links" });
       let photo = null;
       if (b.photo) {
         photo = Buffer.from(String(b.photo), "base64");
@@ -238,25 +243,26 @@ export function createOwnerApi({
         if (photo.length > MAX_REVIEW_PHOTO || photo[0] !== 0xff || photo[1] !== 0xd8 || photo[2] !== 0xff) return reply(400, { error: "photo" });
       }
       if (!token) return reply(503, { error: "no-github-token" });
+      const id = `${now.toString(36)}${crypto.randomBytes(3).toString("hex")}`;
       const entry = {
-        id: `${now.toString(36)}${crypto.randomBytes(3).toString("hex")}`,
+        id,
         name,
         ...(city ? { city } : {}),
         ...(product ? { product } : {}),
         rating,
         text,
         date: new Date(now).toISOString().slice(0, 10),
-        photo: !!photo,
+        ...(photo ? { image: `/reviews/${id}.jpg` } : {}),
       };
       try {
-        await fileReview(entry, photo);
+        await postReview(entry, photo);
       } catch {
         return reply(502, { error: "github-unreachable" });
       }
       mine.push(now);
       sent.set(ip, mine);
       allSent.push(now);
-      return reply(200, { ok: true });
+      return reply(200, { ok: true, review: entry });
     }
 
     const auth = String(request.headers.get("authorization") || "").replace(/^Bearer\s+/i, "");

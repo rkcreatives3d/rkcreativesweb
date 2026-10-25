@@ -1,12 +1,10 @@
 import Link from "next/link";
-import { site, whatsappUrl } from "@/lib/site";
+import { emailReady, site, whatsappUrl } from "@/lib/site";
 import { categories, products } from "@/lib/products";
 import { LiteToggle } from "./LiteToggle";
 
 /** +91 91827 50681 */
 const phoneLabel = (n: string) => (n.length === 12 && n.startsWith("91") ? `+91 ${n.slice(2, 7)} ${n.slice(7)}` : `+${n}`);
-/** a real address, not the sample one */
-const emailReady = !site.email.endsWith("@example.com");
 
 export function Footer() {
   const b = site.business;
@@ -37,7 +35,7 @@ export function Footer() {
           </FooterCol>
           <FooterCol title={site.name}>
             <Link href="/about/">About</Link>
-            <Link href="/reviews/">Reviews</Link>
+            <Link href="/reviews/">Customer reviews</Link>
             <Link href="/guides/">Guides</Link>
             <a href={site.instagram} target="_blank" rel="noreferrer">
               Instagram
