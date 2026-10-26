@@ -6,13 +6,13 @@
   "email": "rkcreatives3d@gmail.com",
   "instagram": "https://instagram.com/rk_creative_builds_3d",
   "upi": {
-    "id": "yourname@okaxis",
+    "id": "9182750681@ptsbi",
     "payee": "RK Creative Builds"
   },
   "payments": {
     "cardPayUrl": "",
     "cod": {
-      "enabled": false,
+      "enabled": true,
       "fee": 49,
       "maxOrder": 3000
     }
