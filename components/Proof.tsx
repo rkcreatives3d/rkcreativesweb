@@ -3,9 +3,11 @@ import type { Photo, Review } from "@/lib/content";
 import { site } from "@/lib/site";
 import { ButtonLink, Reveal, SectionLabel } from "./ui";
 import { ReviewCard, Stars, average } from "./Reviews";
+import { InstagramIcon } from "./Icons";
 
 // Trust sections built from lib/content.ts. Each one renders nothing until it
-// has real content, so the site never shows placeholder reviews or photos.
+// has real content, so the site never shows placeholder reviews or photos
+// (the Instagram grid shows a plain "follow us" strip instead).
 
 export function PhotoGrid({ photos, label, title, highlight }: { photos: Photo[]; label: string; title: string; highlight: string }) {
   if (!photos.length) return null;
@@ -36,7 +38,7 @@ export function Reviews({ reviews }: { reviews: Review[] }) {
   if (!reviews.length) return null;
   const avg = average(reviews);
   return (
-    <section className="mx-auto max-w-6xl px-5 py-20 sm:px-6">
+    <section className="mx-auto max-w-6xl px-5 py-14 sm:px-6 sm:py-20">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <SectionLabel>Customer reviews</SectionLabel>
@@ -67,8 +69,32 @@ export function Reviews({ reviews }: { reviews: Review[] }) {
   );
 }
 
+/** Until there are posts to show: one line about the account and a way to follow it. */
+function InstagramFollow() {
+  return (
+    <section className="px-3 py-3 sm:px-4 sm:py-4" aria-labelledby="instagram-title">
+      <Reveal className="mx-auto flex max-w-[90rem] flex-col items-center gap-5 rounded-[var(--radius-tile)] bg-page-2 px-6 py-12 text-center lg:flex-row lg:justify-between lg:px-16 lg:text-left">
+        <div className="flex flex-col items-center gap-4 lg:flex-row lg:gap-5">
+          <span className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-page text-fg">
+            <InstagramIcon size={26} />
+          </span>
+          <div>
+            <h2 id="instagram-title" className="text-2xl font-semibold tracking-tight">
+              Follow the studio on Instagram.
+            </h2>
+            <p className="mt-1 text-muted">New prints, behind the scenes, and first looks at new pieces.</p>
+          </div>
+        </div>
+        <a href={site.instagram} target="_blank" rel="noreferrer" className="btn btn-primary shrink-0">
+          Follow @{site.handle}
+        </a>
+      </Reveal>
+    </section>
+  );
+}
+
 export function InstagramGrid({ posts }: { posts: (Photo & { href: string })[] }) {
-  if (!posts.length) return null;
+  if (!posts.length) return site.instagram ? <InstagramFollow /> : null;
   return (
     <section className="mx-auto max-w-6xl px-5 py-20 sm:px-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">

@@ -69,6 +69,9 @@ export function ProductDetail({ product: p }: { product: Product }) {
   const maxLen = included ? MAX_NAME : 24;
 
   const price = itemPrice(p, size, engraving || undefined);
+  // cash on delivery: up to the shop's order limit, never for personalised pieces (as at checkout, lib/order.ts)
+  const { cod } = site.payments;
+  const codOk = cod.enabled && !included && !engraving && price * qty <= cod.maxOrder;
   const sizeInfo = p.sizes.find((s) => s.id === size);
   const related = products
     .filter((x) => x.slug !== p.slug && x.category === p.category)
@@ -267,7 +270,15 @@ export function ProductDetail({ product: p }: { product: Product }) {
             <span className="text-2xl font-semibold tabular-nums tracking-tight">{formatPrice(price * qty)}</span>
             {qty > 1 && <span className="tabular-nums text-sm text-muted">{formatPrice(price)} each</span>}
           </p>
-          <p className="mt-1 text-sm text-muted">Made to order · dispatched in {dispatchLabel} working days</p>
+          <p className="mt-1 text-sm text-muted">
+            Made to order · dispatched in {dispatchLabel} working days
+            {codOk && (
+              <>
+                {" · "}
+                <span className="font-medium text-fg">Cash on delivery available</span>
+              </>
+            )}
+          </p>
 
           {/* colour */}
           <div className="mt-9 border-t border-line pt-6">

@@ -61,6 +61,9 @@ export function deliveryQuote(pin = "", subtotal = 0, from = new Date()) {
   };
 }
 
+/** The latest an order placed on `from` should arrive (no PIN: the shop's usual courier days). */
+export const latestArrival = (from: Date) => addDays(addWorkingDays(from, site.dispatch[1]), site.transit[1]);
+
 /** Shipping for a cart going to `pin` (remote zones add their surcharge, unless shipping is free). */
 export function shippingTo(subtotal: number, pin = "") {
   const base = shippingFor(subtotal);

@@ -82,7 +82,7 @@ export function SearchOverlay({ open, onClose }: { open: boolean; onClose: () =>
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.22, ease: [0.32, 0.72, 0, 1] }}
           >
-            <div className="mx-auto max-w-3xl px-5 pb-10 pt-6 sm:px-6 sm:pt-10">
+            <div className="mx-auto max-w-3xl px-5 pb-[calc(2.5rem+var(--tabbar-h,0px))] pt-6 sm:px-6 sm:pt-10">
               <form
                 role="search"
                 onSubmit={(e) => {

@@ -9,7 +9,7 @@ import { MoreLink, Reveal } from "../ui";
 export function BrandStory() {
   const router = useRouter();
   return (
-    <section className="theme-dark overflow-hidden px-5 py-20 sm:px-6 sm:py-28" aria-labelledby="brand-title">
+    <section className="theme-dark overflow-hidden px-5 py-14 sm:px-6 sm:py-28" aria-labelledby="brand-title">
       <div className="mx-auto grid max-w-6xl items-center gap-10 md:grid-cols-2 md:gap-16">
         <div
           data-owner-tap

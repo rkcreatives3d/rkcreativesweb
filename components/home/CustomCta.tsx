@@ -6,7 +6,7 @@ import { Reveal } from "../ui";
 export function CustomCta() {
   return (
     <section className="px-3 pb-3 sm:px-4 sm:pb-4" aria-labelledby="custom-title">
-      <Reveal className="mx-auto max-w-[90rem] rounded-[var(--radius-tile)] bg-page-2 px-6 py-20 text-center sm:py-28">
+      <Reveal className="mx-auto max-w-[90rem] rounded-[var(--radius-tile)] bg-page-2 px-6 py-14 text-center sm:py-28">
         <p className="eyebrow">Custom 3D printing</p>
         <h2 id="custom-title" className="headline-lg mx-auto mt-2 max-w-2xl">
           Have something else in mind?

@@ -83,6 +83,23 @@ html {
   scroll-padding-top: 5rem;
 }
 
+/* the strip of shop promises above the top bar (components/Nav.tsx) is 2rem
+   tall at the top of the page: every page starts that much lower */
+#main {
+  padding-top: 2rem;
+}
+
+/* phones and tablets: the tab bar along the bottom (components/TabBar.tsx).
+   Pages end above it, and pop-ups sit on top of it (--tabbar-h). */
+@media (max-width: 1023.98px) {
+  html:has(#tabbar) {
+    --tabbar-h: calc(3.5rem + env(safe-area-inset-bottom));
+  }
+  html:has(#tabbar) body {
+    padding-bottom: var(--tabbar-h);
+  }
+}
+
 body {
   color: var(--color-fg);
   font-family: var(--font-sans);
@@ -122,6 +139,12 @@ h3 {
   font-size: clamp(2.6rem, 6.4vw, 4.875rem);
   line-height: 1.03;
   letter-spacing: -0.038em;
+}
+/* the cover's headline on computers shares the width with the piece beside it */
+@media (min-width: 1024px) {
+  .hero-title {
+    font-size: clamp(3rem, 4.4vw, 4.25rem);
+  }
 }
 .headline-lg {
   font-weight: 600;
@@ -288,6 +311,20 @@ h3 {
   background:
     radial-gradient(ellipse 70% 58% at 50% 80%, rgb(255 255 255 / 0.95) 0%, rgb(255 255 255 / 0.55) 38%, rgb(255 255 255 / 0.18) 62%, rgb(255 255 255 / 0) 85%),
     linear-gradient(to bottom, #ffffff 0%, #f8f8fa 38%, #f2f2f4 100%);
+}
+
+/* the festival banner (components/home/Promo.tsx): black, with a warm lamp-light glow behind its pieces */
+.promo-glow {
+  background:
+    radial-gradient(ellipse 60% 55% at 50% 88%, color-mix(in oklab, #f39a1e 26%, transparent), transparent 72%),
+    #0b0a09;
+}
+@media (min-width: 1024px) {
+  .promo-glow {
+    background:
+      radial-gradient(ellipse 42% 75% at 76% 80%, color-mix(in oklab, #f39a1e 26%, transparent), transparent 72%),
+      #0b0a09;
+  }
 }
 
 /* a soft floor shadow under a live 3D model */

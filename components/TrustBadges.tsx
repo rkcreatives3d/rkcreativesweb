@@ -1,14 +1,17 @@
 import Link from "next/link";
-import { dispatchLabel } from "@/lib/site";
+import { dispatchLabel, formatPrice, site } from "@/lib/site";
 
 // Promises the shop actually keeps (they match lib/policies.ts). Shown next to
 // the buy buttons and at checkout, where people hesitate.
+
+const { cod } = site.payments;
 
 const badges: { icon: React.ReactNode; title: string; text: string; href?: string }[] = [
   {
     icon: <path d="M12 3 4 6v6c0 4.4 3.4 8.3 8 9 4.6-.7 8-4.6 8-9V6l-8-3Zm-1.2 12.6-3.3-3.3 1.4-1.4 1.9 1.9 4.4-4.4 1.4 1.4-5.8 5.8Z" />,
     title: "Safe payment",
-    text: "by UPI or bank transfer, straight to us",
+    // (checkout says when it isn't offered: personalised pieces, bigger orders; lib/order.ts)
+    text: cod.enabled ? `by UPI, or cash on delivery up to ${formatPrice(cod.maxOrder)}` : "by UPI or bank transfer, straight to us",
   },
   {
     icon: <path d="M12 4a8 8 0 1 0 8 8h-2a6 6 0 1 1-1.8-4.3L14 10h6V4l-2.4 2.4A8 8 0 0 0 12 4Z" />,

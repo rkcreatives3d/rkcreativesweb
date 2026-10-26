@@ -23,7 +23,7 @@ export function ToastHost() {
   }, [toast, hide]);
 
   return (
-    <div aria-live="polite" className="pointer-events-none fixed inset-x-0 bottom-0 z-[55] flex justify-center px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:pb-6">
+    <div aria-live="polite" className="pointer-events-none fixed inset-x-0 bottom-[var(--tabbar-h,0px)] z-[55] flex justify-center px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:pb-6">
       <AnimatePresence>
         {toast && (
           <motion.div

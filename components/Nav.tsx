@@ -7,10 +7,18 @@ import { motion, AnimatePresence } from "motion/react";
 import { useCart, cartCount } from "@/lib/cart";
 import { useShelf } from "@/lib/shelf";
 import { useFocusTrap } from "@/lib/focus";
-import { site, whatsappUrl } from "@/lib/site";
+import { formatPrice, site, whatsappUrl } from "@/lib/site";
 import { ownerTap } from "@/lib/ownerTap";
+import { onOpenSearch, tabBarOn } from "@/lib/tabbar";
 import { BagIcon, MenuIcon, SearchIcon } from "./Icons";
 import { SearchOverlay } from "./SearchOverlay";
+
+/** The strip above the top bar: what makes ordering easy, in a few words. Phones show the first two. */
+const notes = [
+  `Free shipping over ${formatPrice(site.freeShippingOver)}`,
+  site.payments.cod.enabled ? "Cash on delivery" : "Pay by UPI",
+  `Made to order in ${site.city.split(",")[0]}`,
+];
 
 /** The main destinations: in the bar on wide screens, at the top of the menu on phones. */
 const links = [
@@ -34,7 +42,10 @@ const isActive = (pathname: string, href: string) => pathname.startsWith(href.re
 
 /**
  * The slim bar at the top of every page: the brand, five destinations, search
- * and the bag. Under 1024 px the destinations move into a full-screen menu.
+ * and the bag, under a strip of shop promises that folds away on scroll.
+ * Under 1024 px the destinations move into a full-screen menu, and search and
+ * the bag move to the tab bar at the bottom (components/TabBar.tsx) on the
+ * pages that have it.
  */
 export function Nav() {
   const pathname = usePathname();
@@ -48,6 +59,26 @@ export function Nav() {
   const panel = useRef<HTMLDivElement>(null);
   useFocusTrap(panel, menu);
   const closeSearch = useCallback(() => setSearch(false), []);
+  const [atTop, setAtTop] = useState(true);
+  // phones: the tab bar at the bottom has search and the bag, so the top bar doesn't repeat them
+  const tabs = tabBarOn(pathname);
+
+  // the strip above the bar folds away once the page scrolls (and while a menu is open)
+  useEffect(() => {
+    const check = () => setAtTop(window.scrollY < 8);
+    check();
+    window.addEventListener("scroll", check, { passive: true });
+    return () => window.removeEventListener("scroll", check);
+  }, []);
+  // the tab bar's Search button
+  useEffect(
+    () =>
+      onOpenSearch(() => {
+        setMenu(false);
+        setSearch(true);
+      }),
+    [],
+  );
 
   // menus close on navigation
   useEffect(() => {
@@ -73,6 +104,24 @@ export function Nav() {
 
   return (
     <header className="fixed inset-x-0 top-0 z-40 pt-[env(safe-area-inset-top)]">
+      {/* 2rem tall when open: #main keeps that much room above every page (globals.css) */}
+      <div
+        aria-hidden={!(atTop && !menu && !search)}
+        className={`overflow-hidden bg-fg text-page transition-[height] duration-300 ease-out ${atTop && !menu && !search ? "h-8" : "h-0"}`}
+      >
+        <p className="flex h-8 items-center justify-center gap-2.5 px-4 text-xs font-medium tracking-[-0.005em]">
+          {notes.map((n, i) => (
+            <span key={n} className={`items-center gap-2.5 ${i === 2 ? "hidden sm:flex" : "flex"}`}>
+              {i > 0 && (
+                <span aria-hidden className="text-page/45">
+                  ·
+                </span>
+              )}
+              {n}
+            </span>
+          ))}
+        </p>
+      </div>
       <div className="nav-glass border-b border-line bg-page">
         <nav
           aria-label="Main"
@@ -116,7 +165,7 @@ export function Nav() {
                 setSearch((v) => !v);
               }}
               aria-expanded={search}
-              className="grid h-10 w-10 place-items-center rounded-full text-fg/80 transition-colors hover:text-fg"
+              className={`grid h-10 w-10 place-items-center rounded-full text-fg/80 transition-colors hover:text-fg ${tabs ? "max-lg:hidden" : ""}`}
             >
               <SearchIcon size={18} />
               <span className="sr-only">Search</span>
@@ -124,7 +173,7 @@ export function Nav() {
             <button
               data-cart-target
               onClick={() => setOpen(true)}
-              className="relative grid h-10 w-10 place-items-center rounded-full text-fg/80 transition-colors hover:text-fg"
+              className={`relative grid h-10 w-10 place-items-center rounded-full text-fg/80 transition-colors hover:text-fg ${tabs ? "max-lg:hidden" : ""}`}
             >
               <BagIcon size={19} />
               {/* the accessible name reads "Cart 2 items" */}
@@ -175,7 +224,7 @@ export function Nav() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="fixed inset-x-0 bottom-0 top-[calc(3rem+env(safe-area-inset-top))] overflow-y-auto overscroll-contain bg-page px-6 pb-[max(2rem,env(safe-area-inset-bottom))] pt-6 sm:top-[calc(3.25rem+env(safe-area-inset-top))] lg:hidden"
+            className="fixed inset-x-0 bottom-0 top-[calc(3rem+env(safe-area-inset-top))] overflow-y-auto overscroll-contain bg-page px-6 pb-[calc(var(--tabbar-h,0px)+max(2rem,env(safe-area-inset-bottom)))] pt-6 sm:top-[calc(3.25rem+env(safe-area-inset-top))] lg:hidden"
           >
             <nav aria-label="More" className="mx-auto max-w-xl">
               <ul>

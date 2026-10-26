@@ -19,6 +19,11 @@ const select =
   "h-10 rounded-[10px] border border-subtle bg-page pl-3 pr-8 text-sm text-fg outline-none transition-colors hover:border-fg/70 focus-visible:border-fg focus-visible:ring-1 focus-visible:ring-fg";
 const grid = "grid grid-cols-2 gap-x-3 gap-y-9 sm:gap-x-5 sm:gap-y-12 lg:grid-cols-3";
 
+/** The occasion filters as buttons: price first (gift shoppers ask that first), and only ones with pieces behind them. */
+const chipOrder = ["under499", "bestseller", "festive", "birthday", "desk", "car"];
+const rank = (id: string) => (chipOrder.includes(id) ? chipOrder.indexOf(id) : chipOrder.length);
+const chips = [...occasions].sort((a, b) => rank(a.id) - rank(b.id)).filter((o) => products.some(o.test));
+
 /**
  * The catalogue: collections as tabs, plus search, occasion and sort. Linkable:
  * /shop/?c=Decor (a collection), /shop/?for=birthday (an occasion), /shop/?q=lamp (a search).
@@ -83,7 +88,7 @@ export function ShopGrid() {
       </div>
 
       <div className="mt-5 flex flex-wrap items-center gap-2 sm:gap-3">
-        <label className="relative min-w-0 flex-[1_1_14rem]">
+        <label className="relative min-w-0 flex-[1_1_9rem]">
           <span className="sr-only">Search products</span>
           <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted">
             <SearchIcon size={16} />
@@ -97,17 +102,6 @@ export function ShopGrid() {
           />
         </label>
         <label className="shrink-0">
-          <span className="sr-only">Occasion</span>
-          <select value={filter ?? ""} onChange={(e) => setFilter(e.target.value || null)} className={select}>
-            <option value="">Any occasion</option>
-            {occasions.map((o) => (
-              <option key={o.id} value={o.id}>
-                {o.label}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="shrink-0">
           <span className="sr-only">Sort</span>
           <select value={sort} onChange={(e) => setSort(e.target.value as keyof typeof sorts)} className={select}>
             {Object.entries(sorts).map(([id, s]) => (
@@ -117,6 +111,22 @@ export function ShopGrid() {
             ))}
           </select>
         </label>
+      </div>
+
+      {/* occasions and price, one tap each (tap again to clear); a swipeable row on phones */}
+      <div className="-mx-5 mt-3 flex gap-2 overflow-x-auto px-5 pb-1 [scrollbar-width:none] sm:-mx-6 sm:px-6 lg:mx-0 lg:flex-wrap lg:px-0 [&::-webkit-scrollbar]:hidden" role="group" aria-label="Occasion">
+        {chips.map((o) => (
+          <button
+            key={o.id}
+            aria-pressed={filter === o.id}
+            onClick={() => setFilter(filter === o.id ? null : o.id)}
+            className={`h-9 shrink-0 rounded-full border px-3.5 text-sm transition-colors ${
+              filter === o.id ? "border-fg bg-fg font-medium text-page" : "border-line text-fg/85 hover:border-fg/40 hover:text-fg"
+            }`}
+          >
+            {o.label}
+          </button>
+        ))}
       </div>
 
       <p className="mt-6 tabular-nums text-sm text-muted" aria-live="polite">

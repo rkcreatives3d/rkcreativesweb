@@ -5,6 +5,7 @@ import { Providers } from "@/components/Providers";
 import { Nav } from "@/components/Nav";
 import { Footer } from "@/components/Footer";
 import { CartDrawer } from "@/components/CartDrawer";
+import { TabBar } from "@/components/TabBar";
 import { Intro } from "@/components/intro/Intro";
 import { Analytics } from "@/components/Analytics";
 import { site } from "@/lib/site";
@@ -86,6 +87,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             {children}
           </main>
           <Footer />
+          <TabBar />
           <CartDrawer />
           <Intro />
         </Providers>

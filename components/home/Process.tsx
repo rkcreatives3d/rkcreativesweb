@@ -39,7 +39,7 @@ const steps: { icon: keyof typeof icons; title: string; body: string }[] = [
 /** How a piece is made, in four steps: what's behind every product in the shop. */
 export function Process() {
   return (
-    <section className="mx-auto max-w-6xl border-t border-line px-5 py-20 sm:px-6 sm:py-28" aria-labelledby="process-title">
+    <section className="mx-auto max-w-6xl border-t border-line px-5 py-14 sm:px-6 sm:py-28" aria-labelledby="process-title">
       <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-3">
         <div>
           <p className="eyebrow">How it&apos;s made</p>
@@ -49,7 +49,7 @@ export function Process() {
         </div>
         <MoreLink href="/about/">Our story</MoreLink>
       </div>
-      <ol className="mt-10 grid gap-x-8 gap-y-10 sm:mt-12 sm:grid-cols-2 lg:grid-cols-4">
+      <ol className="mt-8 grid grid-cols-2 gap-x-5 gap-y-8 sm:mt-12 sm:gap-x-8 sm:gap-y-10 lg:grid-cols-4">
         {steps.map((s, i) => (
           <Reveal as="li" key={s.title} delay={i * 0.06}>
             <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden className="text-fg">
@@ -57,7 +57,7 @@ export function Process() {
             </svg>
             <p className="mt-4 text-sm tabular-nums text-muted">0{i + 1}</p>
             <h3 className="mt-0.5 text-lg font-semibold tracking-tight">{s.title}</h3>
-            <p className="mt-1.5 leading-relaxed text-muted">{s.body}</p>
+            <p className="mt-1.5 text-sm leading-relaxed text-muted sm:text-[1.0625rem]">{s.body}</p>
           </Reveal>
         ))}
       </ol>

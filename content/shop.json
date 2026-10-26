@@ -49,6 +49,15 @@
     "heroImage": "",
     "heroImageCut": false
   },
+  "promo": {
+    "on": true,
+    "eyebrow": "Diwali",
+    "title": "Light up someone's Diwali.",
+    "text": "Lamps, décor and keepsakes, printed to order and finished by hand.",
+    "occasion": "festive",
+    "deliverBy": "2026-11-07",
+    "ends": "2026-11-08"
+  },
   "categories": [
     "Decor",
     "Giftables",

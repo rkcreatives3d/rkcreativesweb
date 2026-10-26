@@ -27,7 +27,7 @@ export function NameTeaser() {
   if (!options.length) return null;
 
   return (
-    <section className="px-5 py-20 sm:px-6 sm:py-28" aria-labelledby="personalise-title">
+    <section className="px-5 py-14 sm:px-6 sm:py-28" aria-labelledby="personalise-title">
       <div className="mx-auto grid max-w-6xl items-center gap-10 md:grid-cols-2 md:gap-14">
         <Reveal className="order-2 md:order-1">
           <p className="eyebrow">Personalised</p>

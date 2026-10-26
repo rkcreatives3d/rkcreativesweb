@@ -19,6 +19,11 @@
 //                      heroImage (an optional photo of it, uploaded on the
 //                      owner page) and heroImageCut (that photo was cut out
 //                      onto a transparent background)
+//    promo             a festival banner on the home page (Shop settings →
+//                      Festival banner): whether it's on, its words, which
+//                      pieces it links to (an occasion id, lib/occasions.ts),
+//                      the date orders should arrive by (it works out the last
+//                      day to order) and the day it ends (dates as YYYY-MM-DD)
 // ─────────────────────────────────────────────────────────────
 import shop from "@/content/shop.json";
 
@@ -46,7 +51,20 @@ export const site = {
     heroImageCut: false,
     ...((settings as unknown as { home?: Partial<{ heroProduct: string; heroImage: string; heroImageCut: boolean }> }).home ?? {}),
   },
+  // (defaults, so a shop.json without "promo" still builds)
+  promo: {
+    on: false,
+    eyebrow: "",
+    title: "",
+    text: "",
+    occasion: "festive",
+    deliverBy: "",
+    ends: "",
+    ...((settings as unknown as { promo?: Partial<Promo> }).promo ?? {}),
+  },
 };
+
+type Promo = { on: boolean; eyebrow: string; title: string; text: string; occasion: string; deliverBy: string; ends: string };
 
 /** A real order email is set (not empty, not the sample orders@example.com). */
 export const emailReady = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(site.email) && !site.email.endsWith("@example.com");

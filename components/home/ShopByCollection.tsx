@@ -7,7 +7,7 @@ export function ShopByCollection() {
   const list = collections();
   if (!list.length) return null;
   return (
-    <section className="mx-auto max-w-6xl px-5 py-20 sm:px-6 sm:py-28" aria-labelledby="collections">
+    <section className="mx-auto max-w-6xl px-5 py-10 sm:px-6 sm:py-28" aria-labelledby="collections">
       <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-2">
         <h2 id="collections" className="headline-md">
           Shop by collection.

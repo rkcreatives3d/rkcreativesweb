@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { resizePhoto, type Shop } from "@/lib/owner/edit";
 import { photoSrc, useOwner } from "@/lib/owner/store";
+import { occasions } from "@/lib/occasions";
 import { Card, Choice, Num, smallBtn, Switch, Text } from "./fields";
 import { Thumb } from "./ProductsTab";
 
@@ -17,6 +18,7 @@ export function SettingsTab() {
   return (
     <div className="space-y-4">
       <CoverCard />
+      <PromoCard />
       <Card title="Contact (orders come here)">
         <Text
           label="WhatsApp number"
@@ -133,6 +135,55 @@ export function SettingsTab() {
         </button>
       </Card>
     </div>
+  );
+}
+
+const promoDefaults = { on: false, eyebrow: "", title: "", text: "", occasion: "festive", deliverBy: "", ends: "" };
+const promoOf = (s: Shop) => ({ ...promoDefaults, ...(s.promo as Partial<Shop["promo"]> | undefined) });
+
+/** The festival banner on the home page (content/shop.json "promo"; components/home/Promo.tsx). */
+function PromoCard() {
+  const draft = useOwner((s) => s.draft)!;
+  const promo = promoOf(draft.shop);
+  const set = (patch: Partial<Shop["promo"]>) => {
+    const shop = useOwner.getState().draft!.shop;
+    useOwner.getState().setShop({ ...shop, promo: { ...promoOf(shop), ...patch } });
+  };
+  return (
+    <Card title="Festival banner">
+      <Switch
+        label="Show a festival banner on the home page"
+        checked={promo.on}
+        onChange={(v) => set({ on: v })}
+        hint="For Diwali, Rakhi, Christmas… It links to the pieces you pick, and hides itself after its last day."
+      />
+      {promo.on && (
+        <>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Text label="Festival" value={promo.eyebrow} onChange={(v) => set({ eyebrow: v })} placeholder="Diwali" hint="Also on its button: “Shop Diwali gifts”." />
+            <Choice
+              label="Pieces it links to"
+              value={promo.occasion}
+              onChange={(v) => set({ occasion: v })}
+              options={occasions.map((o) => [o.id, o.label] as const)}
+              hint="Choose them with “Show it under” on each product."
+            />
+          </div>
+          <Text label="Headline" value={promo.title} onChange={(v) => set({ title: v })} placeholder="Light up someone's Diwali." />
+          <Text label="One line under it" value={promo.text} onChange={(v) => set({ text: v })} />
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Text
+              label="Should arrive by"
+              type="date"
+              value={promo.deliverBy}
+              onChange={(v) => set({ deliverBy: v })}
+              hint="The banner shows the last day to order so it arrives in time (from your making and courier days). Leave empty to skip."
+            />
+            <Text label="Last day to show it" type="date" value={promo.ends} onChange={(v) => set({ ends: v })} hint="It disappears after this day." />
+          </div>
+        </>
+      )}
+    </Card>
   );
 }
 

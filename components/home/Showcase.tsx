@@ -11,6 +11,8 @@ export type Story = {
   body?: string;
   /** a second, quieter way in (e.g. the product's collection) */
   more?: { href: string; label: string };
+  /** a black card in the phone carousel */
+  dark?: boolean;
 };
 
 const priceLabel = (p: Product) => (p.sizes.some((s) => s.priceDelta) ? `From ${formatPrice(p.price)}` : formatPrice(p.price));
@@ -95,13 +97,50 @@ export function Showcase({ story, layout = "stack", dark = false }: { story: Sto
   );
 }
 
-/** Two smaller product stories side by side (stacked on phones). */
-export function ShowcasePair({ stories }: { stories: Story[] }) {
-  const items = stories.map((s) => ({ s, p: getProduct(s.slug) })).filter((x): x is { s: Story; p: Product } => !!x.p);
+const found = (stories: Story[]) => stories.map((s) => ({ s, p: getProduct(s.slug) })).filter((x): x is { s: Story; p: Product } => !!x.p);
+
+/**
+ * Phones: the stories as cards to swipe through, side by side, instead of one
+ * full-screen section each. A card is one tap to its product.
+ */
+export function StoryCarousel({ stories, title }: { stories: Story[]; title: string }) {
+  const items = found(stories);
   if (!items.length) return null;
   return (
-    <section className="px-3 py-3 sm:px-4 sm:py-4" aria-label="More pieces">
-      <div className="mx-auto grid max-w-[90rem] gap-3 sm:gap-4 md:grid-cols-2">
+    <section className="py-10 sm:py-20" aria-labelledby="stories-title">
+      <h2 id="stories-title" className="headline-md px-5 sm:px-6">
+        {title}
+      </h2>
+      <ul className="mt-6 flex snap-x snap-mandatory gap-3 overflow-x-auto scroll-px-5 px-5 pb-2 [scrollbar-width:none] sm:scroll-px-6 sm:px-6 [&::-webkit-scrollbar]:hidden">
+        {items.map(({ s, p }) => (
+          <li key={p.slug} className="w-[78vw] max-w-[22rem] shrink-0 snap-start">
+            <Link
+              href={`/shop/${p.slug}/`}
+              className={`${s.dark ? "theme-dark" : "bg-page-2"} flex h-full flex-col overflow-hidden rounded-[var(--radius-tile)] px-5 pt-8 text-center`}
+            >
+              {s.eyebrow && <span className="eyebrow">{s.eyebrow}</span>}
+              <span className="mt-1 text-2xl font-semibold leading-tight tracking-tight">{s.title}</span>
+              <span className="mt-1.5 tabular-nums text-sm text-muted">
+                {s.title === p.name ? priceLabel(p) : `${p.name} · ${priceLabel(p)}`}
+              </span>
+              <span className="mx-auto mt-auto block aspect-square w-full pt-3">
+                <Picture p={p} sizes="(min-width: 640px) 352px, 78vw" />
+              </span>
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
+/** Smaller product stories side by side: two or three across (stacked on narrow screens). */
+export function ShowcaseTiles({ stories, className = "" }: { stories: Story[]; className?: string }) {
+  const items = found(stories);
+  if (!items.length) return null;
+  return (
+    <section className={`px-3 py-3 sm:px-4 sm:py-4 ${className}`} aria-label="More pieces">
+      <div className={`mx-auto grid max-w-[90rem] gap-3 sm:gap-4 md:grid-cols-2 ${items.length >= 3 ? "lg:grid-cols-3" : ""}`}>
         {items.map(({ s, p }) => (
           <article key={p.slug} className="flex flex-col overflow-hidden rounded-[var(--radius-tile)] bg-page-2 px-6 pt-12 text-center sm:pt-14">
             {s.eyebrow && <p className="eyebrow">{s.eyebrow}</p>}
@@ -118,8 +157,8 @@ export function ShowcasePair({ stories }: { stories: Story[] }) {
                 </Link>
               )}
             </div>
-            <div className="mx-auto mt-8 aspect-square w-full max-w-[420px] overflow-hidden rounded-t-[var(--radius-tile)]">
-              <Picture p={p} sizes="(min-width: 768px) 420px, 85vw" />
+            <div className="mx-auto mt-auto aspect-square w-full max-w-[420px] overflow-hidden rounded-t-[var(--radius-tile)] pt-8">
+              <Picture p={p} sizes="(min-width: 1024px) 420px, (min-width: 768px) 45vw, 85vw" />
             </div>
           </article>
         ))}
