@@ -31,7 +31,7 @@ export function SettingsTab() {
           <Text label="City you ship from" value={s.city} onChange={(v) => set({ city: v })} />
           <Text label="Your PIN code" value={s.originPin} onChange={(v) => set({ originPin: v.replace(/\D/g, "").slice(0, 6) })} inputMode="numeric" hint="Delivery dates are worked out from it." />
         </div>
-        <Text label="Website address" value={s.url} onChange={(v) => set({ url: v })} hint="Your domain, e.g. https://rkcreativebuilds.in (used in share previews and Google)." />
+        <Text label="Website address" value={s.url} onChange={(v) => set({ url: v })} hint="Your domain, e.g. https://rkcreatives.app (used in share previews and Google)." />
       </Card>
 
       <Card title="Payments">
