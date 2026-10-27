@@ -1,5 +1,32 @@
 [
   {
+    "slug": "lithophene-decor-lights",
+    "name": "lithophene decor lights",
+    "tagline": "",
+    "description": "",
+    "price": 599,
+    "category": "Decor",
+    "shape": "vase",
+    "finishes": [
+      "frost"
+    ],
+    "sizes": [
+      {
+        "id": "S",
+        "label": "Small",
+        "dims": "",
+        "priceDelta": 0
+      }
+    ],
+    "material": "PLA",
+    "printTime": "5 h 32 m",
+    "tags": [],
+    "hidden": false,
+    "images": [
+      "/products/lithophene-decor-lights/mvq3i71o-0.jpg"
+    ]
+  },
+  {
     "slug": "cat-eyeglass-holder",
     "name": "Cat Eyeglass holder",
     "tagline": "",
