@@ -1,5 +1,31 @@
 [
   {
+    "slug": "tree-wall-art",
+    "name": "Tree wall art",
+    "tagline": "",
+    "description": "",
+    "price": 799,
+    "category": "Decor",
+    "shape": "vase",
+    "finishes": [
+      "onyx",
+      "frost"
+    ],
+    "sizes": [
+      {
+        "id": "S",
+        "label": "Small",
+        "dims": "215mm L x 480 mm W",
+        "priceDelta": 0
+      }
+    ],
+    "material": "PLA",
+    "printTime": "7h 21 m",
+    "tags": [],
+    "hidden": false,
+    "badge": "New"
+  },
+  {
     "slug": "lithophene-decor-lights",
     "name": "lithophene decor lights",
     "tagline": "",
