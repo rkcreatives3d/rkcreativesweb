@@ -1,5 +1,31 @@
 [
   {
+    "slug": "cat-eyeglass-holder",
+    "name": "Cat Eyeglass holder",
+    "tagline": "",
+    "description": "",
+    "price": 699,
+    "category": "Aesthetic",
+    "shape": "vase",
+    "finishes": [
+      "onyx"
+    ],
+    "sizes": [
+      {
+        "id": "S",
+        "label": "regular",
+        "dims": "15",
+        "priceDelta": 0
+      }
+    ],
+    "material": "PLA",
+    "printTime": "5.24 h",
+    "tags": [
+      "desk"
+    ],
+    "hidden": true
+  },
+  {
     "slug": "lord-vishnu",
     "name": "Lord Vishnu",
     "tagline": "",
