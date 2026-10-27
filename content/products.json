@@ -6,7 +6,7 @@
     "description": "",
     "price": 799,
     "category": "Decor",
-    "shape": "vase",
+    "shape": "nameplate",
     "finishes": [
       "onyx",
       "frost"
@@ -23,7 +23,10 @@
     "printTime": "7h 21 m",
     "tags": [],
     "hidden": false,
-    "badge": "New"
+    "badge": "New",
+    "images": [
+      "/products/tree-wall-art/mvq4nlxn-c.jpg"
+    ]
   },
   {
     "slug": "lithophene-decor-lights",
