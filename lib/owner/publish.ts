@@ -8,7 +8,7 @@ import { PATHS } from "./repo";
 // (re)make, which files to write, which to delete.
 
 export type RenderJob = { product: Product; modelUrl?: string; finishes: string[] };
-export type ShotFiles = { finish: string; large: Uint8Array; small: Uint8Array; xl?: Uint8Array; cover?: Uint8Array };
+export type ShotFiles = { finish: string; large: Uint8Array; small: Uint8Array; xl?: Uint8Array };
 
 const json = (v: unknown) => JSON.stringify(v, null, 2) + "\n";
 /** Largest piece of a 3D file sent in one request (base64 makes it a third bigger: still under 4.5 MB). */
@@ -24,7 +24,7 @@ export function renderJobs(original: Content, draft: Content, models: Record<str
     const change = models[p.slug];
     const modelUrl = change === undefined ? publishedModel(p) : (change?.url ?? undefined);
     // photos-only products show their photos everywhere; no pictures needed
-    if (!modelUrl && p.images?.length) continue;
+    if (!modelUrl && (p.images?.length || p.cover)) continue;
     const have = draft.renders[p.slug] ?? [];
     const finishes = change !== undefined ? p.finishes : p.finishes.filter((f) => !have.includes(f) || restyled.has(f));
     if (finishes.length) jobs.push({ product: p, modelUrl, finishes });
@@ -32,8 +32,9 @@ export function renderJobs(original: Content, draft: Content, models: Record<str
   return jobs;
 }
 
-/** Photo paths a product uses. */
-const photosOf = (p: Product) => [...(p.images ?? []), ...(p.scalePhoto ? [p.scalePhoto] : []), ...Object.values(p.colorPhotos ?? {}).flat()].filter(Boolean) as string[];
+/** Photo paths a product uses (the cover photo and its small copy too). */
+const photosOf = (p: Product) =>
+  [p.cover, p.coverSmall, ...(p.images ?? []), ...(p.scalePhoto ? [p.scalePhoto] : []), ...Object.values(p.colorPhotos ?? {}).flat()].filter(Boolean) as string[];
 
 export async function buildChanges(
   token: string,
@@ -55,7 +56,6 @@ export async function buildChanges(
       changes.push({ path: `public/renders/${slug}/${s.finish}.webp`, content: s.large });
       changes.push({ path: `public/renders/${slug}/${s.finish}-sm.webp`, content: s.small });
       if (s.xl && s.finish === p.finishes[0]) changes.push({ path: `public/renders/${slug}/${s.finish}-xl.webp`, content: s.xl });
-      if (s.cover && s.finish === p.finishes[0]) changes.push({ path: `public/renders/${slug}/cover.jpg`, content: s.cover });
     }
     renders[slug] = [...new Set([...(renders[slug] ?? []), ...list.map((s) => s.finish)])].filter((f) => p.finishes.includes(f));
   }

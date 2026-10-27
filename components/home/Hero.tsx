@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { getFinish, getProduct, photosFor, products } from "@/lib/products";
+import { getFinish, getProduct, isLightFinish, photoColour, photosFor, products } from "@/lib/products";
 import { renderFor, renderSrcSet } from "@/lib/renders";
 import { formatPrice, site } from "@/lib/site";
 
@@ -17,10 +17,15 @@ export function Hero() {
   const f = hero.finishes[0];
   // the owner's cover photo belongs to the chosen product only, never to a fallback
   const own = chosen ? site.home.heroImage : "";
-  const photo = own || photosFor(hero, f).list[0];
+  // then the product's own cover photo (as taken), its photos, or its studio picture
+  const photo = own || hero.cover || photosFor(hero, f).list[0];
+  // a pale piece (white, cream…) in a see-through picture would vanish on the light sweep:
+  // it goes in a dark studio panel
+  const seeThrough = own ? site.home.heroImageCut : !hero.cover;
+  const pale = seeThrough && isLightFinish(photo && !own ? photoColour(hero, f) : f);
   // a cut-out (transparent) cover photo or a studio picture stands straight on the sweep;
   // any other photo shows whole, framed in a soft panel (never cropped)
-  const standing = own ? site.home.heroImageCut : !photo;
+  const standing = !pale && (own ? site.home.heroImageCut : !photo);
   const src = photo || renderFor(hero, f, "xl");
   const from = hero.sizes.some((s) => s.priceDelta) ? "From " : "";
   return (
@@ -52,7 +57,7 @@ export function Hero() {
             className={`hero-in group mx-auto block lg:mt-0 lg:w-full ${standing ? "mt-2 w-[min(66vw,560px)] sm:w-[min(80vw,560px)] lg:max-w-[600px]" : "mt-10 w-[min(90vw,880px)]"}`}
             style={{ ["--d" as string]: "0.28s" }}
           >
-            <span className={`block overflow-hidden ${standing ? "aspect-square" : "stage aspect-[4/3] rounded-[var(--radius-tile)] p-4 sm:aspect-[16/10] sm:p-6 lg:aspect-[4/3]"}`}>
+            <span className={`block overflow-hidden ${standing ? "aspect-square" : `stage ${pale ? "stage-dark" : ""} aspect-[4/3] rounded-[var(--radius-tile)] p-4 sm:aspect-[16/10] sm:p-6 lg:aspect-[4/3]`}`}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={src}

@@ -1,9 +1,9 @@
-import { canvasBytes, drawShadow, drawStage } from "./stage";
+import { canvasBytes, drawShadow } from "./stage";
 
 // Cleans up a product photo: finds the product (U²-Net "u2netp", a small open
-// model, Apache-2.0, in public/vendor), cuts it out, and sets it on the shop's
-// stage with a soft shadow, square. Runs on the owner's device; the 5 MB model
-// and the ONNX runtime download the first time it's used.
+// model, Apache-2.0, in public/vendor), cuts it out, and stands it on a soft
+// shadow, square, on a see-through background. Runs on the owner's device; the
+// 5 MB model and the ONNX runtime download the first time it's used.
 
 const MODEL = "/vendor/u2netp.onnx";
 const WASM = "https://cdn.jsdelivr.net/npm/onnxruntime-web@1.30.0/dist/";
@@ -35,12 +35,12 @@ const smooth = (a: number, b: number, x: number) => {
 };
 
 /**
- * The product on the shop's stage, as JPEG bytes (`size` px square). With
- * `transparent`, just the product and its floor shadow, as a WebP with a
- * transparent background (for the home page cover, which has its own backdrop).
+ * Just the product and its floor shadow, `size` px square, as WebP bytes with a
+ * transparent background: like the studio pictures, it sits on the site's own
+ * backdrop (light, or dark for pale colours, globals.css .stage-dark).
  * Throws if no product is found.
  */
-export async function cleanBackground(photo: Blob, size = 1200, transparent = false): Promise<Uint8Array<ArrayBuffer>> {
+export async function cleanBackground(photo: Blob, size = 1200): Promise<Uint8Array<ArrayBuffer>> {
   const bmp = await createImageBitmap(photo);
   const W = bmp.width;
   const H = bmp.height;
@@ -114,10 +114,9 @@ export async function cleanBackground(photo: Blob, size = 1200, transparent = fa
       }
   const bx = (x0 / IN) * WW, by = (y0 / IN) * HH, bw = ((x1 - x0 + 1) / IN) * WW, bh = ((y1 - y0 + 1) / IN) * HH;
 
-  // 5. on the stage: fitted to 76% of the frame, standing on a soft shadow
+  // 5. framed like the studio pictures: fitted to 76% of the frame, standing on a soft shadow
   const sq = canvas(size, size);
   const g = sq.getContext("2d")!;
-  if (!transparent) drawStage(g, size);
   const k = Math.min((size * 0.76) / bw, (size * 0.76) / bh);
   const dw = bw * k, dh = bh * k;
   const dx = (size - dw) / 2;
@@ -125,7 +124,7 @@ export async function cleanBackground(photo: Blob, size = 1200, transparent = fa
   drawShadow(g, size / 2, size * 0.86, Math.max(dw * 0.42, size * 0.12), size * 0.035);
   g.imageSmoothingQuality = "high";
   g.drawImage(cut, bx, by, bw, bh, dx, dy, dw, dh);
-  return transparent ? canvasBytes(sq, "image/webp", 0.9) : canvasBytes(sq, "image/jpeg", 0.88);
+  return canvasBytes(sq, "image/webp", 0.9);
 }
 
 /**

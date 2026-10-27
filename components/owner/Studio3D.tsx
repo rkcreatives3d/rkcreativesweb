@@ -6,7 +6,7 @@ import { OrbitControls } from "@react-three/drei";
 import type { Product } from "@/lib/products";
 import { MODEL_EXTENSIONS, parseModel, toGeometry, toGLB } from "@/lib/mesh-core.mjs";
 import { ViewRig } from "../three/Studio";
-import { canvasBytes, drawShadow, drawStage } from "@/lib/owner/stage";
+import { canvasBytes, drawShadow } from "@/lib/owner/stage";
 import { PrintModel } from "../three/PrintModel";
 
 // The owner page's own 3D: a turntable preview of a product (with an uploaded
@@ -27,10 +27,10 @@ export async function fileToModel(file: File): Promise<{ url: string; bytes: Uin
   return { url: URL.createObjectURL(new Blob([glb], { type: "model/gltf-binary" })), bytes, ext, triangles: geo.index!.count / 3 };
 }
 
-/** Drag-to-turn preview, slowly spinning. */
-export function ModelPreview({ product, finish, modelUrl }: { product: Product; finish: string; modelUrl?: string }) {
+/** Drag-to-turn preview, slowly spinning, on the backdrop the site gives that colour (`backdrop`: "stage-dark" for pale ones). */
+export function ModelPreview({ product, finish, modelUrl, backdrop = "" }: { product: Product; finish: string; modelUrl?: string; backdrop?: string }) {
   return (
-    <div className="stage relative aspect-square overflow-hidden rounded-2xl border border-line">
+    <div className={`stage ${backdrop} relative aspect-square overflow-hidden rounded-2xl border border-line`}>
       <Canvas dpr={[1, 1.75]} gl={{ antialias: true, alpha: true }} frameloop="always">
         <ViewRig position={[0, 0.25, 4.5]} fov={35} />
         <OrbitControls enablePan={false} enableZoom={false} autoRotate autoRotateSpeed={1.4} />
@@ -41,20 +41,19 @@ export function ModelPreview({ product, finish, modelUrl }: { product: Product; 
   );
 }
 
-export type Shot = { finish: string; large: Uint8Array; small: Uint8Array; xl?: Uint8Array; cover?: Uint8Array };
+export type Shot = { finish: string; large: Uint8Array; small: Uint8Array; xl?: Uint8Array };
 
 const SIZE = 720;
 
 /**
  * The 3D picture with its floor shadow, transparent like the site's other
- * studio pictures (they sit on the stage in CSS); the share-card JPEG gets the
- * stage itself (lib/owner/stage.ts).
+ * studio pictures: they sit on the stage in CSS (light, or dark for pale
+ * colours), and the share cards put them on a panel of the same colour.
  */
 function composite(src: HTMLCanvasElement, size: number, type: string, quality: number): Promise<Uint8Array> {
   const c = document.createElement("canvas");
   c.width = c.height = size;
   const g = c.getContext("2d")!;
-  if (type === "image/jpeg") drawStage(g, size);
   drawShadow(g, size * 0.5, size * 0.835, size * 0.23, size * 0.035);
   g.imageSmoothingQuality = "high";
   g.drawImage(src, 0, 0, size, size);
@@ -110,7 +109,6 @@ export function StudioCapture({
       small: await composite(canvas, 200, "image/webp", 0.8),
       // the main colour also gets the big picture the home page uses
       xl: i === 0 ? await composite(canvas, 1200, "image/webp", 0.86) : undefined,
-      cover: i === 0 ? await composite(canvas, 630, "image/jpeg", 0.85) : undefined,
     };
     shots.current.push(shot);
     onShot?.(shots.current.length);

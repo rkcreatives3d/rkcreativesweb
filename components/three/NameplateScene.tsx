@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
 import { useFrame, useThree } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
-import type { PlateFont, PlateIcon } from "@/lib/personalise";
+import { plateFinish, type PlateFont, type PlateIcon } from "@/lib/personalise";
 import { ViewRig, useFinishMaterial } from "./Studio";
 import { buildKey, buildPlate, loadPlateFont, plateFontLoaded, type PlateStyle } from "./nameplate";
 import { useLive } from "./live";
@@ -57,7 +57,7 @@ export function NameplateScene({
 
   // letters in the chosen finish on a contrasting plate: grey by default, white behind black letters
   const letters = useFinishMaterial(finish);
-  const plate = useFinishMaterial(finish === "onyx" ? "frost" : finish === "graphite" || finish === "silver" ? "onyx" : "graphite");
+  const plate = useFinishMaterial(plateFinish(finish));
   const steel = useMemo(() => new THREE.MeshStandardMaterial({ color: "#c9ccd2", metalness: 1, roughness: 0.25 }), []);
   useEffect(() => () => steel.dispose(), [steel]);
 

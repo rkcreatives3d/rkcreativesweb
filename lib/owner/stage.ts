@@ -1,20 +1,7 @@
-// The shop's product "stage", drawn on a canvas: the soft grey studio sweep and
-// soft floor shadow of the product cards (globals.css .stage + .stage-shadow).
-// Studio pictures of 3D models and cleaned-up photos are both drawn on it, so
-// every product sits on the same background.
-
-export function drawStage(g: CanvasRenderingContext2D, size: number) {
-  g.save();
-  g.translate(size * 0.5, size * 0.42);
-  g.scale(0.7, 0.6);
-  const bg = g.createRadialGradient(0, 0, 0, 0, 0, size);
-  bg.addColorStop(0, "#fcfcfd");
-  bg.addColorStop(0.58, "#f5f5f7");
-  bg.addColorStop(1, "#ececef");
-  g.fillStyle = bg;
-  g.fillRect(-size * 2, -size * 2, size * 4, size * 4);
-  g.restore();
-}
+// Drawing helpers for the owner page's pictures. Studio pictures and cleaned-up
+// photos are see-through, with the soft floor shadow of the product cards
+// (globals.css .stage-shadow) drawn in; the site puts them on its studio
+// backdrop in CSS (.stage, or .stage-dark for pale colours).
 
 /** A soft elliptical shadow centred at (x, y). */
 export function drawShadow(g: CanvasRenderingContext2D, x: number, y: number, rx: number, ry: number, strength = 0.2) {

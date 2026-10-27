@@ -125,7 +125,7 @@ export function SearchOverlay({ open, onClose }: { open: boolean; onClose: () =>
                             onClick={onClose}
                             className="-mx-3 flex items-center gap-4 rounded-xl px-3 py-2.5 outline-offset-0 hover:bg-page-2 focus-visible:bg-page-2"
                           >
-                            <ProductThumb product={p} finish={p.finishes[0]} className="h-14 w-14" />
+                            <ProductThumb product={p} finish={p.finishes[0]} cover className="h-14 w-14" />
                             <span className="min-w-0 flex-1">
                               <span className="block truncate font-medium">{p.name}</span>
                               <span className="block truncate text-sm text-muted">{p.category}</span>
@@ -155,7 +155,7 @@ export function SearchOverlay({ open, onClose }: { open: boolean; onClose: () =>
                     {suggestions.map((p) => (
                       <li key={p.slug}>
                         <Link data-result href={`/shop/${p.slug}/`} onClick={onClose} className="group block rounded-xl outline-offset-2">
-                          <ProductThumb product={p} finish={p.finishes[0]} className="aspect-square h-auto w-full" />
+                          <ProductThumb product={p} finish={p.finishes[0]} cover className="aspect-square h-auto w-full" />
                           <span className="mt-2 block truncate text-sm font-medium group-hover:underline">{p.name}</span>
                           <span className="block tabular-nums text-xs text-muted">{formatPrice(p.price)}</span>
                         </Link>

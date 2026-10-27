@@ -7,6 +7,9 @@ export type PlateStyle = "keychain" | "nameplate";
 /** longest name / word we print on a keychain or nameplate */
 export const MAX_NAME = 14;
 
+/** The plate behind the letters: a contrasting colour (grey by default, white behind black letters). */
+export const plateFinish = (letters: string) => (letters === "onyx" ? "frost" : letters === "graphite" || letters === "silver" ? "onyx" : "graphite");
+
 export const plateFonts = [
   { id: "bold", label: "Bold", note: "Clean block letters" },
   { id: "script", label: "Script", note: "Joined handwriting" },

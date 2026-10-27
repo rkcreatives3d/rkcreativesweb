@@ -46,9 +46,13 @@ export default async function ProductPage({ params }: Props) {
     sku: p.slug,
     category: p.category,
     material: p.material,
-    image: p.images?.length
-      ? p.images.map((src) => `${site.url}${src}`)
-      : p.finishes.map((f) => renderFor(p, f)).filter(Boolean).map((src) => `${site.url}${src}`).concat(`${site.url}/brand/logo.jpg`).slice(0, 4),
+    // its own cover photo first, then its photos, or its studio pictures
+    image: [
+      ...(p.cover ? [p.cover] : []),
+      ...(p.images?.length ? p.images : p.finishes.map((f) => renderFor(p, f)).filter((src): src is string => !!src).concat(p.cover ? [] : ["/brand/logo.jpg"])),
+    ]
+      .slice(0, 4)
+      .map((src) => `${site.url}${src}`),
     brand: { "@type": "Brand", name: site.name },
     offers: {
       "@type": "AggregateOffer",

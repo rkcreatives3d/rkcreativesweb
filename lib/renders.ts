@@ -31,7 +31,3 @@ export function renderSrcSet(p: Product, finish: string): string | undefined {
   if (made[p.slug][0] === finish) sizes.push(`${renderFor(p, finish, "xl")} 1200w`);
   return sizes.join(", ");
 }
-
-/** The share-card picture (default colour, JPEG for the share-image renderer). */
-export const renderCoverFor = (p: Product): string | undefined =>
-  made[p.slug]?.includes(p.finishes[0]) ? `/renders/${p.slug}/cover.jpg` : undefined;

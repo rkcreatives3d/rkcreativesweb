@@ -4,7 +4,7 @@ import { InstagramGrid, PhotoGrid, Reviews } from "@/components/Proof";
 import { StudioClip } from "@/components/StudioClip";
 import { about, customerPhotos, instagramPosts, packingPhotos, reviews } from "@/lib/content";
 import { emailReady, site, whatsappUrl } from "@/lib/site";
-import { getFinish, getProduct, type Product } from "@/lib/products";
+import { backdropFor, getFinish, getProduct, type Product } from "@/lib/products";
 import { renderFor } from "@/lib/renders";
 
 export const metadata: Metadata = {
@@ -62,7 +62,7 @@ export default function AboutPage() {
             <figure>
               <ul className="grid grid-cols-2 gap-3">
                 {showcase.map(({ p, f }, i) => (
-                  <li key={p.slug} className="stage overflow-hidden rounded-[var(--radius-tile)]">
+                  <li key={p.slug} className={`stage ${backdropFor(f)} overflow-hidden rounded-[var(--radius-tile)]`}>
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={renderFor(p, f)}

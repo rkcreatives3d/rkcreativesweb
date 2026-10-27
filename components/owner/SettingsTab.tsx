@@ -229,7 +229,7 @@ function CoverCard() {
         try {
           const { cleanBackground } = await import("@/lib/owner/cutout");
           // just the product and its shadow, transparent: it stands on the home page's own backdrop
-          bytes = await cleanBackground(file, 1200, true);
+          bytes = await cleanBackground(file);
           cut = true;
         } catch (e) {
           console.warn("background clean-up:", e);

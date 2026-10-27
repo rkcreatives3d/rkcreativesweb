@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import type { Product } from "@/lib/products";
+import { isPale, type Product } from "@/lib/products";
 import { formatPrice } from "@/lib/site";
 import { newProduct, uniqueId } from "@/lib/owner/edit";
 import { photoSrc, useOwner } from "@/lib/owner/store";
@@ -13,11 +13,15 @@ export function Thumb({ p, size = 56 }: { p: Product; size?: number }) {
   const finishes = useOwner((s) => s.draft?.finishes);
   useOwner((s) => s.uploads); // re-render when photos are added
   const f = p.finishes[0];
-  const src = p.images?.[0] ? photoSrc(p.images[0]) : renders?.includes(f) ? `/renders/${p.slug}/${f}-sm.webp` : null;
+  const cover = p.coverSmall ?? p.cover;
+  const src = cover ? photoSrc(cover) : p.images?.[0] ? photoSrc(p.images[0]) : renders?.includes(f) ? `/renders/${p.slug}/${f}-sm.webp` : null;
   const color = finishes?.find((x) => x.id === f)?.swatch ?? "#ccc";
+  // the colour the picture shows it in; pale ones sit on the dark backdrop, as on the site (a cover photo fills its box)
+  const shown = p.images?.[0] ? (p.photoFinish ?? f) : f;
+  const dark = !cover && isPale(finishes?.find((x) => x.id === shown)?.color ?? "");
   return src ? (
     // eslint-disable-next-line @next/next/no-img-element
-    <img src={src} alt="" width={size} height={size} style={{ width: size, height: size }} className="stage shrink-0 rounded-xl object-cover" />
+    <img src={src} alt="" width={size} height={size} style={{ width: size, height: size }} className={`stage ${dark ? "stage-dark" : ""} shrink-0 rounded-xl object-cover`} />
   ) : (
     <span aria-hidden style={{ width: size, height: size, background: color }} className="block shrink-0 rounded-xl" />
   );

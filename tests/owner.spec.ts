@@ -1,6 +1,10 @@
 import fs from "node:fs";
 import { expect, type Page, test } from "@playwright/test";
-import { prepare } from "./helpers";
+import { prepare, somePiece } from "./helpers";
+
+// an ordinary piece to edit, and one that isn't the cover (Vortex Vase)
+const piece = somePiece();
+const other = somePiece("vortex-vase");
 import { bigSTL, cubeSTL, mockGitHub, TINY_JPEG } from "./github-mock";
 
 // The owner's shop manager, against a pretend GitHub (tests/github-mock.ts).
@@ -149,12 +153,12 @@ test("password sign-in: wrong tries count down; the right password opens the man
   await page.getByRole("button", { name: "Sign in", exact: true }).click();
   await expect(page.getByText("Signed in as owner")).toBeVisible();
   // the GitHub key never reached the browser: there wasn't one
-  await page.getByLabel("Price of Infinity Knot").fill("700");
+  await page.getByLabel(`Price of ${piece.name}`).fill("700");
   await page.getByRole("button", { name: "Publish changes" }).click();
   const dialog = page.getByRole("dialog", { name: "Publish to the website" });
   await dialog.getByRole("button", { name: "Publish" }).click();
   await expect(dialog).toContainText("Published", { timeout: 30_000 });
-  expect(JSON.parse(gh.written("content/products.json")!).find((p: { slug: string }) => p.slug === "infinity-knot").price).toBe(700);
+  expect(JSON.parse(gh.written("content/products.json")!).find((p: { slug: string }) => p.slug === piece.slug).price).toBe(700);
   // signed in on this device: a reload goes straight back in
   await page.reload();
   await expect(page.getByText("Signed in as owner")).toBeVisible();
@@ -197,7 +201,7 @@ test("a big 3D file is sent in pieces under 4.5 MB each (the most a Vercel funct
   await page.goto("/owner/");
   await page.getByLabel("Password").fill("open sesame");
   await page.getByRole("button", { name: "Sign in", exact: true }).click();
-  await page.getByRole("listitem").filter({ hasText: "Gear Spinner" }).getByRole("button", { name: "Edit" }).click();
+  await page.getByRole("listitem").filter({ hasText: piece.name }).getByRole("button", { name: "Edit" }).click();
   const file = bigSTL(70_000); // ~3.5 MB: two pieces
   await page.locator('input[type="file"][accept=".stl,.3mf,.obj,.glb"]').setInputFiles({ name: "gear.stl", mimeType: "model/stl", buffer: file });
   await expect(page.getByText("New file: gear.stl")).toBeVisible({ timeout: 30_000 });
@@ -205,8 +209,8 @@ test("a big 3D file is sent in pieces under 4.5 MB each (the most a Vercel funct
   const dialog = page.getByRole("dialog", { name: "Publish to the website" });
   await dialog.getByRole("button", { name: "Publish" }).click();
   await expect(dialog).toContainText("Published", { timeout: 180_000 });
-  const parts = gh.rec.tree.filter((t) => t.path.startsWith("models/gear-spinner.stl.part") && t.sha).map((t) => t.path);
-  expect(parts).toEqual(["models/gear-spinner.stl.part1", "models/gear-spinner.stl.part2"]);
+  const parts = gh.rec.tree.filter((t) => t.path.startsWith(`models/${piece.slug}.stl.part`) && t.sha).map((t) => t.path);
+  expect(parts).toEqual([`models/${piece.slug}.stl.part1`, `models/${piece.slug}.stl.part2`]);
   const joined = Buffer.concat(parts.map((p) => gh.raw(p)!));
   expect(joined.equals(file)).toBe(true);
   for (const p of parts) expect(gh.raw(p)!.length).toBeLessThanOrEqual(3_000_000);
@@ -231,7 +235,7 @@ test("password set but no GitHub key on the host: signs in and edits; Publish ex
   await page.getByLabel("Password").fill("open sesame");
   await page.getByRole("button", { name: "Sign in", exact: true }).click();
   await expect(page.getByText("You can edit, but Publish is off")).toBeVisible();
-  await page.getByLabel("Price of Infinity Knot").fill("700");
+  await page.getByLabel(`Price of ${piece.name}`).fill("700");
   await page.getByRole("button", { name: "Publish changes" }).click();
   const dialog = page.getByRole("dialog", { name: "Publish to the website" });
   await dialog.getByRole("button", { name: "Publish" }).click();
@@ -277,6 +281,9 @@ test("owner approves one waiting review (with its photo) and rejects another; pu
 });
 
 /** The background clean-up's ONNX runtime, served from node_modules instead of the CDN, so tests work offline. */
+/** RIFF....WEBP */
+const isWebp = (b: Buffer) => b.subarray(0, 4).toString("latin1") === "RIFF" && b.subarray(8, 12).toString("latin1") === "WEBP";
+
 const localRuntime = (page: Page) =>
   page.route("https://cdn.jsdelivr.net/npm/onnxruntime-web@1.30.0/dist/**", (route) => {
     const file = new URL(route.request().url()).pathname.split("/").pop()!;
@@ -305,12 +312,12 @@ test("✨ cleans up a product photo: the product, cut out, on the shop's studio 
   await dialog.getByRole("button", { name: "Publish" }).click();
   await expect(dialog).toContainText("Published", { timeout: 60_000 });
   const product = JSON.parse(gh.written("content/products.json")!).find((p: { slug: string }) => p.slug === shot!.slug);
-  expect(product.images[0]).toMatch(new RegExp(`^/products/${shot!.slug}/\\w+-c\\.jpg$`));
+  expect(product.images[0]).toMatch(new RegExp(`^/products/${shot!.slug}/\\w+-c\\.webp$`));
   const photo = gh.raw(`public${product.images[0]}`)!;
-  expect(photo.subarray(0, 3).equals(Buffer.from([0xff, 0xd8, 0xff]))).toBe(true); // a JPEG
+  expect(isWebp(photo)).toBe(true); // see-through: the site's backdrop shows behind it
   // the old photo goes
   expect(gh.rec.tree.some((t) => t.path === `public${shot!.images![0]}` && t.sha === null)).toBe(true);
-  if (process.env.OWNER_SHOTS) fs.writeFileSync(`${process.env.OWNER_SHOTS}/${shot!.slug}-clean.jpg`, photo);
+  if (process.env.OWNER_SHOTS) fs.writeFileSync(`${process.env.OWNER_SHOTS}/${shot!.slug}-clean.webp`, photo);
 });
 
 test("new photos are cleaned up as they're added; a price typed meanwhile stays, and a broken file is reported", async ({ page }) => {
@@ -324,7 +331,7 @@ test("new photos are cleaned up as they're added; a price typed meanwhile stays,
   await page.getByRole("button", { name: "Sign in", exact: true }).click();
   await page.getByRole("listitem").filter({ hasText: first.name }).getByRole("button", { name: "Edit" }).first().click();
   await expect(page.getByRole("switch", { name: /Clean up the background/ })).toBeChecked();
-  await page.locator('input[type="file"][accept="image/*"]').setInputFiles([
+  await page.getByLabel("Add photos", { exact: true }).setInputFiles([
     { name: "piece.webp", mimeType: "image/webp", buffer: fs.readFileSync("tests/fixtures/product.webp") },
     { name: "broken.jpg", mimeType: "image/jpeg", buffer: Buffer.from("not a picture") },
   ]);
@@ -341,8 +348,8 @@ test("new photos are cleaned up as they're added; a price typed meanwhile stays,
   const product = JSON.parse(gh.written("content/products.json")!).find((p: { slug: string }) => p.slug === first.slug);
   expect(product.price).toBe(1234);
   expect(product.images).toHaveLength((first.images?.length ?? 0) + 1);
-  const photo = gh.raw(`public${product.images.at(-1)}`)!;
-  expect(photo.subarray(0, 3).equals(Buffer.from([0xff, 0xd8, 0xff]))).toBe(true);
+  expect(product.images.at(-1)).toMatch(/\.webp$/);
+  expect(isWebp(gh.raw(`public${product.images.at(-1)}`)!)).toBe(true);
 });
 
 test("owner sets the home page cover: another product and a photo of it, published together", async ({ page }) => {
@@ -353,7 +360,7 @@ test("owner sets the home page cover: another product and a photo of it, publish
   await page.getByRole("button", { name: "Sign in with key" }).click();
   await page.getByRole("button", { name: "Shop settings" }).click();
 
-  await page.getByLabel("Product on the cover").selectOption("infinity-knot");
+  await page.getByLabel("Product on the cover").selectOption(other.slug);
   await page.getByRole("switch", { name: /Clean up the background/ }).uncheck(); // keep the photo as taken
   await page.getByLabel("Cover photo").setInputFiles({ name: "knot.jpg", mimeType: "image/jpeg", buffer: TINY_JPEG });
   await expect(page.getByAltText("Cover photo")).toBeVisible();
@@ -363,8 +370,44 @@ test("owner sets the home page cover: another product and a photo of it, publish
   await dialog.getByRole("button", { name: "Publish" }).click();
   await expect(dialog).toContainText("Published", { timeout: 60_000 });
   const home = JSON.parse(gh.written("content/shop.json")!).home;
-  expect(home.heroProduct).toBe("infinity-knot");
+  expect(home.heroProduct).toBe(other.slug);
   expect(home.heroImage).toMatch(/^\/home\/cover-\w+\.jpg$/);
   expect(home.heroImageCut).toBe(false);
   expect(gh.raw(`public${home.heroImage}`)!.subarray(0, 3).equals(Buffer.from([0xff, 0xd8, 0xff]))).toBe(true);
+});
+
+/** `jpeg` as a phone saves it: with EXIF metadata (an orientation tag and where it was taken) after the start marker. */
+function withExif(jpeg: Buffer) {
+  const u16 = (n: number) => Buffer.from([n & 255, n >> 8]);
+  const u32 = (n: number) => Buffer.from([n & 255, (n >> 8) & 255, (n >> 16) & 255, n >>> 24]);
+  // little-endian TIFF: one entry (0x0112 orientation, SHORT, 1 value: 1 = upright), no next block, then GPS text
+  const tiff = Buffer.concat([Buffer.from("II*\0", "latin1"), u32(8), u16(1), u16(0x0112), u16(3), u32(1), u16(1), u16(0), u32(0), Buffer.from("GPS 17.3850N 78.4867E", "latin1")]);
+  const body = Buffer.concat([Buffer.from("Exif\0\0", "latin1"), tiff]);
+  const len = body.length + 2;
+  return Buffer.concat([jpeg.subarray(0, 2), Buffer.from([0xff, 0xe1, len >> 8, len & 255]), body, jpeg.subarray(2)]);
+}
+
+test("cover photo: goes up exactly as taken (only its hidden location data removed), with a small copy for cards", async ({ page }) => {
+  await prepare(page, { lite: true });
+  const gh = await mockGitHub(page, { password: "open sesame" });
+  await page.goto("/owner/");
+  await page.getByLabel("Password").fill("open sesame");
+  await page.getByRole("button", { name: "Sign in", exact: true }).click();
+  await page.getByRole("listitem").filter({ hasText: piece.name }).getByRole("button", { name: "Edit" }).first().click();
+  await page.getByLabel("Add a cover photo").setInputFiles({ name: "IMG_2041.jpg", mimeType: "image/jpeg", buffer: withExif(TINY_JPEG) });
+  await expect(page.getByAltText("Cover photo, as customers see it on the product page")).toBeVisible();
+  await expect(page.getByAltText("Cover photo, as customers see it on a shop card")).toBeVisible();
+
+  await page.getByRole("button", { name: "Publish changes" }).click();
+  const dialog = page.getByRole("dialog", { name: "Publish to the website" });
+  await expect(dialog).toContainText("cover photo");
+  await dialog.getByRole("button", { name: "Publish" }).click();
+  await expect(dialog).toContainText("Published", { timeout: 60_000 });
+  const product = JSON.parse(gh.written("content/products.json")!).find((p: { slug: string }) => p.slug === piece.slug);
+  expect(product.cover).toMatch(new RegExp(`^/products/${piece.slug}/cover-\\w+\\.jpg$`));
+  expect(product.coverSmall).toMatch(new RegExp(`^/products/${piece.slug}/cover-\\w+-sm\\.jpg$`));
+  const raw = gh.raw(`public${product.cover}`)!;
+  expect(raw.equals(TINY_JPEG)).toBe(true); // the picture, byte for byte
+  expect(raw.includes("GPS")).toBe(false);
+  expect(gh.raw(`public${product.coverSmall}`)!.subarray(0, 3).equals(Buffer.from([0xff, 0xd8, 0xff]))).toBe(true);
 });

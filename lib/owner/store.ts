@@ -111,7 +111,8 @@ export const useOwner = create<OwnerState>((set, get) => ({
   setFinishes: (finishes, products) => set((s) => ({ draft: s.draft && { ...s.draft, finishes, products: products ?? s.draft.products } })),
   setShop: (shop) => set((s) => ({ draft: s.draft && { ...s.draft, shop } })),
   addUpload: (path, bytes) => {
-    const url = URL.createObjectURL(new Blob([bytes], { type: "image/jpeg" }));
+    const type = path.endsWith(".webp") ? "image/webp" : path.endsWith(".png") ? "image/png" : "image/jpeg";
+    const url = URL.createObjectURL(new Blob([bytes], { type }));
     set((s) => ({ uploads: { ...s.uploads, [path]: { bytes, url } } }));
     return url;
   },

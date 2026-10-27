@@ -300,11 +300,21 @@ h3 {
 }
 
 /* the product stage: a soft grey studio sweep behind every product picture.
-   Studio pictures are transparent, so this is what they sit on. Keep in step
-   with lib/owner/stage.ts (photos are cleaned up onto the same sweep). */
+   Studio pictures and cleaned-up photos are transparent, so this is what they
+   sit on. Keep in step with the share cards (app/og/[file]/route.tsx). */
 .stage,
 .viewer-bg {
   background: radial-gradient(ellipse 70% 60% at 50% 42%, #fcfcfd, #f5f5f7 58%, #ececef 100%);
+}
+/* pale prints (white, cream, pastels) vanish on the light sweep, so they get a
+   charcoal one (lib/products.ts backdropFor). A hint written straight on the
+   backdrop (.stage-label, e.g. "Drag to turn it around") turns light with it. */
+.stage.stage-dark,
+.viewer-bg.stage-dark {
+  background: radial-gradient(ellipse 70% 60% at 50% 42%, #4d4d52, #3a3a3e 58%, #2c2c2f 100%);
+}
+.stage-dark .stage-label {
+  color: #b4b4b9;
 }
 /* the cover: a soft studio sweep, lit from above, with the product standing on its floor */
 .hero-stage {

@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { getFinish, photosFor, products, type Product } from "@/lib/products";
+import { backdropFor, getFinish, photosFor, products, type Product } from "@/lib/products";
 import { itemPrice, useCart } from "@/lib/cart";
 import { bumpCart } from "@/lib/fly";
 import { useLite, useLiteMode } from "@/lib/lite";
@@ -112,7 +112,8 @@ export function ProductDetail({ product: p }: { product: Product }) {
     window.open(`https://wa.me/?text=${encodeURIComponent(`${text} ${url}`)}`, "_blank", "noopener");
   };
   const item = { slug: p.slug, finish, size, engraving: engraving || undefined };
-  // media: the real 3D model first, photos second; placeholder 3D only when there's neither
+  // media: the owner's cover photo first (until a colour is picked), then the real 3D
+  // model, then photos; placeholder 3D only when there's none of those
   const photos = photosFor(p, finish);
   const model = modelFor(p);
   // Lite mode shows the studio picture, with a button to load the 360° view for this product anyway
@@ -120,9 +121,19 @@ export function ProductDetail({ product: p }: { product: Product }) {
   const want3D = useLite((s) => s.want3D);
   const live3D = !lite || demand;
   const has3D = !!model && live3D;
-  const [media, setMedia] = useState<"3d" | "photos">("3d");
-  const showPhotos = photos.list.length > 0 && (media === "photos" || !has3D);
-  const showViewer = !showPhotos && live3D;
+  const [media, setMedia] = useState<"cover" | "3d" | "photos">(p.cover ? "cover" : "3d");
+  const showCover = media === "cover" && !!p.cover;
+  const showPhotos = !showCover && photos.list.length > 0 && (media === "photos" || !has3D);
+  const showViewer = !showCover && !showPhotos && live3D;
+  // the views there are to switch between (without 3D, photos take the 3D view's place;
+  // with a cover photo, no stand-in shape when there's nothing real to show in colour)
+  const colourViews = !!model || photos.list.length > 0 || !!renderFor(p, finish);
+  const views = [p.cover && "cover", (has3D || !photos.list.length) && (!p.cover || colourViews) && "3d", photos.list.length > 0 && "photos"].filter(Boolean);
+  // picking a colour shows the piece in it: the cover photo is as taken, in one colour
+  const chooseFinish = (f: string) => {
+    setFinish(f);
+    if (media === "cover" && colourViews) setMedia("3d");
+  };
   // on a fresh page load the 3D engine is still downloading: the studio picture stands in until the model is up
   const [standIn] = useState(() => !is3DLoaded());
   const [shown3D, setShown3D] = useState(false);
@@ -132,16 +143,25 @@ export function ProductDetail({ product: p }: { product: Product }) {
       <section className="mx-auto grid max-w-6xl gap-10 px-5 pb-20 pt-20 sm:px-6 sm:pt-24 lg:grid-cols-[1.12fr_1fr] lg:gap-16 lg:pt-28">
         {/* media: photos if the product has them, otherwise the 3D preview (or flat art in Lite mode) */}
         <div className="min-w-0 lg:sticky lg:top-[7.75rem] lg:self-start">
-          {(model || (has3D && photos.list.length > 0)) && (
+          {(model || views.length > 1) && (
             <div className="mb-3 flex flex-wrap items-center gap-2">
-              {has3D && photos.list.length > 0 && (
+              {views.length > 1 && (
                 <>
-                  <Toggle on={!showPhotos} onClick={() => setMedia("3d")}>
-                    3D view
-                  </Toggle>
-                  <Toggle on={showPhotos} onClick={() => setMedia("photos")}>
-                    Photos ({photos.list.length})
-                  </Toggle>
+                  {views.includes("cover") && (
+                    <Toggle on={showCover} onClick={() => setMedia("cover")}>
+                      Cover photo
+                    </Toggle>
+                  )}
+                  {views.includes("3d") && (
+                    <Toggle on={!showCover && !showPhotos} onClick={() => setMedia("3d")}>
+                      {model ? "3D view" : "Colours"}
+                    </Toggle>
+                  )}
+                  {views.includes("photos") && (
+                    <Toggle on={showPhotos} onClick={() => setMedia("photos")}>
+                      Photos ({photos.list.length})
+                    </Toggle>
+                  )}
                 </>
               )}
               {model && (
@@ -151,12 +171,14 @@ export function ProductDetail({ product: p }: { product: Product }) {
               )}
             </div>
           )}
-          {showPhotos ? (
+          {showCover ? (
+            <Gallery images={[p.cover!]} finish={finish} preview={false} alt={p.name} raw />
+          ) : showPhotos ? (
             <Gallery images={photos.list} finish={finish} preview={photos.recolor} alt={p.name} />
           ) : (
             <>
               <div
-                className={`relative aspect-square overflow-hidden rounded-[var(--radius-tile)] viewer-bg ${showViewer ? "lg:aspect-auto lg:h-[min(46rem,calc(100svh-7.5rem))]" : ""}`}
+                className={`relative aspect-square overflow-hidden rounded-[var(--radius-tile)] viewer-bg ${backdropFor(finish)} ${showViewer ? "lg:aspect-auto lg:h-[min(46rem,calc(100svh-7.5rem))]" : ""}`}
               >
                 {showViewer ? (
                   <>
@@ -182,7 +204,7 @@ export function ProductDetail({ product: p }: { product: Product }) {
                         <StudioImage product={p} finish={finish} alt={p.name} still priority />
                       </div>
                     )}
-                    <span className="pointer-events-none absolute bottom-4 left-1/2 flex -translate-x-1/2 items-center gap-1.5 whitespace-nowrap text-xs font-medium text-muted">
+                    <span className="stage-label pointer-events-none absolute bottom-4 left-1/2 flex -translate-x-1/2 items-center gap-1.5 whitespace-nowrap text-xs font-medium text-muted">
                       <SpinIcon size={14} />
                       <span className="[@media(pointer:coarse)]:hidden">Drag to turn it around</span>
                       <span className="hidden [@media(pointer:coarse)]:inline">Swipe to turn it around</span>
@@ -220,11 +242,11 @@ export function ProductDetail({ product: p }: { product: Product }) {
                     .map((f) => (
                       <button
                         key={f}
-                        onClick={() => setFinish(f)}
+                        onClick={() => chooseFinish(f)}
                         aria-label={`See it in ${getFinish(f).name}`}
                         aria-pressed={finish === f}
                         title={getFinish(f).name}
-                        className={`stage h-14 w-14 shrink-0 overflow-hidden rounded-xl transition-[box-shadow,opacity] sm:h-16 sm:w-16 ${
+                        className={`stage ${backdropFor(f)} h-14 w-14 shrink-0 overflow-hidden rounded-xl transition-[box-shadow,opacity] sm:h-16 sm:w-16 ${
                           finish === f ? "ring-2 ring-fg ring-offset-2 ring-offset-page" : "opacity-75 hover:opacity-100"
                         }`}
                       >
@@ -290,7 +312,7 @@ export function ProductDetail({ product: p }: { product: Product }) {
               {p.finishes.map((f) => (
                 <button
                   key={f}
-                  onClick={() => setFinish(f)}
+                  onClick={() => chooseFinish(f)}
                   aria-label={getFinish(f).name}
                   aria-pressed={finish === f}
                   title={getFinish(f).name}

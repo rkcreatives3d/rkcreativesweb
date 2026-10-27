@@ -11,7 +11,7 @@ export function CollectionTile({ c, priority = false }: { c: Collection; priorit
   const load = priority ? "eager" : "lazy";
   return (
     <Link href={c.href} className="group block rounded-[var(--radius-card)]">
-      <span className="stage zoom-on-hover relative block aspect-square overflow-hidden rounded-[var(--radius-card)]">
+      <span className={`stage ${c.dark ? "stage-dark" : ""} zoom-on-hover relative block aspect-square overflow-hidden rounded-[var(--radius-card)]`}>
         {c.group.length >= 3 ? (
           <>
             {/* eslint-disable-next-line @next/next/no-img-element */}

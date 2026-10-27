@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { getFinish, getProduct, photosFor, type Product } from "@/lib/products";
+import { getFinish, getProduct, isLightFinish, photoColour, photosFor, type Product } from "@/lib/products";
 import { renderFor, renderSrcSet } from "@/lib/renders";
 import { formatPrice } from "@/lib/site";
 import { Reveal } from "../ui";
@@ -17,8 +17,18 @@ export type Story = {
 
 const priceLabel = (p: Product) => (p.sizes.some((s) => s.priceDelta) ? `From ${formatPrice(p.price)}` : formatPrice(p.price));
 
+/** Its picture shows a pale colour (white, cream…): the story goes on black, so the piece stands out. */
+function pale(p: Product) {
+  const f = p.finishes[0];
+  return !p.cover && isLightFinish(photosFor(p, f).list[0] ? photoColour(p, f) : f);
+}
+
 function Picture({ p, sizes, className = "" }: { p: Product; sizes: string; className?: string }) {
   const f = p.finishes[0];
+  if (p.cover)
+    // the owner's own cover photo, as taken
+    // eslint-disable-next-line @next/next/no-img-element
+    return <img src={p.cover} alt={p.name} loading="lazy" decoding="async" className={`h-full w-full rounded-[var(--radius-card)] object-cover ${className}`} />;
   const photo = photosFor(p, f).list[0];
   const src = photo ?? renderFor(p, f, "xl");
   if (!src) return null;
@@ -33,7 +43,7 @@ function Picture({ p, sizes, className = "" }: { p: Product; sizes: string; clas
       alt={`${p.name} in ${getFinish(f).name}`}
       loading="lazy"
       decoding="async"
-      // a cleaned-up photo has the stage baked in: its edges fade into whatever it sits on
+      // older cleaned-up photos have the light stage baked in: their edges fade into whatever they sit on
       className={`h-full w-full ${photo ? "object-cover [mask-image:radial-gradient(closest-side,#000_80%,transparent)]" : "object-contain"} ${className}`}
     />
   );
@@ -63,7 +73,7 @@ function Actions({ p, more, center }: { p: Product; more?: Story["more"]; center
 export function Showcase({ story, layout = "stack", dark = false }: { story: Story; layout?: "stack" | "split"; dark?: boolean }) {
   const p = getProduct(story.slug);
   if (!p) return null;
-  const tone = dark ? "theme-dark" : "bg-page-2";
+  const tone = dark || pale(p) ? "theme-dark" : "bg-page-2";
   if (layout === "split")
     return (
       <section className={`${tone} overflow-hidden px-5 py-20 sm:px-6 sm:py-28`} aria-label={p.name}>
@@ -116,7 +126,7 @@ export function StoryCarousel({ stories, title }: { stories: Story[]; title: str
           <li key={p.slug} className="w-[78vw] max-w-[22rem] shrink-0 snap-start">
             <Link
               href={`/shop/${p.slug}/`}
-              className={`${s.dark ? "theme-dark" : "bg-page-2"} flex h-full flex-col overflow-hidden rounded-[var(--radius-tile)] px-5 pt-8 text-center`}
+              className={`${s.dark || pale(p) ? "theme-dark" : "bg-page-2"} flex h-full flex-col overflow-hidden rounded-[var(--radius-tile)] px-5 pt-8 text-center`}
             >
               {s.eyebrow && <span className="eyebrow">{s.eyebrow}</span>}
               <span className="mt-1 text-2xl font-semibold leading-tight tracking-tight">{s.title}</span>
@@ -142,7 +152,7 @@ export function ShowcaseTiles({ stories, className = "" }: { stories: Story[]; c
     <section className={`px-3 py-3 sm:px-4 sm:py-4 ${className}`} aria-label="More pieces">
       <div className={`mx-auto grid max-w-[90rem] gap-3 sm:gap-4 md:grid-cols-2 ${items.length >= 3 ? "lg:grid-cols-3" : ""}`}>
         {items.map(({ s, p }) => (
-          <article key={p.slug} className="flex flex-col overflow-hidden rounded-[var(--radius-tile)] bg-page-2 px-6 pt-12 text-center sm:pt-14">
+          <article key={p.slug} className={`${pale(p) ? "theme-dark" : "bg-page-2"} flex flex-col overflow-hidden rounded-[var(--radius-tile)] px-6 pt-12 text-center sm:pt-14`}>
             {s.eyebrow && <p className="eyebrow">{s.eyebrow}</p>}
             <h2 className="headline-md mt-1.5">{s.title}</h2>
             {s.body && <p className="mx-auto mt-3 max-w-sm text-muted">{s.body}</p>}

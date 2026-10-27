@@ -3,12 +3,12 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion, useInView } from "motion/react";
-import { getFinish, getProduct, type Product } from "@/lib/products";
+import { backdropFor, getFinish, getProduct, type Product } from "@/lib/products";
 import { itemPrice, useCart } from "@/lib/cart";
 import { bumpCart } from "@/lib/fly";
 import { useLiteMode } from "@/lib/lite";
 import { formatPrice, site, whatsappUrl } from "@/lib/site";
-import { MAX_NAME, plateFonts, plateIcons, type PlateFont, type PlateIcon, type PlateStyle } from "@/lib/personalise";
+import { MAX_NAME, plateFinish, plateFonts, plateIcons, type PlateFont, type PlateIcon, type PlateStyle } from "@/lib/personalise";
 import { track } from "@/lib/track";
 import { NameplateScene, View3D } from "./three/lazy";
 import { DeliveryEstimate } from "./Delivery";
@@ -70,7 +70,8 @@ export function NameplateStudio() {
       {/* preview: stays in view while you type and pick options (phones: a shorter strip under the nav) */}
       <div
         ref={box}
-        className="sticky top-[3.75rem] z-10 aspect-[16/10] overflow-hidden rounded-[var(--radius-tile)] viewer-bg sm:top-20 sm:aspect-[4/3] lg:aspect-auto lg:h-[min(640px,calc(100svh-8rem))]"
+        // white letters, or the white plate behind black ones, go on the dark backdrop (Lite's flat preview is always dark-on-light)
+        className={`sticky top-[3.75rem] z-10 aspect-[16/10] overflow-hidden rounded-[var(--radius-tile)] viewer-bg ${lite ? "" : backdropFor(finish) || backdropFor(plateFinish(finish))} sm:top-20 sm:aspect-[4/3] lg:aspect-auto lg:h-[min(640px,calc(100svh-8rem))]`}
       >
         {lite ? (
           <div className="absolute inset-0 grid place-items-center p-8">
@@ -96,7 +97,7 @@ export function NameplateStudio() {
             </View3D>
           </div>
         )}
-        <span className="pointer-events-none absolute left-5 top-5 text-xs text-muted">
+        <span className="stage-label pointer-events-none absolute left-5 top-5 text-xs text-muted">
           {lite ? "Preview" : "Drag to rotate"}
         </span>
         {!lite && (

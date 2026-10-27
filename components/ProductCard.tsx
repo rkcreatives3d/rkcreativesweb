@@ -4,7 +4,7 @@ import { useRef, useState } from "react";
 import Link from "next/link";
 import { motion, useInView } from "motion/react";
 import type { Product } from "@/lib/products";
-import { getFinish, photosFor } from "@/lib/products";
+import { backdropFor, getFinish, photosFor } from "@/lib/products";
 import { modelFor } from "@/lib/models";
 import { renderFor } from "@/lib/renders";
 import { formatPrice } from "@/lib/site";
@@ -21,17 +21,22 @@ const NARROW_SWATCHES = 4;
  * A product in a grid: the picture, its name and price, and its colours. The
  * whole card is one way in (to the product page); tapping or hovering a colour
  * shows the piece in that colour. Two per row on phones, three on desktop.
+ * With a cover photo, that's what the card shows until a colour is picked
+ * (hovering colours previews them; moving off the card brings the cover back).
  */
 export function ProductCard({ product: p, index = 0 }: { product: Product; index?: number; printIn?: boolean }) {
   const [hovered, setHovered] = useState(false);
   const ref = useRef<HTMLElement>(null);
   const inView = useInView(ref, { once: true, margin: "-10% 0px" });
   const [finish, setFinish] = useState(p.finishes[0]);
+  const [picked, setPicked] = useState<"tap" | "hover" | null>(null);
   const photos = photosFor(p, finish);
   const model = modelFor(p);
   // the live model is only for the render script that makes the studio pictures
   const studio = useStudioRender();
   const show3D = studio && (!!model || !photos.list.length);
+  // the cover photo until a colour is picked, and for good when there's no picture of it in colours
+  const showCover = !!p.cover && !studio && (!picked || (!model && !photos.list.length && !renderFor(p, finish)));
   const pointer = useRef({ x: 0, y: 0 });
 
   return (
@@ -43,13 +48,20 @@ export function ProductCard({ product: p, index = 0 }: { product: Product; index
       animate={inView ? { opacity: 1, y: 0 } : undefined}
       transition={{ duration: 0.7, delay: (index % 3) * 0.06, ease: [0.16, 1, 0.3, 1] }}
       onPointerEnter={(e) => e.pointerType === "mouse" && setHovered(true)}
-      onPointerLeave={() => setHovered(false)}
+      onPointerLeave={() => {
+        setHovered(false);
+        setPicked((v) => (v === "hover" ? null : v));
+      }}
     >
       <div className="relative">
         {/* the picture is a second way in for pointers; keyboards and screen readers use the name below */}
         <Link href={`/shop/${p.slug}/`} className="block rounded-[var(--radius-card)]" tabIndex={-1} aria-hidden>
-          <div className="stage zoom-on-hover relative aspect-square overflow-hidden rounded-[var(--radius-card)]">
-            {show3D ? (
+          <div className={`stage ${showCover ? "" : backdropFor(finish)} zoom-on-hover relative aspect-square overflow-hidden rounded-[var(--radius-card)]`}>
+            {showCover ? (
+              // the owner's own photo, as taken (square here, so it fills the card)
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={p.coverSmall ?? p.cover} alt={p.name} loading="lazy" decoding="async" className="absolute inset-0 h-full w-full object-cover" />
+            ) : show3D ? (
               <>
                 <span aria-hidden className="stage-shadow" />
                 <View3D className="absolute inset-0">
@@ -90,8 +102,15 @@ export function ProductCard({ product: p, index = 0 }: { product: Product; index
               aria-label={getFinish(f).name}
               title={getFinish(f).name}
               data-finish={f}
-              onPointerEnter={(e) => e.pointerType === "mouse" && setFinish(f)}
-              onClick={() => setFinish(f)}
+              onPointerEnter={(e) => {
+                if (e.pointerType !== "mouse") return;
+                setFinish(f);
+                setPicked((v) => v ?? "hover");
+              }}
+              onClick={() => {
+                setFinish(f);
+                setPicked("tap");
+              }}
               className={`grid h-7 w-7 place-items-center rounded-full ${i >= NARROW_SWATCHES ? "hidden sm:grid" : ""}`}
             >
               <span className={`grid place-items-center rounded-full p-[2px] ${finish === f ? "ring-1 ring-fg" : ""}`}>

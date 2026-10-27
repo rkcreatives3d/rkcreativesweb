@@ -1,4 +1,17 @@
+import fs from "node:fs";
 import type { Page } from "@playwright/test";
+
+type ShopProduct = { slug: string; name: string; hidden?: boolean; personalisation?: string };
+
+/** The shop's products as the owner left them: they add and delete pieces, so tests pick from what's there. */
+export const shopProducts = (JSON.parse(fs.readFileSync("content/products.json", "utf8")) as ShopProduct[]).filter((p) => !p.hidden);
+
+/** An ordinary piece (bought as it is, no name to type), other than the `not` slugs. */
+export const somePiece = (...not: string[]) => {
+  const p = shopProducts.find((x) => !x.personalisation && !not.includes(x.slug));
+  if (!p) throw new Error("no ordinary product in content/products.json to test with");
+  return p;
+};
 
 export const pages = [
   "/",

@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import QRCode from "qrcode";
 import { track } from "@/lib/track";
+import { isPale } from "@/lib/products";
 
 // "View in your room": the product's real 3D model placed at true size on the
 // customer's floor or table, using their phone's AR (ARCore on Android, Quick
@@ -118,7 +119,7 @@ export function ArView({ model, name, slug, sizeCm, tint }: { model: string; nam
       >
         {open && (
           <div className="grid md:grid-cols-[1.3fr_1fr]">
-            <div className="relative aspect-square stage md:aspect-auto md:min-h-[480px]">
+            <div className={`relative aspect-square stage ${isPale(tint.color) ? "stage-dark" : ""} md:aspect-auto md:min-h-[480px]`}>
               {base !== null ? (
                 <Viewer model={model} name={name} slug={slug} tint={tint} scale={sizeCm ? sizeCm / 100 / base : 1} />
               ) : (

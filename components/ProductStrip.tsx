@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { getProduct, photosFor, type Product } from "@/lib/products";
+import { backdropFor, getProduct, photoColour, photosFor, type Product } from "@/lib/products";
 import { renderFor } from "@/lib/renders";
 import { formatPrice } from "@/lib/site";
 import { useShelf } from "@/lib/shelf";
@@ -17,11 +17,13 @@ export function ProductStrip({ products, title, id }: { products: Product[]; tit
       <ul className="-mx-5 mt-5 flex snap-x gap-3 overflow-x-auto px-5 pb-2 [scrollbar-width:none] sm:-mx-6 sm:px-6 [&::-webkit-scrollbar]:hidden">
         {products.map((p) => {
           const f = p.finishes[0];
-          const src = photosFor(p, f).list[0] ?? renderFor(p, f, "sm");
+          const cover = p.coverSmall ?? p.cover;
+          const photo = photosFor(p, f).list[0];
+          const src = cover ?? photo ?? renderFor(p, f, "sm");
           return (
             <li key={p.slug} className="w-36 shrink-0 snap-start sm:w-44">
               <Link href={`/shop/${p.slug}/`} className="group block">
-                <span className="stage zoom-on-hover block aspect-square overflow-hidden rounded-[14px]">
+                <span className={`stage ${cover ? "" : backdropFor(photo ? photoColour(p, f) : f)} zoom-on-hover block aspect-square overflow-hidden rounded-[14px]`}>
                   {src && (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={src} alt="" width={200} height={200} loading="lazy" decoding="async" className="h-full w-full object-cover" />

@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { prepare } from "./helpers";
+import { prepare, somePiece } from "./helpers";
 import { TINY_JPEG } from "./github-mock";
 
 // Customers' reviews: the page, writing one with a photo, and what happens when
@@ -58,10 +58,11 @@ test("if reviews can't be received right now, the customer can send it on WhatsA
 
 test("a product page links to writing a review of that product", async ({ page }) => {
   await prepare(page, { lite: true });
-  await page.goto("/shop/infinity-knot/");
+  const { slug } = somePiece();
+  await page.goto(`/shop/${slug}/`);
   await page.getByRole("link", { name: "Write a new review" }).click();
-  await expect(page).toHaveURL(/\/reviews\/\?product=infinity-knot#write$/);
-  await expect(page.getByLabel("What did you buy?")).toHaveValue("infinity-knot");
+  await expect(page).toHaveURL(new RegExp(`/reviews/\\?product=${slug}#write$`));
+  await expect(page.getByLabel("What did you buy?")).toHaveValue(slug);
 });
 
 test("Customer reviews has two tabs: write a new review, and view all customer reviews (linkable)", async ({ page }) => {

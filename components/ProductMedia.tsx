@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { getFinish, photosFor, type Product } from "@/lib/products";
+import { backdropFor, getFinish, photosFor, type Product } from "@/lib/products";
 import { recolor } from "@/lib/recolor";
 import { renderFor } from "@/lib/renders";
 
@@ -63,11 +63,16 @@ export function ProductArt({ product: p, finish, large = false, play = true }: {
 
 /**
  * Small square picture of a product in a colour, for lists (cart, checkout):
- * its own photo in that colour, else its studio render, else a colour tile
- * with its initial.
+ * its own photo in that colour, else its studio render, else its cover photo,
+ * else a colour tile with its initial. `cover`: the cover photo first (search
+ * results, where no colour has been chosen yet).
  */
-export function ProductThumb({ product: p, finish, className = "h-16 w-16" }: { product: Product; finish: string; className?: string }) {
+export function ProductThumb({ product: p, finish, cover = false, className = "h-16 w-16" }: { product: Product; finish: string; cover?: boolean; className?: string }) {
   const photos = photosFor(p, finish);
+  const own = p.coverSmall ?? p.cover;
+  if (own && (cover || (!(!photos.recolor && photos.list[0]) && !renderFor(p, finish))))
+    // eslint-disable-next-line @next/next/no-img-element
+    return <img src={own} alt="" loading="lazy" decoding="async" className={`stage shrink-0 rounded-xl object-cover ${className}`} />;
   const src = (!photos.recolor && photos.list[0]) || renderFor(p, finish, "sm");
   const f = getFinish(finish);
   if (!src)
@@ -77,7 +82,7 @@ export function ProductThumb({ product: p, finish, className = "h-16 w-16" }: { 
       </div>
     );
   // eslint-disable-next-line @next/next/no-img-element
-  return <img src={src} alt="" loading="lazy" decoding="async" className={`stage shrink-0 rounded-xl object-cover ${className}`} />;
+  return <img src={src} alt="" loading="lazy" decoding="async" className={`stage ${backdropFor(finish)} shrink-0 rounded-xl object-cover ${className}`} />;
 }
 
 /**
@@ -171,25 +176,29 @@ function PreviewTag({ large = false }: { large?: boolean }) {
   );
 }
 
-/** Product page photo gallery: the main photo (tap for full screen) and thumbnails, in the chosen finish. */
-export function Gallery({ images, finish, preview, alt }: { images: string[]; finish: string; preview: boolean; alt: string }) {
+/**
+ * Product page photo gallery: the main photo (tap for full screen) and thumbnails, in the chosen finish.
+ * `raw`: the owner's cover photo, shown whole and as taken (no colour preview, no colour backdrop).
+ */
+export function Gallery({ images, finish, preview, alt, raw = false }: { images: string[]; finish: string; preview: boolean; alt: string; raw?: boolean }) {
   const [active, setActive] = useState(0);
   const [full, setFull] = useState(false);
   useEffect(() => setActive((a) => (a < images.length ? a : 0)), [images]);
   const main = useFinishPhoto(images[active], finish, preview);
+  const backdrop = raw ? "" : backdropFor(finish);
   return (
     <div>
       <button
         type="button"
         onClick={() => setFull(true)}
         aria-label={`Open photo ${active + 1} full screen`}
-        className="stage relative block aspect-square w-full cursor-zoom-in overflow-hidden rounded-[var(--radius-tile)]"
+        className={`stage ${backdrop} relative block aspect-square w-full cursor-zoom-in overflow-hidden rounded-[var(--radius-tile)]`}
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={main.url}
-          alt={`${alt} in ${getFinish(finish).name}, photo ${active + 1}`}
-          className={`h-full w-full object-cover transition-[filter,opacity] duration-300 ${main.busy ? "opacity-70 blur-[2px]" : ""}`}
+          alt={raw ? alt : `${alt} in ${getFinish(finish).name}, photo ${active + 1}`}
+          className={`h-full w-full ${raw ? "object-contain" : "object-cover"} transition-[filter,opacity] duration-300 ${main.busy ? "opacity-70 blur-[2px]" : ""}`}
         />
         {main.previewed && <PreviewTag large />}
       </button>
@@ -206,7 +215,7 @@ export function Gallery({ images, finish, preview, alt }: { images: string[]; fi
               onClick={() => setActive(i)}
               aria-label={`Show photo ${i + 1}`}
               aria-pressed={active === i}
-              className={`stage h-16 w-16 shrink-0 overflow-hidden rounded-xl border-2 transition-colors sm:h-20 sm:w-20 ${active === i ? "border-fg" : "border-transparent opacity-75 hover:opacity-100"}`}
+              className={`stage ${backdrop} h-16 w-16 shrink-0 overflow-hidden rounded-xl border-2 transition-colors sm:h-20 sm:w-20 ${active === i ? "border-fg" : "border-transparent opacity-75 hover:opacity-100"}`}
             >
               <Thumb src={src} finish={finish} preview={preview} />
             </button>
@@ -220,6 +229,7 @@ export function Gallery({ images, finish, preview, alt }: { images: string[]; fi
           finish={finish}
           preview={preview}
           alt={alt}
+          raw={raw}
           onClose={(i) => {
             setActive(i);
             setFull(false);
@@ -237,6 +247,7 @@ function Lightbox({
   finish,
   preview,
   alt,
+  raw,
   onClose,
 }: {
   images: string[];
@@ -244,6 +255,8 @@ function Lightbox({
   finish: string;
   preview: boolean;
   alt: string;
+  /** the owner's cover photo, as taken: no colour backdrop, not described as a colour */
+  raw: boolean;
   onClose: (at: number) => void;
 }) {
   const [i, setI] = useState(start);
@@ -285,8 +298,11 @@ function Lightbox({
         </button>
       </div>
       <div className="relative min-h-0 flex-1 px-4 pb-6">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={photo.url} alt={`${alt} in ${getFinish(finish).name}, photo ${i + 1}`} className="h-full w-full object-contain" />
+        {/* on the studio backdrop (dark for pale colours): cut-out photos are see-through */}
+        <div className={`stage ${raw ? "" : backdropFor(finish)} h-full w-full overflow-hidden rounded-[var(--radius-tile)]`}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={photo.url} alt={raw ? alt : `${alt} in ${getFinish(finish).name}, photo ${i + 1}`} className="h-full w-full object-contain" />
+        </div>
         {n > 1 && (
           <>
             <button onClick={() => setI((v) => (v - 1 + n) % n)} aria-label="Previous photo" className="absolute left-4 top-1/2 grid h-11 w-11 -translate-y-1/2 place-items-center rounded-full bg-page/90 shadow">

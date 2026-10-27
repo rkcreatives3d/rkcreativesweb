@@ -1,5 +1,8 @@
 import { expect, test } from "@playwright/test";
-import { opened, prepare } from "./helpers";
+import { opened, prepare, shopProducts, somePiece } from "./helpers";
+
+// a piece other than the Vortex Vase (which some tests open first)
+const piece = somePiece("vortex-vase");
 
 // Shopping helpers: the two-up grid on phones, saving with the heart, the
 // menu, search, the product buy bar, sharing, recently viewed.
@@ -34,7 +37,7 @@ test.describe("phone", () => {
 
   test("product page: the buy bar is there while the main button is off screen", async ({ page }) => {
     await prepare(page, { lite: true });
-    await page.goto("/shop/infinity-knot/");
+    await page.goto(`/shop/${piece.slug}/`);
     const bar = page.getByRole("button", { name: "Add to cart", exact: true });
     await expect(bar).toBeInViewport();
     await page.getByRole("button", { name: /^Add to cart ·/ }).scrollIntoViewIfNeeded();
@@ -42,27 +45,27 @@ test.describe("phone", () => {
     await page.mouse.wheel(0, -3000);
     await expect(bar).toBeInViewport();
     await bar.click();
-    await expect(page.getByRole("dialog", { name: "Cart" })).toContainText("Infinity Knot", { timeout: 15_000 });
+    await expect(page.getByRole("dialog", { name: "Cart" })).toContainText(piece.name, { timeout: 15_000 });
   });
 
   test("checkout shows the order total at the top", async ({ page }) => {
     await prepare(page, { lite: true });
-    await page.goto("/shop/infinity-knot/");
+    await page.goto(`/shop/${piece.slug}/`);
     await page.getByRole("button", { name: /^Add to cart ·/ }).click();
     await page.getByRole("dialog", { name: "Cart" }).getByRole("link", { name: /Checkout/ }).click();
     const summary = page.locator("details").filter({ hasText: "Order summary" });
     await expect(summary).toBeInViewport();
     await expect(summary).toContainText("₹");
     await summary.locator("summary").click();
-    await expect(summary).toContainText("Infinity Knot");
+    await expect(summary).toContainText(piece.name);
   });
 });
 
 test("heart saves a product; it's listed under Saved (phone menu, or the footer)", async ({ page, isMobile }) => {
   await prepare(page, { lite: true });
   await page.goto("/shop/");
-  await page.getByRole("button", { name: "Save Infinity Knot" }).click();
-  await expect(page.getByRole("button", { name: "Remove Infinity Knot from saved" })).toHaveAttribute("aria-pressed", "true");
+  await page.getByRole("button", { name: `Save ${piece.name}` }).click();
+  await expect(page.getByRole("button", { name: `Remove ${piece.name} from saved` })).toHaveAttribute("aria-pressed", "true");
   if (isMobile) {
     await page.getByRole("button", { name: "Menu" }).click();
     const menu = page.getByRole("navigation", { name: "More" });
@@ -71,7 +74,7 @@ test("heart saves a product; it's listed under Saved (phone menu, or the footer)
   } else await page.getByRole("contentinfo").getByRole("link", { name: "Saved" }).click();
   await expect(page).toHaveURL(/\/saved\/$/);
   await expect(page.locator("article")).toHaveCount(1);
-  await expect(page.locator("article")).toContainText("Infinity Knot");
+  await expect(page.locator("article")).toContainText(piece.name);
 });
 
 test("search in the nav finds products as you type; Enter opens the first, Esc closes", async ({ page }) => {
@@ -90,17 +93,17 @@ test("search in the nav finds products as you type; Enter opens the first, Esc c
   await expect(dialog).toHaveCount(0);
 
   await page.getByRole("button", { name: "Search" }).click();
-  await page.getByRole("textbox", { name: "Search products" }).fill("knot");
+  await page.getByRole("textbox", { name: "Search products" }).fill(piece.name);
   await page.keyboard.press("Enter");
-  await expect(page).toHaveURL(/\/shop\/infinity-knot\/$/);
+  await expect(page).toHaveURL(new RegExp(`/shop/${piece.slug}/$`));
 });
 
 test("the shop reads a search from the address: /shop/?q=", async ({ page }) => {
   await prepare(page, { lite: true });
-  await page.goto("/shop/?q=gear");
-  await expect(page.getByRole("searchbox", { name: "Search products" })).toHaveValue("gear");
-  await expect(page.locator("article")).toHaveCount(1);
-  await expect(page.locator("article")).toContainText("Gear Spinner");
+  await page.goto(`/shop/?q=${encodeURIComponent(piece.name)}`);
+  await expect(page.getByRole("searchbox", { name: "Search products" })).toHaveValue(piece.name);
+  await expect(page.locator("article").first()).toContainText(piece.name);
+  expect(await page.locator("article").count()).toBeLessThan(shopProducts.length); // filtered
 });
 
 test("share falls back to WhatsApp where there's no share sheet", async ({ page }) => {
@@ -118,10 +121,10 @@ test("recently viewed products show on the shop page", async ({ page }) => {
   const shelf = () => page.evaluate(() => localStorage.getItem("rk-shelf") ?? "");
   await page.goto("/shop/vortex-vase/");
   await expect.poll(shelf).toContain("vortex-vase"); // recorded once the page has loaded
-  await page.goto("/shop/infinity-knot/");
-  await expect.poll(shelf).toContain("infinity-knot");
+  await page.goto(`/shop/${piece.slug}/`);
+  await expect.poll(shelf).toContain(piece.slug);
   await page.goto("/shop/");
   const recent = page.getByRole("region", { name: "Recently viewed" });
   await expect(recent.getByRole("link")).toHaveCount(2);
-  await expect(recent.getByRole("link").first()).toContainText("Infinity Knot");
+  await expect(recent.getByRole("link").first()).toContainText(piece.name);
 });

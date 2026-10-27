@@ -1,7 +1,7 @@
 "use client";
 
 import { lazy, Suspense, useState } from "react";
-import type { Product, Shape, Tag } from "@/lib/products";
+import { isPale, type Product, type Shape, type Tag } from "@/lib/products";
 import { modelFor } from "@/lib/models";
 import { formatPrice } from "@/lib/site";
 import { newSize, resizePhoto, SHAPES, TAGS } from "@/lib/owner/edit";
@@ -24,6 +24,7 @@ export function ProductEditor({ slug, onClose }: { slug: string; onClose: () => 
   // new photos get their background cleaned up (product on the shop's stage), unless switched off
   const [clean, setClean] = useState(true);
   const [error, setError] = useState("");
+  const [coverNotes, setCoverNotes] = useState<string[]>([]);
   if (!p) return null;
 
   const isNew = !original.products.some((x) => x.slug === slug);
@@ -38,6 +39,9 @@ export function ProductEditor({ slug, onClose }: { slug: string; onClose: () => 
   const modelUrl = pendingModel === undefined ? published : (pendingModel?.url ?? undefined);
   const finish = preview && p.finishes.includes(preview) ? preview : p.finishes[0];
   const hasLook = !!modelUrl || !!p.images?.length;
+  // pale colours sit on the dark studio backdrop, as on the site (colours being added count too)
+  const backdrop = (id: string) => (isPale(draft.finishes.find((f) => f.id === id)?.color ?? "") ? "stage-dark" : "");
+  const photoBackdrop = backdrop(p.photoFinish ?? p.finishes[0]);
 
   const pickModel = async (file: File | undefined) => {
     if (!file) return;
@@ -58,6 +62,40 @@ export function ProductEditor({ slug, onClose }: { slug: string; onClose: () => 
     }
   };
 
+  // the cover photo goes up as taken (lib/owner/rawPhoto.ts), with a small copy for cards
+  const pickCover = async (file: File | undefined) => {
+    if (!file) return;
+    setError("");
+    setCoverNotes([]);
+    setBusy("Preparing the cover photo…");
+    try {
+      const { rawCover } = await import("@/lib/owner/rawPhoto");
+      const c = await rawCover(file);
+      const t = Date.now().toString(36);
+      const path = `/products/${slug}/cover-${t}.${c.ext}`;
+      const small = `/products/${slug}/cover-${t}-sm.jpg`;
+      addUpload(path, c.bytes);
+      addUpload(small, c.small);
+      // a cover picked earlier and not published yet is let go (a published one goes on Publish)
+      const before = useOwner.getState().draft?.products.find((x) => x.slug === slug);
+      for (const old of [before?.cover, before?.coverSmall]) if (old) dropUpload(old);
+      setLater(() => ({ cover: path, coverSmall: small }));
+      setCoverNotes(c.notes);
+    } catch (e) {
+      console.warn("cover photo:", e);
+      setError("That file couldn't be opened as a picture. Try a JPG or PNG photo.");
+    } finally {
+      setBusy("");
+    }
+  };
+  const removeCover = () => {
+    for (const old of [p.cover, p.coverSmall]) if (old) dropUpload(old);
+    set({ cover: undefined, coverSmall: undefined });
+    setCoverNotes([]);
+  };
+
+  // cut out onto a see-through background (WebP): the site puts it on the light
+  // backdrop, or the dark one when it's shown in a pale colour
   const cleaned = async (photo: Blob) => {
     const { cleanBackground } = await import("@/lib/owner/cutout");
     return cleanBackground(photo);
@@ -72,13 +110,14 @@ export function ProductEditor({ slug, onClose }: { slug: string; onClose: () => 
     let unreadable = 0;
     for (const [i, f] of [...files].entries()) {
       if (!f.type.startsWith("image/")) continue;
-      const path = `/products/${slug}/${Date.now().toString(36)}-${i}.jpg`;
       let bytes;
+      let ext = "jpg";
       try {
         if (!clean) bytes = await resizePhoto(f);
         else
           try {
             bytes = await cleaned(f);
+            ext = "webp";
           } catch (e) {
             console.warn("background clean-up:", e);
             bytes = await resizePhoto(f); // couldn't cut it out: keep the photo as it is
@@ -88,6 +127,7 @@ export function ProductEditor({ slug, onClose }: { slug: string; onClose: () => 
         unreadable++; // not a picture this browser can open (e.g. HEIC on some phones)
         continue;
       }
+      const path = `/products/${slug}/${Date.now().toString(36)}-${i}.${ext}`;
       addUpload(path, bytes);
       added.push(path);
     }
@@ -106,7 +146,7 @@ export function ProductEditor({ slug, onClose }: { slug: string; onClose: () => 
     setBusy("Cleaning up the background…");
     try {
       const bytes = await cleaned(await (await fetch(photoSrc(src))).blob());
-      const path = `/products/${slug}/${Date.now().toString(36)}-c.jpg`;
+      const path = `/products/${slug}/${Date.now().toString(36)}-c.webp`;
       addUpload(path, bytes);
       dropUpload(src);
       setLater((now) => ({ images: (now.images ?? []).map((x) => (x === src ? path : x)) }));
@@ -190,6 +230,47 @@ export function ProductEditor({ slug, onClose }: { slug: string; onClose: () => 
         </div>
       </Card>
 
+      <Card title="Cover photo">
+        <p className="text-sm text-muted">
+          The first picture customers see: on the shop cards, at the top of its page, in search, and on links shared on WhatsApp, so it&apos;s clear what the
+          product is. It goes up exactly as you took it: no clean-up, no crop, no colour change.
+        </p>
+        {p.cover ? (
+          <div className="grid gap-4 sm:grid-cols-2">
+            <figure>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={photoSrc(p.cover)} alt="Cover photo, as customers see it on the product page" className="max-h-72 w-full rounded-xl border border-line bg-raised object-contain" />
+              <figcaption className="mt-1.5 text-xs text-muted">On its page: the whole photo.</figcaption>
+            </figure>
+            <figure>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={photoSrc(p.coverSmall ?? p.cover)}
+                alt="Cover photo, as customers see it on a shop card"
+                className="aspect-square w-40 rounded-[var(--radius-card)] border border-line object-cover"
+              />
+              <figcaption className="mt-1.5 text-xs text-muted">On a shop card: square, so a tall or wide photo loses a little at its edges.</figcaption>
+              <div className="mt-3 flex flex-wrap gap-2">
+                <label className={`${smallBtn} inline-block cursor-pointer`}>
+                  Replace
+                  <input type="file" accept="image/*" aria-label="Replace the cover photo" className="sr-only" onChange={(e) => pickCover(e.target.files?.[0])} />
+                </label>
+                <button onClick={removeCover} className={dangerBtn}>
+                  Remove
+                </button>
+              </div>
+            </figure>
+          </div>
+        ) : (
+          <label className={`${smallBtn} inline-block cursor-pointer`}>
+            + Add a cover photo
+            <input type="file" accept="image/*" aria-label="Add a cover photo" className="sr-only" onChange={(e) => pickCover(e.target.files?.[0])} />
+          </label>
+        )}
+        {coverNotes.length > 0 && <p className="text-xs text-muted">{coverNotes.join(" ")}</p>}
+        <p className="text-xs text-muted">Location and camera details hidden inside phone photos are removed for your privacy; the picture itself isn&apos;t changed.</p>
+      </Card>
+
       <Card title="Price and sizes">
         <Num label="Starting price" prefix="₹" value={p.price} onChange={(v) => set({ price: v })} hint="The price of the first (smallest) size." />
         <ul className="space-y-3">
@@ -254,8 +335,8 @@ export function ProductEditor({ slug, onClose }: { slug: string; onClose: () => 
 
       <Card title="3D model">
         <div className="grid gap-4 sm:grid-cols-[1fr_1fr]">
-          <Suspense fallback={<div className="stage aspect-square rounded-2xl border border-line" />}>
-            <ModelPreview product={p} finish={finish} modelUrl={modelUrl} />
+          <Suspense fallback={<div className={`stage ${backdrop(finish)} aspect-square rounded-2xl border border-line`} />}>
+            <ModelPreview product={p} finish={finish} modelUrl={modelUrl} backdrop={backdrop(finish)} />
           </Suspense>
           <div className="space-y-3 text-sm">
             <p className="text-muted">
@@ -316,8 +397,8 @@ export function ProductEditor({ slug, onClose }: { slug: string; onClose: () => 
             {p.images.map((src, i) => (
               <li key={src} className="relative">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={photoSrc(src)} alt={`Photo ${i + 1}`} className="aspect-square w-full rounded-xl border border-line object-cover" />
-                {i === 0 && <span className="absolute left-1.5 top-1.5 rounded-full bg-fg px-2 py-0.5 text-xs font-semibold text-page">Cover</span>}
+                <img src={photoSrc(src)} alt={`Photo ${i + 1}`} className={`stage ${photoBackdrop} aspect-square w-full rounded-xl border border-line object-cover`} />
+                {i === 0 && !p.cover && <span className="absolute left-1.5 top-1.5 rounded-full bg-fg px-2 py-0.5 text-xs font-semibold text-page">Cover</span>}
                 <div className="mt-1 flex justify-between gap-1">
                   <button onClick={() => movePhoto(i, -1)} disabled={i === 0} className="h-8 flex-1 rounded-lg border border-fg/15 text-sm disabled:opacity-30" aria-label={`Move photo ${i + 1} left`}>
                     ←
@@ -357,13 +438,13 @@ export function ProductEditor({ slug, onClose }: { slug: string; onClose: () => 
         )}
         <label className={`${smallBtn} inline-block cursor-pointer`}>
           + Add photos
-          <input type="file" accept="image/*" multiple className="sr-only" onChange={(e) => addPhotos(e.target.files)} />
+          <input type="file" accept="image/*" multiple aria-label="Add photos" className="sr-only" onChange={(e) => addPhotos(e.target.files)} />
         </label>
         <Switch
           label="Clean up the background"
           checked={clean}
           onChange={setClean}
-          hint="Cuts the product out and puts it on the shop's light studio background, so every product looks the same. ✨ on a photo does it later."
+          hint="Cuts the product out so it sits on the shop's studio background like every other product: light, or dark when it's shown in white or another pale colour. ✨ on a photo does it later."
         />
         {!!p.images?.length && (
           <Choice

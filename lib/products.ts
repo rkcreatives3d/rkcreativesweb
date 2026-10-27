@@ -71,7 +71,15 @@ export type Product = {
   printTime: string;
   badge?: string;
   tags?: Tag[];
-  /** e.g. ["/products/vortex-vase-1.jpg", "/products/vortex-vase-2.jpg"] — first one is the cover */
+  /**
+   * The cover photo: the owner's own picture of it, shown first wherever the
+   * product is introduced (shop cards, its page, search, share cards) so it's
+   * clear what it is. Kept as taken: never cut out, cropped or recoloured.
+   * `coverSmall` is the same picture made smaller, for cards and thumbnails.
+   */
+  cover?: string;
+  coverSmall?: string;
+  /** e.g. ["/products/vortex-vase-1.jpg", "/products/vortex-vase-2.jpg"] — shown after the cover photo */
   images?: string[];
   /** which finish the `images` show (defaults to the first finish) */
   photoFinish?: string;
@@ -103,6 +111,21 @@ export const finishes = finishData as Finish[];
 const finishMap = new Map(finishes.map((f) => [f.id, f]));
 export const getFinish = (id: string) => finishMap.get(id) ?? finishes[0];
 
+/** A colour so pale (white, cream, pastel) that it disappears on the light studio backdrop. */
+export function isPale(hex: string) {
+  const n = parseInt(hex.replace("#", "").slice(0, 6), 16);
+  if (Number.isNaN(n)) return false;
+  return (0.299 * ((n >> 16) & 255) + 0.587 * ((n >> 8) & 255) + 0.114 * (n & 255)) / 255 > 0.8;
+}
+
+export const isLightFinish = (id: string) => isPale(getFinish(id).color);
+
+/**
+ * The backdrop for a product picture in a colour: pale colours sit on the dark
+ * studio sweep (globals.css .stage-dark) so they stand out; the rest on the light one.
+ */
+export const backdropFor = (finish: string | undefined) => (finish && isLightFinish(finish) ? "stage-dark" : "");
+
 /** Every product, including hidden ones (the owner page needs them all). */
 export const allProducts = productData as Product[];
 
@@ -123,6 +146,9 @@ export function photosFor(p: Product, finish: string): { list: string[]; recolor
   const list = p.images ?? [];
   return { list, recolor: list.length > 0 && finish !== (p.photoFinish ?? p.finishes[0]) };
 }
+
+/** The colour a product's photo for `finish` really shows, when it's used as it is (not colour-previewed). */
+export const photoColour = (p: Product, finish: string) => (p.colorPhotos?.[finish]?.length ? finish : (p.photoFinish ?? p.finishes[0]));
 
 export const unitPrice = (p: Product, sizeId: string) =>
   p.price + (p.sizes.find((s) => s.id === sizeId)?.priceDelta ?? 0);

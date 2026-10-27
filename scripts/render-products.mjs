@@ -2,8 +2,7 @@
 // 3D product cards (shown live only in this "studio" mode, on a transparent
 // stage): public/renders/<slug>/<finish>.webp (720 px), <finish>-sm.webp
 // (200 px), <main colour>-xl.webp (1200 px, for the home page) — all
-// transparent, with the floor shadow — and cover.jpg (share cards, on the
-// stage), plus the list in lib/renders.generated.json.
+// transparent, with the floor shadow — plus the list in lib/renders.generated.json.
 //
 // Run it whenever products, colours or 3D models change, with the site running:
 //   npm run dev            (in another terminal)
@@ -106,10 +105,7 @@ for (let i = 0; i < count; i++) {
     const png = await stage.screenshot({ animations: "disabled", omitBackground: true });
     await writeFile(join(out, slug, `${finish}.webp`), Buffer.from(await encode(png, 720, "image/webp", 0.82), "base64"));
     await writeFile(join(out, slug, `${finish}-sm.webp`), Buffer.from(await encode(png, 200, "image/webp", 0.8), "base64"));
-    if (j === 0) {
-      await writeFile(join(out, slug, `${finish}-xl.webp`), Buffer.from(await encode(png, 1200, "image/webp", 0.86), "base64"));
-      await writeFile(join(out, slug, "cover.jpg"), Buffer.from(await encode(png, 630, "image/jpeg", 0.85), "base64"));
-    }
+    if (j === 0) await writeFile(join(out, slug, `${finish}-xl.webp`), Buffer.from(await encode(png, 1200, "image/webp", 0.86), "base64"));
     made[slug].push(finish);
     console.log(`${slug} · ${finish}`);
   }

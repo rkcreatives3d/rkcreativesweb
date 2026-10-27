@@ -118,10 +118,11 @@ export function summarize(before: Content, after: Content, uploads: { path: stri
     if (o.name !== p.name) bits.push(`renamed from “${o.name}”`);
     if (JSON.stringify(o.sizes) !== JSON.stringify(p.sizes)) bits.push("sizes");
     if (JSON.stringify(o.finishes) !== JSON.stringify(p.finishes)) bits.push("colours");
+    if (o.cover !== p.cover) bits.push(p.cover ? "cover photo" : "cover photo removed");
     if (JSON.stringify(o.images ?? []) !== JSON.stringify(p.images ?? [])) bits.push("photos");
     if (modelsChanged.includes(p.slug)) bits.push("3D model");
-    const rest = { ...o, price: 0, hidden: false, name: "", sizes: [], finishes: [], images: [] };
-    const restNow = { ...p, price: 0, hidden: false, name: "", sizes: [], finishes: [], images: [] };
+    const rest = { ...o, price: 0, hidden: false, name: "", sizes: [], finishes: [], images: [], cover: "", coverSmall: "" };
+    const restNow = { ...p, price: 0, hidden: false, name: "", sizes: [], finishes: [], images: [], cover: "", coverSmall: "" };
     if (JSON.stringify(rest) !== JSON.stringify(restNow)) bits.push("details");
     if (bits.length) out.push(`${p.name}: ${bits.join(", ")}`);
   }
