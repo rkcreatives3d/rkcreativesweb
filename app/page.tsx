@@ -13,8 +13,28 @@ import { InstagramGrid, PhotoGrid, Reviews } from "@/components/Proof";
 import { StudioClip } from "@/components/StudioClip";
 import { customerPhotos, instagramPosts, reviews } from "@/lib/content";
 import { promoLive } from "@/lib/promo";
+import { site } from "@/lib/site";
 
-export const metadata: Metadata = { alternates: { canonical: "/" } };
+// People search for the shop by its domain name, "rkcreatives", so the home
+// title leads with it; the full name follows.
+const homeTitle = `RK Creatives — Custom 3D Prints & Gifts | ${site.name}`;
+const homeDescription = `RK Creatives: custom 3D prints, personalised gifts and one-off builds by ${site.name} 3D. Printed to order, finished by hand, shipped across India.`;
+
+export const metadata: Metadata = {
+  title: { absolute: homeTitle },
+  description: homeDescription,
+  alternates: { canonical: "/" },
+  openGraph: { title: homeTitle, description: homeDescription, url: "/", type: "website", siteName: site.name, locale: "en_IN" },
+};
+
+// Tells Google the site's name and the other names people search it by.
+const websiteJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  name: site.name,
+  alternateName: ["RK Creatives", "rkcreatives", `${site.name} 3D`],
+  url: `${site.url}/`,
+};
 
 // The featured pieces. Computers: the first as a full black spotlight, the
 // rest as tiles side by side. Phones: all of them as cards to swipe through.
@@ -67,6 +87,7 @@ export default function Home() {
       <StudioClip />
       <PhotoGrid photos={customerPhotos} label="From our customers" title="In their" highlight="homes" />
       <InstagramGrid posts={instagramPosts} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }} />
     </>
   );
 }

@@ -43,6 +43,7 @@ const storeJsonLd = {
   "@context": "https://schema.org",
   "@type": "Store",
   name: site.name,
+  alternateName: ["RK Creatives", `${site.name} 3D`],
   description: site.description,
   url: site.url,
   logo: `${site.url}/brand/logo.jpg`,
