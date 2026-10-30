@@ -10,6 +10,18 @@ const nextConfig: NextConfig = {
   output: process.env.VERCEL ? undefined : "export",
   images: { unoptimized: true },
   trailingSlash: true,
+  // Send the Vercel address to the real domain, so search engines index one
+  // site. Only on Vercel: a static export can't redirect.
+  ...(process.env.VERCEL && {
+    redirects: async () => [
+      {
+        source: "/:path(.*)",
+        has: [{ type: "host" as const, value: "rkcreativesweb.vercel.app" }],
+        destination: "https://rkcreatives.app/:path",
+        permanent: true,
+      },
+    ],
+  }),
 };
 
 export default nextConfig;
